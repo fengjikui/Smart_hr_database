@@ -247,6 +247,41 @@ const EXAMPLES = [
     question: '本月各部门已批准加班多少小时？',
   },
   { icon: BookOpen, label: '查看人员趋势', question: '近半年每月在职人数趋势' },
+  {
+    icon: BookOpen,
+    label: '部门博士人数',
+    question: '平台研发部现在有多少博士？',
+  },
+  {
+    icon: Users,
+    label: '上季度博士入职',
+    question: '上季度整个公司入职的博士有多少人？',
+  },
+  {
+    icon: GitBranch,
+    label: '年度入离职对比',
+    question: '整个公司今年各部门入职和离职人数统计',
+  },
+  {
+    icon: CircleCheck,
+    label: '周末加班工时',
+    question: '本月各部门周末加班的总工时',
+  },
+  {
+    icon: BookOpen,
+    label: '多校毕业生人数',
+    question: '清华大学或北京大学毕业的在职员工有多少人？',
+  },
+  {
+    icon: Users,
+    label: '部门院校背景占比',
+    question: '平台研发部985或211毕业的员工比例',
+  },
+  {
+    icon: BookOpen,
+    label: '硕士人才占比',
+    question: '平台研发部硕士毕业的比例',
+  },
 ];
 type Exchange = {
   question: string;
@@ -827,6 +862,15 @@ export function Catalog({
     metrics: Metric[];
     version: string;
     storage: string;
+    schools: {
+      id: number;
+      name: string;
+      aliases: string[];
+      is_985: number;
+      is_211: number;
+      classification_basis: string;
+      source_url: string;
+    }[];
   }>('/catalog', boot.principal.id);
   const [query, setQuery] = useState('');
   const metrics = data?.metrics.filter((m) =>
@@ -918,12 +962,70 @@ export function Catalog({
           。搜索索引可重建，权限不由检索结果决定。
         </span>
       </div>
+      {data?.schools ? (
+        <details className="school-directory">
+          <summary>
+            <BookOpen size={17} />
+            教育背景与院校字典 · {data.schools.length} 所
+          </summary>
+          <div className="school-directory-body">
+            <p>
+              “某校毕业”匹配任一已完成教育经历，多校合并按员工去重；“硕士占比”和“211
+              /
+              985占比”默认使用最高已完成教育经历。211包含985，合并占比按“或”计算。结果始终列出实际统计条件。
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>毕业院校</TableHead>
+                  <TableHead>可识别简称</TableHead>
+                  <TableHead>院校标签</TableHead>
+                  <TableHead>分类依据</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.schools.map((school) => (
+                  <TableRow key={school.id}>
+                    <TableCell>{school.name}</TableCell>
+                    <TableCell>{school.aliases.join('、') || '—'}</TableCell>
+                    <TableCell>
+                      {[school.is_985 ? '985' : '', school.is_211 ? '211' : '']
+                        .filter(Boolean)
+                        .join(' · ') || '模拟非211/985'}
+                    </TableCell>
+                    <TableCell>
+                      {school.source_url.startsWith('https://') ? (
+                        <a
+                          href={school.source_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="school-source"
+                        >
+                          {school.classification_basis}
+                        </a>
+                      ) : (
+                        school.classification_basis
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="muted text-sm">
+              员工及教育经历均为合成数据。真实院校标签来自历史项目名单，不等同于“双一流”；未收录的院校会明确提示补充字典。
+            </p>
+          </div>
+        </details>
+      ) : null}
     </>
   );
 }
 
 const TABLE_NAMES: Record<string, string> = {
   employees: '员工基本信息',
+  employee_education: '员工教育经历',
+  schools: '院校字典',
+  overtime_attendance: '周末加班打卡',
   assignments: '任职历史',
   departments: '组织部门',
   reporting_closure: '管理关系闭包',

@@ -74,6 +74,7 @@ export function DebugPanel({
     node: string;
   } | null>(null);
   const [question, setQuestion] = useState('我的直属和间接下属分别有多少人？');
+  const questionSource = useRef<string | null>(initialRunId ?? null);
   const [previous, setPrevious] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -108,6 +109,10 @@ export function DebugPanel({
           );
           if (cancel.signal.aborted) return;
           setLoaded({ id, value: detail });
+          if (questionSource.current === id) {
+            setQuestion(detail.question);
+            questionSource.current = null;
+          }
           if (!selected) setSelected(id);
         } else setLoaded(null);
         setError('');
@@ -199,7 +204,10 @@ export function DebugPanel({
             id="debug-question"
             value={question}
             maxLength={600}
-            onChange={(e) => setQuestion(e.target.value)}
+            onChange={(e) => {
+              questionSource.current = null;
+              setQuestion(e.target.value);
+            }}
             placeholder="输入要排查的问题"
           />
           <Button type="submit" disabled={busy || question.trim().length < 2}>
@@ -238,6 +246,7 @@ export function DebugPanel({
           value={selected}
           onValueChange={(v) => {
             if (v) {
+              questionSource.current = v;
               setSelected(v);
               setSelection(null);
             }

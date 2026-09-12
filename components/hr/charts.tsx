@@ -46,7 +46,11 @@ export function TrendChart({
             tickMargin={13}
             minTickGap={22}
             tickFormatter={(v: string) =>
-              answer.plan.dimension === 'day' ? v.slice(5) : `${v.slice(5)}月`
+              answer.plan.dimension === 'day'
+                ? v.slice(5)
+                : answer.plan.dimension === 'quarter'
+                  ? v
+                  : `${v.slice(5)}月`
             }
           />
           <YAxis

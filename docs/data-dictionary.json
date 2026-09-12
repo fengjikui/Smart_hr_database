@@ -4,7 +4,7 @@
       "name": "dataset_meta",
       "database": "business",
       "description": "数据集元信息；每个配置键一行",
-      "row_count": 7,
+      "row_count": 8,
       "fields": [
         {
           "name": "key",
@@ -322,6 +322,85 @@
       "create_sql": "CREATE TABLE positions (id INTEGER PRIMARY KEY, name TEXT NOT NULL, family_id INTEGER NOT NULL REFERENCES job_families(id), is_manager INTEGER NOT NULL CHECK(is_manager IN (0,1)))"
     },
     {
+      "name": "schools",
+      "database": "business",
+      "description": "院校名称、别名与历史211/985标签；每校一行，不含员工数据",
+      "row_count": 11,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "aliases",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "院校简称JSON数组，精确归一到院校ID"
+        },
+        {
+          "name": "is_985",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "历史985项目院校标签0/1；为1时is_211必须为1"
+        },
+        {
+          "name": "is_211",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "历史211项目院校标签0/1，包含985院校"
+        },
+        {
+          "name": "classification_basis",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "标签分类依据；真实院校历史名单或虚构标记，不等于双一流"
+        },
+        {
+          "name": "source_url",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "教育部项目名单链接；虚构学校为synthetic标记"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_schools_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "name"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE schools (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, aliases TEXT NOT NULL, is_985 INTEGER NOT NULL CHECK(is_985 IN (0,1)), is_211 INTEGER NOT NULL CHECK(is_211 IN (0,1)), classification_basis TEXT NOT NULL, source_url TEXT NOT NULL, CHECK(is_985<=is_211))"
+    },
+    {
       "name": "employees",
       "database": "business",
       "description": "人员基础档案；每名员工一行",
@@ -414,11 +493,69 @@
           "default": null,
           "primary_key_position": 0,
           "description": "保留示例域名邮箱"
+        },
+        {
+          "name": "highest_education",
+          "type": "TEXT",
+          "not_null": true,
+          "default": "'未知'",
+          "primary_key_position": 0,
+          "description": "当前最高已完成学历快照；未知/高中及以下/专科/本科/硕士研究生/博士研究生"
+        },
+        {
+          "name": "highest_degree",
+          "type": "TEXT",
+          "not_null": true,
+          "default": "'未知'",
+          "primary_key_position": 0,
+          "description": "当前最高已完成教育经历对应学位快照；未知/无学位/学士/硕士/博士"
+        },
+        {
+          "name": "graduation_school_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "当前最高已完成教育经历毕业院校标识"
+        },
+        {
+          "name": "major",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "所学专业；演示未开放按专业筛选"
+        },
+        {
+          "name": "graduation_date",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "毕业日期；只有不晚于统计日的已完成经历参与查询"
+        },
+        {
+          "name": "education_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "default": "'未知'",
+          "primary_key_position": 0,
+          "description": "当前最高教育经历学习形式快照；未知/全日制/非全日制"
         }
       ],
       "foreign_keys": [
         {
           "id": 0,
+          "seq": 0,
+          "table": "schools",
+          "from": "graduation_school_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
           "seq": 0,
           "table": "locations",
           "from": "location_id",
@@ -428,7 +565,7 @@
           "match": "NONE"
         },
         {
-          "id": 1,
+          "id": 2,
           "seq": 0,
           "table": "legal_entities",
           "from": "entity_id",
@@ -462,7 +599,158 @@
           "sql": null
         }
       ],
-      "create_sql": "CREATE TABLE employees (id INTEGER PRIMARY KEY, employee_no TEXT NOT NULL UNIQUE, name TEXT NOT NULL, gender TEXT NOT NULL CHECK(gender IN ('女','男')), birth_date TEXT NOT NULL, hire_date TEXT NOT NULL, termination_date TEXT, employment_type TEXT NOT NULL CHECK(employment_type IN ('正式','实习','外包')), entity_id INTEGER NOT NULL REFERENCES legal_entities(id), location_id INTEGER NOT NULL REFERENCES locations(id), email TEXT NOT NULL UNIQUE, CHECK(termination_date IS NULL OR termination_date>=hire_date))"
+      "create_sql": "CREATE TABLE employees (id INTEGER PRIMARY KEY, employee_no TEXT NOT NULL UNIQUE, name TEXT NOT NULL, gender TEXT NOT NULL CHECK(gender IN ('女','男')), birth_date TEXT NOT NULL, hire_date TEXT NOT NULL, termination_date TEXT, employment_type TEXT NOT NULL CHECK(employment_type IN ('正式','实习','外包')), entity_id INTEGER NOT NULL REFERENCES legal_entities(id), location_id INTEGER NOT NULL REFERENCES locations(id), email TEXT NOT NULL UNIQUE, highest_education TEXT NOT NULL DEFAULT '未知' CHECK(highest_education IN ('未知','高中及以下','专科','本科','硕士研究生','博士研究生')), highest_degree TEXT NOT NULL DEFAULT '未知' CHECK(highest_degree IN ('未知','无学位','学士','硕士','博士')), graduation_school_id INTEGER REFERENCES schools(id), major TEXT, graduation_date TEXT, education_mode TEXT NOT NULL DEFAULT '未知' CHECK(education_mode IN ('未知','全日制','非全日制')), CHECK(termination_date IS NULL OR termination_date>=hire_date))"
+    },
+    {
+      "name": "employee_education",
+      "database": "business",
+      "description": "已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历",
+      "row_count": 619,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "school_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "该段教育经历的毕业院校标识"
+        },
+        {
+          "name": "education_level",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "学历层级名称，与education_rank对应"
+        },
+        {
+          "name": "education_rank",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "学历排序：高中及以下1/专科2/本科3/硕士研究生4/博士研究生5"
+        },
+        {
+          "name": "degree",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "已取得学位：无学位/学士/硕士/博士；不同于学历"
+        },
+        {
+          "name": "major",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "所学专业；演示未开放按专业筛选"
+        },
+        {
+          "name": "start_date",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "教育经历开始日期"
+        },
+        {
+          "name": "graduation_date",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "毕业日期；只有不晚于统计日的已完成经历参与查询"
+        },
+        {
+          "name": "study_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "该段教育经历学习形式：全日制/非全日制"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "schools",
+          "from": "school_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_education_school",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "school_id",
+            "employee_id"
+          ],
+          "sql": "CREATE INDEX idx_education_school ON employee_education(school_id,employee_id)"
+        },
+        {
+          "seq": 1,
+          "name": "idx_education_employee_date",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "graduation_date",
+            "education_rank"
+          ],
+          "sql": "CREATE INDEX idx_education_employee_date ON employee_education(employee_id,graduation_date,education_rank)"
+        },
+        {
+          "seq": 2,
+          "name": "sqlite_autoindex_employee_education_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "education_rank",
+            "graduation_date"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE employee_education (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), school_id INTEGER NOT NULL REFERENCES schools(id), education_level TEXT NOT NULL, education_rank INTEGER NOT NULL CHECK(education_rank BETWEEN 1 AND 5), degree TEXT NOT NULL CHECK(degree IN ('无学位','学士','硕士','博士')), major TEXT NOT NULL, start_date TEXT NOT NULL, graduation_date TEXT NOT NULL, study_mode TEXT NOT NULL CHECK(study_mode IN ('全日制','非全日制')), CHECK(start_date<graduation_date), UNIQUE(employee_id,education_rank,graduation_date))"
     },
     {
       "name": "employee_private",
@@ -777,7 +1065,7 @@
       "name": "work_calendar",
       "database": "business",
       "description": "演示工作日历；每天一行，未接正式节假日调休",
-      "row_count": 195,
+      "row_count": 254,
       "fields": [
         {
           "name": "day",
@@ -899,7 +1187,7 @@
       "name": "attendance_daily",
       "database": "business",
       "description": "每日考勤事实；每人每个应工作日一行",
-      "row_count": 62339,
+      "row_count": 79735,
       "fields": [
         {
           "name": "id",
@@ -1054,7 +1342,7 @@
       "name": "leave_requests",
       "database": "business",
       "description": "整日请假申请；每人每日最多一行",
-      "row_count": 2182,
+      "row_count": 2793,
       "fields": [
         {
           "name": "id",
@@ -1155,7 +1443,7 @@
       "name": "overtime_requests",
       "database": "business",
       "description": "加班申请；每人每日最多一行，与晚离岗分开",
-      "row_count": 8751,
+      "row_count": 12042,
       "fields": [
         {
           "name": "id",
@@ -1188,6 +1476,14 @@
           "default": null,
           "primary_key_position": 0,
           "description": "申请加班分钟"
+        },
+        {
+          "name": "day_type",
+          "type": "TEXT",
+          "not_null": true,
+          "default": "'工作日'",
+          "primary_key_position": 0,
+          "description": "加班日期类型：工作日/周末；与演示日历一致"
         },
         {
           "name": "approval_status",
@@ -1231,6 +1527,19 @@
       "indexes": [
         {
           "seq": 0,
+          "name": "idx_overtime_day_type",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "day_type",
+            "day",
+            "employee_id"
+          ],
+          "sql": "CREATE INDEX idx_overtime_day_type ON overtime_requests(day_type,day,employee_id)"
+        },
+        {
+          "seq": 1,
           "name": "sqlite_autoindex_overtime_requests_1",
           "unique": 1,
           "origin": "u",
@@ -1242,7 +1551,7 @@
           "sql": null
         }
       ],
-      "create_sql": "CREATE TABLE overtime_requests (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL, minutes INTEGER NOT NULL CHECK(minutes>0), approval_status TEXT NOT NULL CHECK(approval_status IN ('已批准','待审批','已拒绝')), approver_id INTEGER REFERENCES employees(id), UNIQUE(employee_id,day))"
+      "create_sql": "CREATE TABLE overtime_requests (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL, minutes INTEGER NOT NULL CHECK(minutes>0), day_type TEXT NOT NULL DEFAULT '工作日' CHECK(day_type IN ('工作日','周末')), approval_status TEXT NOT NULL CHECK(approval_status IN ('已批准','待审批','已拒绝')), approver_id INTEGER REFERENCES employees(id), UNIQUE(employee_id,day))"
     },
     {
       "name": "compensation",
@@ -1603,6 +1912,107 @@
       ],
       "indexes": [],
       "create_sql": "CREATE TABLE recruitment_requisitions (id INTEGER PRIMARY KEY, department_id INTEGER NOT NULL REFERENCES departments(id), position_id INTEGER NOT NULL REFERENCES positions(id), openings INTEGER NOT NULL CHECK(openings>0), status TEXT NOT NULL, opened_at TEXT NOT NULL)"
+    },
+    {
+      "name": "overtime_attendance",
+      "database": "business",
+      "description": "独立周末打卡事实；每人每周末出勤日一行，核验申请时长",
+      "row_count": 965,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "day",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务日期YYYY-MM-DD"
+        },
+        {
+          "name": "check_in",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "到岗时刻；距午夜分钟，缺卡可空"
+        },
+        {
+          "name": "check_out",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "离岗时刻；距午夜分钟，缺卡可空"
+        },
+        {
+          "name": "break_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "周末打卡区间内扣除的休息分钟"
+        },
+        {
+          "name": "work_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "扣除午休后的净在岗分钟"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "work_calendar",
+          "from": "day",
+          "to": "day",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_overtime_attendance_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "day"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE overtime_attendance (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL REFERENCES work_calendar(day), check_in INTEGER NOT NULL, check_out INTEGER NOT NULL, break_minutes INTEGER NOT NULL CHECK(break_minutes>=0), work_minutes INTEGER NOT NULL CHECK(work_minutes>0), CHECK(check_in>=0 AND check_out<=1320 AND check_out>check_in AND work_minutes=check_out-check_in-break_minutes), UNIQUE(employee_id,day))"
     },
     {
       "name": "principals",
@@ -2250,29 +2660,39 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "job_family",
         "location",
         "employment_type",
         "relation",
-        "month"
+        "month",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月在职人数",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "job_family": "岗位序列",
         "location": "工作地",
         "employment_type": "用工类型",
         "relation": "汇报关系",
-        "month": "月份"
+        "month": "月份",
+        "education": "最高学历",
+        "degree": "最高学位",
+        "school": "最高学历毕业院校"
       },
       "example_plan": {
         "kind": "metric",
@@ -2282,13 +2702,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "COUNT(DISTINCT e.id)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,1 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day))\n    SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,1 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day)) SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "hires",
@@ -2304,23 +2731,35 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "location",
-        "month"
+        "month",
+        "quarter",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月新入职人数",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "location": "工作地",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度",
+        "education": "最高学历",
+        "degree": "最高学位",
+        "school": "最高学历毕业院校"
       },
       "example_plan": {
         "kind": "metric",
@@ -2330,13 +2769,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "COUNT(DISTINCT e.id)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,e.hire_date AS event_day,e.hire_date AS attr_day,1 AS amount FROM scoped e WHERE e.hire_date BETWEEN :start AND :end)\n    SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,e.hire_date AS event_day,e.hire_date AS attr_day,1 AS amount FROM scoped e WHERE e.hire_date BETWEEN :start AND :end) SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "departures",
@@ -2351,21 +2797,33 @@
       "dimensions": [
         "division",
         "department",
-        "month"
+        "team",
+        "month",
+        "quarter",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月离职人数",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
-        "month": "月份"
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
+        "month": "月份",
+        "quarter": "季度",
+        "education": "最高学历",
+        "degree": "最高学位",
+        "school": "最高学历毕业院校"
       },
       "example_plan": {
         "kind": "metric",
@@ -2375,13 +2833,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "COUNT(DISTINCT e.id)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,e.termination_date AS event_day,date(e.termination_date,'-1 day') AS attr_day,1 AS amount FROM scoped e WHERE e.termination_date BETWEEN :start AND :end)\n    SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,e.termination_date AS event_day,date(e.termination_date,'-1 day') AS attr_day,1 AS amount FROM scoped e WHERE e.termination_date BETWEEN :start AND :end) SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "turnover_rate",
@@ -2395,20 +2860,22 @@
       ],
       "dimensions": [
         "division",
-        "department"
+        "department",
+        "team"
       ],
       "source": [
         "employees",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月人员离职率",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门"
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织"
       },
       "example_plan": {
         "kind": "metric",
@@ -2418,13 +2885,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(200.0*SUM(f.exits)/NULLIF(SUM(f.opening)+SUM(f.closing),0),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT id AS employee_id,:begin AS event_day,:begin AS attr_day,1 AS opening,0 AS closing,0 AS exits FROM scoped WHERE hire_date<=:begin AND (termination_date IS NULL OR termination_date>:begin)\n        UNION ALL SELECT id,:end,:end,0,1,0 FROM scoped WHERE hire_date<=:end AND (termination_date IS NULL OR termination_date>:end)\n        UNION ALL SELECT id,termination_date,date(termination_date,'-1 day'),0,0,1 FROM scoped WHERE termination_date BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(200.0*SUM(f.exits)/NULLIF(SUM(f.opening)+SUM(f.closing),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT id AS employee_id,:begin AS event_day,:begin AS attr_day,1 AS opening,0 AS closing,0 AS exits FROM scoped WHERE hire_date<=:begin AND (termination_date IS NULL OR termination_date>:begin)\n        UNION ALL SELECT id,:end,:end,0,1,0 FROM scoped WHERE hire_date<=:end AND (termination_date IS NULL OR termination_date>:end)\n        UNION ALL SELECT id,termination_date,date(termination_date,'-1 day'),0,0,1 FROM scoped WHERE termination_date BETWEEN :start AND :end) SELECT '合计' AS label,ROUND(200.0*SUM(f.exits)/NULLIF(SUM(f.opening)+SUM(f.closing),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "avg_tenure",
@@ -2439,21 +2913,31 @@
       "dimensions": [
         "division",
         "department",
-        "job_family"
+        "team",
+        "job_family",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月平均司龄",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
-        "job_family": "岗位序列"
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
+        "job_family": "岗位序列",
+        "education": "最高学历",
+        "degree": "最高学位",
+        "school": "最高学历毕业院校"
       },
       "example_plan": {
         "kind": "metric",
@@ -2463,13 +2947,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(AVG(f.amount),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,(julianday(t.day)-julianday(e.hire_date))/365.25 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day))\n    SELECT '合计' AS label,ROUND(AVG(f.amount),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,(julianday(t.day)-julianday(e.hire_date))/365.25 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day)) SELECT '合计' AS label,ROUND(AVG(f.amount),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "attendance_rate",
@@ -2484,23 +2975,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月出勤率",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2510,13 +3005,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(100.0*SUM(CASE WHEN f.status IN ('正常','远程') THEN 1 ELSE 0 END)/NULLIF(SUM(CASE WHEN f.status<>'请假' THEN 1 ELSE 0 END),0),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(100.0*SUM(CASE WHEN f.status IN ('正常','远程') THEN 1 ELSE 0 END)/NULLIF(SUM(CASE WHEN f.status<>'请假' THEN 1 ELSE 0 END),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end) SELECT '合计' AS label,ROUND(100.0*SUM(CASE WHEN f.status IN ('正常','远程') THEN 1 ELSE 0 END)/NULLIF(SUM(CASE WHEN f.status<>'请假' THEN 1 ELSE 0 END),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "late_count",
@@ -2531,23 +3033,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月迟到人次",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2557,13 +3063,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "COALESCE(SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END),0)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,COALESCE(SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END),0) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end) SELECT '合计' AS label,COALESCE(SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END),0) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "late_rate",
@@ -2577,23 +3090,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月迟到率",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2603,13 +3120,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(100.0*SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END)/NULLIF(COUNT(f.check_in),0),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(100.0*SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END)/NULLIF(COUNT(f.check_in),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end) SELECT '合计' AS label,ROUND(100.0*SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END)/NULLIF(COUNT(f.check_in),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "abnormal_count",
@@ -2625,23 +3149,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月考勤异常人次",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2651,20 +3179,27 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "COALESCE(SUM(CASE WHEN f.late_minutes>0 OR f.early_minutes>0 OR f.status IN ('缺勤','缺卡') THEN 1 ELSE 0 END),0)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,COALESCE(SUM(CASE WHEN f.late_minutes>0 OR f.early_minutes>0 OR f.status IN ('缺勤','缺卡') THEN 1 ELSE 0 END),0) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end) SELECT '合计' AS label,COALESCE(SUM(CASE WHEN f.late_minutes>0 OR f.early_minutes>0 OR f.status IN ('缺勤','缺卡') THEN 1 ELSE 0 END),0) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "approved_overtime_hours",
       "name": "已批准加班时长",
       "domain": "考勤",
       "unit": "小时",
-      "description": "选定期间已批准加班申请的分钟数之和 / 60。晚离岗不会自动认定为加班。",
+      "description": "选定期间工作日及周末已批准加班申请分钟数之和 / 60。工作日晚离岗与周末实际打卡分别校验；待审批和拒绝申请不计入。",
       "aliases": [
         "加班",
         "审批加班",
@@ -2673,23 +3208,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "overtime_requests",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月已批准加班时长",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2699,13 +3238,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(COALESCE(SUM(f.amount),0),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,minutes/60.0 AS amount FROM overtime_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准')\n    SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,minutes/60.0 AS amount FROM overtime_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准') SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "late_departure_hours",
@@ -2721,23 +3267,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月晚离岗时长",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2747,13 +3297,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(COALESCE(SUM(f.late_departure_minutes),0)/60.0,2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(COALESCE(SUM(f.late_departure_minutes),0)/60.0,2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end) SELECT '合计' AS label,ROUND(COALESCE(SUM(f.late_departure_minutes),0)/60.0,2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "avg_work_hours",
@@ -2769,23 +3326,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月平均有效在岗时长",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2795,13 +3356,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(AVG(CASE WHEN f.status IN ('正常','远程') AND f.check_in IS NOT NULL AND f.check_out IS NOT NULL THEN f.work_minutes/60.0 END),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(AVG(CASE WHEN f.status IN ('正常','远程') AND f.check_in IS NOT NULL AND f.check_out IS NOT NULL THEN f.work_minutes/60.0 END),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end) SELECT '合计' AS label,ROUND(AVG(CASE WHEN f.status IN ('正常','远程') AND f.check_in IS NOT NULL AND f.check_out IS NOT NULL THEN f.work_minutes/60.0 END),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "leave_days",
@@ -2817,23 +3385,27 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "leave_requests",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月已批准请假天数",
       "dimension_labels": {
         "division": "事业部",
-        "department": "部门",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
         "day": "日期",
-        "month": "月份"
+        "month": "月份",
+        "quarter": "季度"
       },
       "example_plan": {
         "kind": "metric",
@@ -2843,13 +3415,20 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(COALESCE(SUM(f.amount),0),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,days AS amount FROM leave_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准')\n    SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,days AS amount FROM leave_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准') SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
     },
     {
       "id": "avg_salary",
@@ -2873,7 +3452,7 @@
         "assignments"
       ],
       "owner": "薪酬负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "restricted_aggregate",
       "minimum_group_size": 5,
       "example": "按事业部统计本月平均基本月薪",
@@ -2888,20 +3467,211 @@
         "relation": "all",
         "department": null,
         "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
         "start_date": null,
         "end_date": null,
         "limit": 20,
         "message": null
       },
       "sql_expression": "ROUND(AVG(f.amount),2)",
-      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,c.monthly_base AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t JOIN compensation c ON c.employee_id=e.id AND c.valid_from<=t.day AND (c.valid_to IS NULL OR c.valid_to>t.day)\n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day))\n    SELECT '合计' AS label,ROUND(AVG(f.amount),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,c.monthly_base AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t JOIN compensation c ON c.employee_id=e.id AND c.valid_from<=t.day AND (c.valid_to IS NULL OR c.valid_to>t.day)\n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day)) SELECT '合计' AS label,ROUND(AVG(f.amount),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.1",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "id": "workforce_changes",
+      "name": "入离职与净增人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "同一期间分别统计入职人数、离职人数，净增=入职-离职；入职归属入职日组织，离职归属离职日前一日。部门包含下属团队，内部调动不计入离职。无事件的授权组织显示0。",
+      "aliases": [
+        "入离职",
+        "入职和离职",
+        "人员净增",
+        "净增人数"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "team",
+        "month",
+        "quarter",
+        "education",
+        "degree",
+        "school"
+      ],
+      "source": [
+        "employees",
+        "assignments",
+        "employee_education",
+        "schools"
+      ],
+      "example": "整个公司今年各部门入职和离职人数统计",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
+        "month": "月份",
+        "quarter": "季度",
+        "education": "最高学历",
+        "degree": "最高学位",
+        "school": "最高学历毕业院校"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "workforce_changes",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "COALESCE(SUM(f.hires),0)-COALESCE(SUM(f.departures),0)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT id AS employee_id,hire_date AS event_day,hire_date AS attr_day,1 AS hires,0 AS departures FROM scoped WHERE hire_date BETWEEN :start AND :end\n        UNION ALL SELECT id,termination_date,date(termination_date,'-1 day'),0,1 FROM scoped WHERE termination_date BETWEEN :start AND :end) SELECT '合计' AS label,COALESCE(SUM(f.hires),0)-COALESCE(SUM(f.departures),0) AS value,COUNT(DISTINCT e.id) AS sample_size,COALESCE(SUM(f.hires),0) AS hires,COALESCE(SUM(f.departures),0) AS departures FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.1",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "id": "weekend_overtime_hours",
+      "name": "周末已批准加班时长",
+      "domain": "考勤",
+      "unit": "小时",
+      "description": "选定期间周六/周日已批准加班申请分钟之和 / 60；以独立周末打卡净时长为申请上限，不含工作日晚离岗、待审批、拒绝。演示不含节假日调休。无事件的授权组织显示0。",
+      "aliases": [
+        "周末加班",
+        "周六周日加班",
+        "双休日加班"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "team",
+        "day",
+        "month",
+        "quarter"
+      ],
+      "source": [
+        "overtime_requests",
+        "overtime_attendance",
+        "assignments"
+      ],
+      "example": "本月各部门周末加班的总工时",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织",
+        "day": "日期",
+        "month": "月份",
+        "quarter": "季度"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "weekend_overtime_hours",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": null,
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(COALESCE(SUM(f.amount),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,minutes/60.0 AS amount FROM overtime_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准' AND day_type='周末' AND strftime('%w',day) IN ('0','6')) SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1 AND 1=1  ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.1",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "id": "education_ratio",
+      "name": "教育背景人员占比",
+      "domain": "人员",
+      "unit": "%",
+      "description": "满足学历、学位、学校或院校标签条件的去重人数÷同组全部授权人群×100。默认统计日在职人群及最高已完成教育经历；可指定期间入职或离职人群，教育按事件日取值。未知教育计入分母，分母0返回NULL，并列出分子与分母。",
+      "aliases": [
+        "学历占比",
+        "硕士比例",
+        "博士比例",
+        "985比例",
+        "211比例",
+        "毕业院校占比"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "team"
+      ],
+      "source": [
+        "employees",
+        "assignments",
+        "employee_education",
+        "schools"
+      ],
+      "example": "平台研发部硕士及以上学历员工的比例",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门（含下属团队）",
+        "team": "团队/任职组织"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "education_ratio",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "education_level": null,
+        "minimum_education": null,
+        "degree": "硕士",
+        "schools": [],
+        "school_tier": null,
+        "cohort": "active",
+        "education_scope": "highest",
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(100.0*COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM employee_education q JOIN schools qs ON qs.id=q.school_id WHERE q.employee_id=e.id AND q.graduation_date<=f.attr_day AND q.graduation_date<=f.attr_day AND NOT EXISTS (\n        SELECT 1 FROM employee_education newer WHERE newer.employee_id=q.employee_id AND newer.graduation_date<=f.attr_day\n        AND (newer.education_rank>q.education_rank OR (newer.education_rank=q.education_rank AND (newer.graduation_date>q.graduation_date OR (newer.graduation_date=q.graduation_date AND newer.id>q.id))))) AND q.degree=:edu_degree) THEN e.id END)/NULLIF(COUNT(DISTINCT e.id),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,1 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day)) SELECT '合计' AS label,ROUND(100.0*COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM employee_education q JOIN schools qs ON qs.id=q.school_id WHERE q.employee_id=e.id AND q.graduation_date<=f.attr_day AND q.graduation_date<=f.attr_day AND NOT EXISTS (\n        SELECT 1 FROM employee_education newer WHERE newer.employee_id=q.employee_id AND newer.graduation_date<=f.attr_day\n        AND (newer.education_rank>q.education_rank OR (newer.education_rank=q.education_rank AND (newer.graduation_date>q.graduation_date OR (newer.graduation_date=q.graduation_date AND newer.id>q.id))))) AND q.degree=:edu_degree) THEN e.id END)/NULLIF(COUNT(DISTINCT e.id),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size,COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM employee_education q JOIN schools qs ON qs.id=q.school_id WHERE q.employee_id=e.id AND q.graduation_date<=f.attr_day AND q.graduation_date<=f.attr_day AND NOT EXISTS (\n        SELECT 1 FROM employee_education newer WHERE newer.employee_id=q.employee_id AND newer.graduation_date<=f.attr_day\n        AND (newer.education_rank>q.education_rank OR (newer.education_rank=q.education_rank AND (newer.graduation_date>q.graduation_date OR (newer.graduation_date=q.graduation_date AND newer.id>q.id))))) AND q.degree=:edu_degree) THEN e.id END) AS numerator,COUNT(DISTINCT e.id) AS denominator FROM facts f JOIN scoped e ON e.id=f.employee_id JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments parent_d ON parent_d.id=d.parent_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer  WHERE 1=1  ORDER BY value DESC,label LIMIT 400"
     }
   ],
   "storage": [
     {
       "name": "业务库",
       "location": "data/hr.sqlite",
-      "purpose": "员工、任职、组织、考勤等21张关系表；查询服务只读。"
+      "purpose": "员工、教育经历、院校、任职、组织、考勤等24张关系表；查询服务只读。"
     },
     {
       "name": "应用库",
@@ -2947,7 +3717,7 @@
     },
     {
       "name": "日历与请假",
-      "value": "仅周一至周五模拟日历；整日请假；未实现节假日调休、半天假、跨夜班。正常/远程算完成出勤，缺卡与缺勤不算。"
+      "value": "日历从演示当年1月1日至数据日；周一至周五为应出勤日，周末独立记录加班打卡和申请。未接法定节假日调休、半天假、跨夜班。正常/远程算完成出勤，缺卡与缺勤不算。"
     },
     {
       "name": "除零、空值与精度",
@@ -2955,11 +3725,27 @@
     },
     {
       "name": "查询边界",
-      "value": "单指标、单维度。明细1–100行；聚合最多400组；日期差不超过366天。当前不支持部门数量、离职人员日期明细、年龄/性别/学历筛选、多指标、排名、同比环比、预测。"
+      "value": "单维度，入职/离职/净增为预定义组合指标。明细1–100行；聚合最多400组；日期差不超过366天。支持已完成学历/学位/学校条件及入离职名单。未开放部门数量、年龄/性别/专业/学习形式筛选、自由多指标、多维度、排名、同比环比和预测。"
     },
     {
       "name": "历史趋势",
       "value": "人数月趋势统计月末，当前月截至数据日；入职按入职日，离职按离职日。没有事实的分组可能缺席，不补造历史记录。"
+    },
+    {
+      "name": "教育背景与学校去重",
+      "value": "学历与学位分开存储，历史问数按业务发生日已经完成的最高教育经历取值；硕士默认精确硕士学位，硕士及以上按学历层级包含博士。某校毕业默认匹配任一已完成经历，多校OR按员工去重；同一经历需同时满足学校与学位等条件。"
+    },
+    {
+      "name": "教育占比的分子与分母",
+      "value": "学历/学位/211或985占比默认最高已完成教育经历。分子为满足教育条件的去重员工，分母为同组织同权限的全部在职员工，含教育未知者；指定入职/离职人群时改用期间事件人群，学历仍按事件日判断。分母0返回NULL，保留分子分母。985与211合并使用OR，不能相加；双一流不是同一标签。"
+    },
+    {
+      "name": "部门汇总与期间",
+      "value": "各部门指三级部门并包含下属团队，公司及事业部直属人员单列；各团队保留具体任职组织。部门过滤按业务发生日任职归属，并与当前授权取交集。上季度为上一完整自然季度；今年从1月1日至数据截止日。内部调动不计入离职；入离职组合及周末加班为无事件的授权组织显示0。"
+    },
+    {
+      "name": "周末加班",
+      "value": "周六或周日且day_type=周末的已批准申请分钟之和/60。独立打卡验证申请不超净工时；待审批/已拒绝不计入，不用晚离岗冒充。批准加班总时长包含工作日与周末，周末指标仅子集；未指定期间默认本月。"
     },
     {
       "name": "薪酬保护",
@@ -2970,17 +3756,18 @@
     "as_of": "2026-09-11",
     "seed": "20260911",
     "size": "480",
-    "calendar_start": "2026-03-01",
+    "calendar_start": "2026-01-01",
     "synthetic": "true",
     "calendar_policy": "演示日历：周一至周五为工作日，不套用法定节假日",
-    "catalog_version": "hr-metrics-1.0"
+    "catalog_version": "hr-metrics-1.1",
+    "data_version": "hr-data-2"
   },
-  "catalog_version": "hr-metrics-1.0",
+  "catalog_version": "hr-metrics-1.1",
   "summary": {
-    "business_tables": 21,
+    "business_tables": 24,
     "application_tables": 8,
-    "fields": 157,
-    "metrics": 14
+    "fields": 188,
+    "metrics": 17
   },
   "note": "从实际SQLite结构与查询编译器读取；未读取私人信息或会话值。FTS5影子表为自动生成实现细节，未计入业务/应用逻辑表数量。"
 }

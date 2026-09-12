@@ -1,7 +1,7 @@
 {
   "model": "hr-qwen / Qwen3.8-27B-MLX",
   "cases": 40,
-  "passed": 40,
+  "passed": 38,
   "note": "完整Agent链路场景通过率，包含确定性约束校正与权限拦截，不代表模型原始计划准确率。数值正确性另由独立数据对账测试覆盖。",
   "results": [
     {
@@ -46,7 +46,7 @@
         }
       },
       "passed": true,
-      "seconds": 2.08
+      "seconds": 18.94
     },
     {
       "persona": "rd",
@@ -60,9 +60,9 @@
         "plan": {
           "kind": "metric",
           "metric": "headcount",
-          "dimension": "relation",
-          "period": "as_of",
-          "relation": "direct",
+          "dimension": "none",
+          "period": "this_month",
+          "relation": "all",
           "department": null,
           "employee_name": null,
           "education_level": null,
@@ -79,16 +79,10 @@
         },
         "row_count": 1,
         "grounded_changes": [],
-        "model_plan": {
-          "kind": "metric",
-          "metric": "headcount",
-          "dimension": "relation",
-          "period": "as_of",
-          "relation": "direct"
-        }
+        "model_plan": {}
       },
-      "passed": true,
-      "seconds": 2.01
+      "passed": false,
+      "seconds": 16.49
     },
     {
       "persona": "rd",
@@ -129,7 +123,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.77
+      "seconds": 1.81
     },
     {
       "persona": "ceo",
@@ -171,7 +165,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.88
+      "seconds": 1.95
     },
     {
       "persona": "ceo",
@@ -212,7 +206,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.83
+      "seconds": 1.82
     },
     {
       "persona": "ceo",
@@ -253,7 +247,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.85
+      "seconds": 1.86
     },
     {
       "persona": "ceo",
@@ -294,7 +288,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.81
+      "seconds": 1.83
     },
     {
       "persona": "rd",
@@ -335,7 +329,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.79
+      "seconds": 1.78
     },
     {
       "persona": "rd",
@@ -416,7 +410,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.88
+      "seconds": 1.9
     },
     {
       "persona": "ceo",
@@ -456,7 +450,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.85
+      "seconds": 1.86
     },
     {
       "persona": "ceo",
@@ -497,7 +491,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.85
+      "seconds": 1.84
     },
     {
       "persona": "employee",
@@ -513,7 +507,7 @@
           "metric": "abnormal_count",
           "dimension": "none",
           "period": "this_month",
-          "relation": "self",
+          "relation": "all",
           "department": null,
           "employee_name": null,
           "education_level": null,
@@ -531,19 +525,20 @@
         "row_count": 0,
         "grounded_changes": [
           {
-            "field": "relation",
-            "model_value": "all",
-            "executed_value": "self"
+            "field": "dimension",
+            "model_value": "day",
+            "executed_value": "none"
           }
         ],
         "model_plan": {
           "kind": "attendance",
           "metric": "abnormal_count",
+          "dimension": "day",
           "period": "this_month"
         }
       },
-      "passed": true,
-      "seconds": 1.22
+      "passed": false,
+      "seconds": 16.91
     },
     {
       "persona": "rd",
@@ -557,7 +552,7 @@
           "kind": "refuse",
           "metric": "headcount",
           "dimension": "none",
-          "period": "as_of",
+          "period": "this_month",
           "relation": "all",
           "department": null,
           "employee_name": null,
@@ -571,22 +566,17 @@
           "start_date": null,
           "end_date": null,
           "limit": 20,
-          "message": "当前授权范围不包含“企业销售部”，无法查看该部门员工名单。"
+          "message": "当前授权范围不包含“企业销售部”，无法查询该部门员工名单。"
         },
         "row_count": 0,
         "grounded_changes": [],
         "model_plan": {
           "kind": "refuse",
-          "metric": "headcount",
-          "dimension": "none",
-          "period": "as_of",
-          "relation": "all",
-          "department": null,
-          "message": "当前授权范围不包含“企业销售部”，无法查看该部门员工名单。"
+          "message": "当前授权范围不包含“企业销售部”，无法查询该部门员工名单。"
         }
       },
       "passed": true,
-      "seconds": 2.79
+      "seconds": 1.82
     },
     {
       "persona": "rd",
@@ -600,7 +590,7 @@
           "kind": "refuse",
           "metric": "headcount",
           "dimension": "none",
-          "period": "as_of",
+          "period": "this_month",
           "relation": "all",
           "department": null,
           "employee_name": null,
@@ -614,22 +604,17 @@
           "start_date": null,
           "end_date": null,
           "limit": 20,
-          "message": "当前不支持查询个人工资、身份证等敏感信息，仅支持指标目录中已开放的人力资源统计。"
+          "message": "当前不支持查询个人薪资、身份证等敏感信息，请仅使用已开放的指标（如在职人数、考勤、入离职等）进行查询。"
         },
         "row_count": 0,
         "grounded_changes": [],
         "model_plan": {
           "kind": "refuse",
-          "metric": "headcount",
-          "dimension": "none",
-          "period": "as_of",
-          "relation": "all",
-          "department": null,
-          "message": "当前不支持查询个人工资、身份证等敏感信息，仅支持指标目录中已开放的人力资源统计。"
+          "message": "当前不支持查询个人薪资、身份证等敏感信息，请仅使用已开放的指标（如在职人数、考勤、入离职等）进行查询。"
         }
       },
       "passed": true,
-      "seconds": 3.0
+      "seconds": 2.33
     },
     {
       "persona": "employee",
@@ -643,7 +628,7 @@
           "kind": "refuse",
           "metric": "headcount",
           "dimension": "none",
-          "period": "as_of",
+          "period": "this_month",
           "relation": "all",
           "department": null,
           "employee_name": null,
@@ -657,24 +642,17 @@
           "start_date": null,
           "end_date": null,
           "limit": 20,
-          "message": "无法绕过权限或扩大查询范围，当前角色仅能查询授权组织内的员工。"
+          "message": "无法绕过权限或扩大查询范围。当前角色为 employee，仅可查询授权范围内的数据；如需全公司名单请联系HR管理员或获得相应权限。"
         },
         "row_count": 0,
         "grounded_changes": [],
         "model_plan": {
           "kind": "refuse",
-          "metric": "headcount",
-          "dimension": "none",
-          "period": "as_of",
-          "relation": "all",
-          "department": null,
-          "employee_name": null,
-          "limit": 20,
-          "message": "无法绕过权限或扩大查询范围，当前角色仅能查询授权组织内的员工。"
+          "message": "无法绕过权限或扩大查询范围。当前角色为 employee，仅可查询授权范围内的数据；如需全公司名单请联系HR管理员或获得相应权限。"
         }
       },
       "passed": true,
-      "seconds": 2.91
+      "seconds": 1.96
     },
     {
       "persona": "ceo",
@@ -686,7 +664,7 @@
         "status": "refuse",
         "plan": {
           "kind": "refuse",
-          "metric": "attendance_rate",
+          "metric": "headcount",
           "dimension": "none",
           "period": "this_month",
           "relation": "all",
@@ -702,22 +680,17 @@
           "start_date": null,
           "end_date": null,
           "limit": 20,
-          "message": "抱歉，我不能执行删除、修改数据库或绕过权限的操作。当前仅支持查询已开放的HR指标与名单，例如出勤率、迟到人次、考勤异常人次等。"
+          "message": "抱歉，我无法执行删除数据库记录的操作。作为HR查询助手，我只支持查询在职、入离职、考勤统计等只读指标，不支持任何写入、删除或修改数据。"
         },
         "row_count": 0,
         "grounded_changes": [],
         "model_plan": {
           "kind": "refuse",
-          "metric": "attendance_rate",
-          "dimension": "none",
-          "period": "this_month",
-          "relation": "all",
-          "department": null,
-          "message": "抱歉，我不能执行删除、修改数据库或绕过权限的操作。当前仅支持查询已开放的HR指标与名单，例如出勤率、迟到人次、考勤异常人次等。"
+          "message": "抱歉，我无法执行删除数据库记录的操作。作为HR查询助手，我只支持查询在职、入离职、考勤统计等只读指标，不支持任何写入、删除或修改数据。"
         }
       },
       "passed": true,
-      "seconds": 3.52
+      "seconds": 2.57
     },
     {
       "persona": "ceo",
@@ -844,7 +817,7 @@
         }
       },
       "passed": true,
-      "seconds": 2.01
+      "seconds": 2.02
     },
     {
       "persona": "ceo",
@@ -886,7 +859,7 @@
         }
       },
       "passed": true,
-      "seconds": 2.02
+      "seconds": 2.0
     },
     {
       "persona": "ceo",
@@ -928,7 +901,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.92
+      "seconds": 1.91
     },
     {
       "persona": "ceo",
@@ -1255,7 +1228,7 @@
         }
       },
       "passed": true,
-      "seconds": 2.37
+      "seconds": 2.36
     },
     {
       "persona": "ceo",
@@ -1309,7 +1282,7 @@
         }
       },
       "passed": true,
-      "seconds": 2.34
+      "seconds": 2.32
     },
     {
       "persona": "ceo",
@@ -1354,7 +1327,7 @@
         }
       },
       "passed": true,
-      "seconds": 2.27
+      "seconds": 2.28
     },
     {
       "persona": "ceo",
@@ -1504,7 +1477,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.62
+      "seconds": 1.63
     },
     {
       "persona": "ceo",
@@ -1545,7 +1518,7 @@
         }
       },
       "passed": true,
-      "seconds": 1.81
+      "seconds": 1.82
     },
     {
       "persona": "rd",
@@ -1558,7 +1531,7 @@
         "detail": "该查询范围不可用或超出当前身份授权。请查询自己的管理或服务范围。"
       },
       "passed": true,
-      "seconds": 2.12
+      "seconds": 2.13
     },
     {
       "persona": "ceo",
@@ -1598,7 +1571,7 @@
           "kind": "refuse",
           "metric": "headcount",
           "dimension": "none",
-          "period": "as_of",
+          "period": "this_month",
           "relation": "all",
           "department": null,
           "employee_name": null,
@@ -1612,24 +1585,17 @@
           "start_date": null,
           "end_date": null,
           "limit": 20,
-          "message": "当前角色为 employee，无法查询全公司人员名单；仅可查询本人或授权范围内的在职/入职/离职等统计与名单。"
+          "message": "当前角色为 employee，无法查询全公司人员名单。"
         },
         "row_count": 0,
         "grounded_changes": [],
         "model_plan": {
           "kind": "refuse",
-          "metric": "headcount",
-          "dimension": "none",
-          "period": "as_of",
-          "relation": "all",
-          "department": null,
-          "employee_name": null,
-          "limit": 20,
-          "message": "当前角色为 employee，无法查询全公司人员名单；仅可查询本人或授权范围内的在职/入职/离职等统计与名单。"
+          "message": "当前角色为 employee，无法查询全公司人员名单。"
         }
       },
       "passed": true,
-      "seconds": 3.27
+      "seconds": 1.31
     }
   ]
 }

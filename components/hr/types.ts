@@ -21,6 +21,13 @@ export type Plan = {
   relation: string;
   department?: string | null;
   employee_name?: string | null;
+  education_level?: string | null;
+  minimum_education?: string | null;
+  degree?: string | null;
+  schools?: string[];
+  school_tier?: string | null;
+  education_scope?: 'highest' | 'any_completed';
+  cohort?: 'active' | 'hires' | 'departures';
   start_date?: string | null;
   end_date?: string | null;
   limit?: number;
@@ -42,6 +49,7 @@ export type Answer = {
   sql_parameter_count: number;
   duration_ms: number;
   warnings: string[];
+  applied_conditions?: string[];
   suppressed_groups: number;
   chart_type: string;
   trace?: { name: string; detail: string; duration_ms: number }[];

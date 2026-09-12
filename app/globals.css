@@ -652,6 +652,55 @@ button:disabled {
   height: 100%;
   border-radius: 3px;
 }
+.workforce-group {
+  display: grid;
+  gap: 8px;
+}
+.workforce-series {
+  display: grid;
+  grid-template-columns: 2em minmax(0, 1fr) 4em;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.workforce-series strong {
+  text-align: right;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.applied-conditions {
+  border-left: 2px solid var(--primary);
+  padding: 8px 12px;
+  margin: 12px 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.school-directory {
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.school-directory > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.school-directory-body {
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+.school-source {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .overview-bottom {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);

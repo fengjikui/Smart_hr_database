@@ -35,11 +35,54 @@ def main():
             assert dictionary.status_code == (200 if persona == "ceo" else 403)
             if persona == "ceo":
                 assert dictionary.json()["summary"] == {
-                    "business_tables": 21,
+                    "business_tables": 24,
                     "application_tables": 8,
-                    "fields": 157,
-                    "metrics": 14,
+                    "fields": 188,
+                    "metrics": 17,
                 }
+                for extra, expected_value in [
+                    ({"department": "平台研发部", "degree": "博士"}, 4),
+                    ({"metric": "hires", "degree": "博士", "period": "last_quarter"}, 3),
+                    ({"schools": ["清华大学", "北京大学"], "education_scope": "any_completed"}, 120),
+                    ({"metric": "education_ratio", "department": "平台研发部", "degree": "硕士"}, 14.75),
+                    ({"metric": "weekend_overtime_hours"}, 124),
+                ]:
+                    result = client.post(
+                        "/api/query",
+                        json={**plan, "period": "this_month", **extra},
+                        headers={"X-CSRF-Token": csrf},
+                    )
+                    assert result.status_code == 200, result.text
+                    assert result.json()["rows"][0]["value"] == expected_value, result.text
+                    assert result.json()["applied_conditions"]
+                changes = client.post(
+                    "/api/query",
+                    json={"metric": "workforce_changes", "dimension": "department", "period": "this_year"},
+                    headers={"X-CSRF-Token": csrf},
+                ).json()
+                assert changes["chart_type"] == "comparison"
+                assert len(changes["rows"]) == 21
+                assert sum(row["hires"] for row in changes["rows"]) == 69
+                assert sum(row["departures"] for row in changes["rows"]) == 21
+                checks.append(
+                    "education, school OR counts, explicit ratio denominator, weekend hours and department hire/departure comparison"
+                )
+            if persona == "rd":
+                assert (
+                    client.post(
+                        "/api/query",
+                        json={"degree": "博士", "department": "企业销售部"},
+                        headers={"X-CSRF-Token": csrf},
+                    ).status_code
+                    == 403
+                )
+            if persona == "employee":
+                row = client.post(
+                    "/api/query",
+                    json={"metric": "education_ratio", "degree": "博士"},
+                    headers={"X-CSRF-Token": csrf},
+                ).json()["rows"][0]
+                assert row["denominator"] == 1
             blocked = client.post(
                 "/api/chat", json={"question": "查询30岁以上员工人数"}, headers={"X-CSRF-Token": csrf}
             )
@@ -76,6 +119,27 @@ def main():
             assert debug["result"]["rows"] == result["rows"]
             checks.append(
                 "real model input/output, schema validation, SQL rows and final response visible in debug"
+            )
+            for question in ["清华和北大毕业的员工数量", "今年入职的清华大学毕业员工名单"]:
+                response = client.post(
+                    "/api/chat", json={"question": question}, headers={"X-CSRF-Token": csrf}
+                )
+                assert response.status_code == 200, response.text
+                result = response.json()
+                assert result["status"] == "success"
+                if "名单" in question:
+                    assert result["rows"] and all(
+                        "清华大学" in row["matching_education"] for row in result["rows"]
+                    )
+                else:
+                    assert result["rows"][0]["value"] == 120
+                trace = client.get(f"/api/debug/runs/{result['debug_run_id']}").json()
+                assert trace["result"]["rows"] == result["rows"]
+                assert next(n for n in trace["nodes"] if n["key"] == "intent")["output"]["final_plan"][
+                    "schools"
+                ]
+            checks.append(
+                "real model school union count and matching graduation histories survive frontend proxy and node debug"
             )
     report = {"passed": True, "mode": "production-http", "live_model": args.model, "checks": checks}
     filename = "http-smoke.json" if args.model else "http-smoke-ci.json"

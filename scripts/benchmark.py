@@ -19,6 +19,10 @@ plans = [
     QueryPlan(metric="approved_overtime_hours", dimension="month", period="last_6_months"),
     QueryPlan(dimension="month", period="last_6_months"),
     QueryPlan(kind="people", limit=100),
+    QueryPlan(metric="education_ratio", dimension="department", school_tier="985或211"),
+    QueryPlan(schools=["清华大学", "北京大学"], education_scope="any_completed"),
+    QueryPlan(metric="workforce_changes", dimension="department", period="this_year"),
+    QueryPlan(metric="weekend_overtime_hours", dimension="department", period="this_year"),
 ]
 
 

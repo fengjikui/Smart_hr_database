@@ -334,6 +334,7 @@ def test_legacy_dashboard_keeps_old_assignment_grouping_after_catalog_upgrade():
 @pytest.mark.parametrize(
     "question,expected",
     [
+        ("按最高学历毕业院校统计在职人数", {"dimension": "school", "education_scope": "highest"}),
         (
             "平台研发部现在的博士人数",
             {"metric": "headcount", "degree": "博士", "department": "平台研发部", "period": "as_of"},

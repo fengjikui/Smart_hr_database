@@ -135,7 +135,7 @@ def explicit_constraints(question):
         values["dimension"] = "division"
     elif re.search(r"各团队|按团队", q):
         values["dimension"] = "team"
-    elif re.search(r"按(?:最高)?学历", q):
+    elif re.search(r"按(?:最高)?学历", q) and not re.search(r"按最高学历毕业(?:院校|学校)", q):
         values["dimension"] = "education"
     elif re.search(r"按(?:最高)?学位", q):
         values["dimension"] = "degree"

@@ -12,6 +12,7 @@ from fastapi import HTTPException
 
 from backend.hr.agent import answer
 from backend.hr.db import application
+from backend.hr.debug import read_run
 
 CASES = [
     (
@@ -46,6 +47,80 @@ CASES = [
     ("ceo", "30岁以上女性员工有多少人？", {"status": "blocked"}),
     ("ceo", "按部门和性别统计人数", {"status": "blocked"}),
     ("ceo", "预测下个月谁会离职", {"status": "blocked"}),
+    (
+        "ceo",
+        "平台研发部现在有多少博士？",
+        {"metric": "headcount", "degree": "博士", "department": "平台研发部", "period": "as_of"},
+    ),
+    (
+        "ceo",
+        "上季度整个公司入职的博士的人数",
+        {"metric": "hires", "degree": "博士", "period": "last_quarter"},
+    ),
+    (
+        "ceo",
+        "整个公司今年各部门入职和离职人数统计",
+        {"metric": "workforce_changes", "dimension": "department", "period": "this_year"},
+    ),
+    (
+        "ceo",
+        "各部门周末加班的总工时",
+        {"metric": "weekend_overtime_hours", "dimension": "department", "period": "this_month"},
+    ),
+    (
+        "ceo",
+        "清华大学毕业的员工数量",
+        {"metric": "headcount", "schools": ["清华大学"], "education_scope": "any_completed"},
+    ),
+    (
+        "ceo",
+        "清华和北大毕业的员工数量",
+        {"metric": "headcount", "schools": ["清华大学", "北京大学"], "education_scope": "any_completed"},
+    ),
+    (
+        "ceo",
+        "复旦大学、上海交通大学或浙江大学毕业的员工有多少人？",
+        {"metric": "headcount", "schools": ["复旦大学", "上海交通大学", "浙江大学"]},
+    ),
+    (
+        "ceo",
+        "平台研发部211/985毕业的人数比例",
+        {
+            "metric": "education_ratio",
+            "department": "平台研发部",
+            "school_tier": "985或211",
+            "education_scope": "highest",
+        },
+    ),
+    ("ceo", "平台研发部985毕业的比例", {"metric": "education_ratio", "school_tier": "985"}),
+    ("ceo", "平台研发部211毕业的比例", {"metric": "education_ratio", "school_tier": "211"}),
+    ("ceo", "平台研发部硕士毕业的比例", {"metric": "education_ratio", "degree": "硕士"}),
+    (
+        "ceo",
+        "各部门硕士及以上学历的比例",
+        {
+            "metric": "education_ratio",
+            "minimum_education": "硕士研究生",
+            "degree": None,
+            "dimension": "department",
+        },
+    ),
+    (
+        "ceo",
+        "上季度入职员工中博士占比",
+        {"metric": "education_ratio", "degree": "博士", "cohort": "hires", "period": "last_quarter"},
+    ),
+    (
+        "ceo",
+        "今年入职的清华大学毕业员工名单",
+        {"kind": "people", "metric": "hires", "schools": ["清华大学"], "period": "this_year"},
+    ),
+    ("ceo", "今年离职员工名单和离职日期", {"kind": "people", "metric": "departures", "period": "this_year"}),
+    ("ceo", "按最高学历统计在职人数", {"metric": "headcount", "dimension": "education"}),
+    ("rd", "企业销售部博士人数", {"status": "blocked"}),
+    ("ceo", "哈佛大学毕业的员工人数", {"status": "blocked"}),
+    ("ceo", "清华毕业的员工平均工资", {"status": "blocked"}),
+    ("employee", "全公司博士员工名单", {"status": "bounded"}),
 ]
 
 
@@ -71,6 +146,11 @@ async def main():
             else:
                 passed = r["status"] == "success" and all(plan.get(k) == v for k, v in expected.items())
             actual = {"status": r["status"], "plan": plan, "row_count": len(r.get("rows", []))}
+            trace = read_run(p, r["debug_run_id"])
+            intent = next((n for n in trace["nodes"] if n["key"] == "intent"), None)
+            model = next((n for n in trace["nodes"] if n["key"] == "model"), None)
+            actual["grounded_changes"] = intent["output"].get("grounded_changes", []) if intent else []
+            actual["model_plan"] = model["output"].get("response") if model else None
         except HTTPException as e:
             passed = expected.get("status") in ("blocked", "bounded") and e.status_code in (403, 422)
             actual = {"status": e.status_code, "detail": e.detail}
@@ -89,6 +169,7 @@ async def main():
         "model": "hr-qwen / Qwen3.8-27B-MLX",
         "cases": len(results),
         "passed": sum(r["passed"] for r in results),
+        "note": "完整Agent链路场景通过率，包含确定性约束校正与权限拦截，不代表模型原始计划准确率。数值正确性另由独立数据对账测试覆盖。",
         "results": results,
     }
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)

@@ -72,6 +72,12 @@ export function BarChart({ answer }: { answer: Answer }) {
             </span>
             <strong>
               {number(row.value)} <small>{answer.metric.unit}</small>
+              {typeof row.denominator === 'number' ? (
+                <small>
+                  {' '}
+                  · {row.numerator} / {row.denominator} 人
+                </small>
+              ) : null}
             </strong>
           </div>
           <div className="bar-track">
@@ -91,12 +97,61 @@ export function BarChart({ answer }: { answer: Answer }) {
   );
 }
 export function Chart({ answer }: { answer: Answer }) {
-  return answer.chart_type === 'line' ? (
+  return answer.chart_type === 'comparison' ? (
+    <WorkforceChart answer={answer} />
+  ) : answer.chart_type === 'line' ? (
     <Suspense fallback={<LoadingBlock />}>
       <TrendChart answer={answer} />
     </Suspense>
   ) : (
     <BarChart answer={answer} />
+  );
+}
+function WorkforceChart({ answer }: { answer: Answer }) {
+  const max = Math.max(
+    1,
+    ...answer.rows.flatMap((r) => [Number(r.hires), Number(r.departures)]),
+  );
+  return (
+    <figure
+      className="bar-chart workforce-chart"
+      aria-label="入职与离职人数对比"
+    >
+      <figcaption className="muted text-sm">
+        每组分别展示入职、离职人数；净增为两者之差。
+      </figcaption>
+      {answer.rows.slice(0, 12).map((row) => (
+        <div className="workforce-group" key={String(row.label)}>
+          <div className="bar-caption">
+            <strong>{row.label}</strong>
+            <span>
+              净增 {Number(row.value) > 0 ? '+' : ''}
+              {row.value} 人
+            </span>
+          </div>
+          {(['hires', 'departures'] as const).map((key) => (
+            <div className="workforce-series" key={key}>
+              <span>{key === 'hires' ? '入职' : '离职'}</span>
+              <div className="bar-track">
+                <div
+                  style={{
+                    width: `${(Number(row[key]) / max) * 100}%`,
+                    background:
+                      key === 'hires' ? 'var(--chart-1)' : 'var(--chart-3)',
+                  }}
+                />
+              </div>
+              <strong>{row[key]} 人</strong>
+            </div>
+          ))}
+        </div>
+      ))}
+      {answer.rows.length > 12 ? (
+        <p className="muted text-sm">
+          图表展示前 12 组，完整 {answer.rows.length} 组见数据表。
+        </p>
+      ) : null}
+    </figure>
   );
 }
 export function DataTable({
@@ -271,6 +326,13 @@ export function Result({
         </div>
       </div>
       <p className="answer-summary">{answer.summary}</p>
+      {answer.applied_conditions?.length ? (
+        <div className="applied-conditions" aria-label="本次统计条件">
+          {answer.applied_conditions.map((condition) => (
+            <p key={condition}>{condition}</p>
+          ))}
+        </div>
+      ) : null}
       <div className="result-context">
         <span>
           <ShieldCheck size={14} />
@@ -344,7 +406,7 @@ export function Result({
       {answer.trace ? (
         <div className="trace">
           {answer.trace.map((s, i) => (
-            <span key={s.name} title={s.detail}>
+            <span key={`${s.name}-${i}`} title={s.detail}>
               <i>{i + 1}</i>
               {s.name}
               {s.duration_ms > 0 ? (
