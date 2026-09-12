@@ -53,3 +53,5 @@ playwright-report/
 *.tsbuildinfo
 
 /releases/
+/reports/http-smoke-ci.json
+/reports/junit.xml

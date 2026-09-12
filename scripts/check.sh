@@ -9,3 +9,4 @@ uv run pytest -q
 npm run typecheck
 npm run lint
 npm run build
+bash scripts/ci-smoke.sh

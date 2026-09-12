@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "mode": "production-http",
+  "live_model": true,
+  "checks": [
+    "production HTML and security headers; API authentication",
+    "ceo: 459 authorized active employees; CSRF enforced",
+    "rd: 168 authorized active employees; CSRF enforced",
+    "employee: 1 authorized active employees; CSRF enforced",
+    "employee cannot access salary aggregate",
+    "real LM Studio through production proxy: 5 direct / 453 indirect"
+  ]
+}

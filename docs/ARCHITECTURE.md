@@ -4,6 +4,27 @@
 
 ## 查询流程
 
+```mermaid
+flowchart TD
+    UI[问数 / 总览 / 私人看板] --> API[同源 API 与可信会话]
+    API --> Auth[当前身份和授权范围]
+    Auth --> Planner[语义计划器]
+    Catalog[应用库指标目录] --> Planner
+    Planner <--> LM[本机 Qwen / JSON Schema]
+    Planner --> Validate[计划校验与重新鉴权]
+    Validate --> SQL[确定性 SQL 编译 / 参数绑定]
+    SQL --> DB[(只读业务库)]
+    DB --> Result[聚合保护 / 确定性结果解释]
+    Result --> UI
+    UI --> Saved[(应用库：仅保存看板计划)]
+    Saved --> Validate
+    Git[Git 指标定义源] --> Catalog
+    Catalog --> Search[FTS5 派生检索索引]
+    Validate --> Audit[(应用库审计)]
+```
+
+模型节点没有到数据库的执行通道。总览与已保存看板直接进入确定性查询路径，省去模型推理。
+
 1. 浏览器以 HttpOnly、SameSite=Strict 的不透明会话访问同源 API。
 2. 后端从应用库取得身份与完整授权记录，客户端不能指定角色。
 3. 能力边界检查拒绝已知未开放条件，避免模型静默丢弃筛选条件。

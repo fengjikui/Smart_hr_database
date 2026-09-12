@@ -2,10 +2,19 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
+from backend.hr import config
 from backend.hr.db import application
 from backend.hr.models import QueryPlan
 from backend.hr.query import execute
 from backend.hr.security import scope_ids
+from backend.hr.seed import initialize_app
+
+
+@pytest.fixture(autouse=True)
+def isolated_application(tmp_path, monkeypatch):
+    path = tmp_path / "app.sqlite"
+    initialize_app(path)
+    monkeypatch.setattr(config, "APP_DB", path)
 
 
 def principal(name):
