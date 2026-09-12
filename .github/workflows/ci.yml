@@ -1,0 +1,41 @@
+name: Validate HR demo
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: '3.13'
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: uv run python -m backend.hr.seed
+      - run: uv run ruff check backend tests scripts
+      - run: uv run pytest -q --junitxml=reports/junit.xml
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-reports
+          path: reports/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: dist/

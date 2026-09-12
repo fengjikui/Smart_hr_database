@@ -49,3 +49,7 @@ logs/
 test-results/
 playwright-report/
 !.env.example
+
+*.tsbuildinfo
+
+/releases/

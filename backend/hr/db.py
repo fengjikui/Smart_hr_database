@@ -7,10 +7,10 @@ from . import config
 
 @contextmanager
 def business(path: Path | None = None):
-    connection = sqlite3.connect(f'file:{path or config.BUSINESS_DB}?mode=ro', uri=True, timeout=3)
+    connection = sqlite3.connect(f"file:{path or config.BUSINESS_DB}?mode=ro", uri=True, timeout=3)
     connection.row_factory = sqlite3.Row
-    connection.execute('PRAGMA query_only=ON')
-    connection.execute('PRAGMA foreign_keys=ON')
+    connection.execute("PRAGMA query_only=ON")
+    connection.execute("PRAGMA foreign_keys=ON")
     try:
         yield connection
     finally:
@@ -21,7 +21,7 @@ def business(path: Path | None = None):
 def application(path: Path | None = None):
     connection = sqlite3.connect(path or config.APP_DB, timeout=5)
     connection.row_factory = sqlite3.Row
-    connection.execute('PRAGMA foreign_keys=ON')
+    connection.execute("PRAGMA foreign_keys=ON")
     try:
         yield connection
         connection.commit()

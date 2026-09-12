@@ -1,0 +1,20 @@
+{
+  "dataset": {
+    "active_employees": 459,
+    "total_employees": 480,
+    "as_of": "2026-09-11"
+  },
+  "serial": {
+    "requests": 60,
+    "p50_ms": 4.04,
+    "p95_ms": 6.56,
+    "max_ms": 6.81
+  },
+  "concurrency_8": {
+    "requests": 40,
+    "p50_ms": 142.34,
+    "p95_ms": 193.62,
+    "max_ms": 196.32
+  },
+  "note": "本机合成数据、同进程查询服务，包含授权和SQL，不含网络、模型推理和审计写入，不代表生产容量。"
+}
