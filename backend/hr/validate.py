@@ -68,7 +68,7 @@ CHECKS = [
     ),
     (
         "加班申请不超过可观察晚离岗时长",
-        "SELECT COUNT(*) FROM overtime_requests o LEFT JOIN attendance_daily a ON a.employee_id=o.employee_id AND a.day=o.day WHERE a.id IS NULL OR o.minutes>a.late_departure_minutes",
+        "SELECT COUNT(*) FROM overtime_requests o LEFT JOIN attendance_daily a ON a.employee_id=o.employee_id AND a.day=o.day WHERE o.day_type='工作日' AND (a.id IS NULL OR o.minutes>a.late_departure_minutes)",
     ),
     (
         "离职后无请假或加班",
@@ -81,6 +81,42 @@ CHECKS = [
     (
         "个人敏感信息全部使用SIM标记",
         "SELECT COUNT(*) FROM employee_private WHERE phone NOT LIKE 'SIM-%' OR identity_document NOT LIKE 'SIM-%' OR bank_account NOT LIKE 'SIM-%'",
+    ),
+    (
+        "教育经历与当前最高学历快照一致",
+        "SELECT COUNT(*) FROM employees e WHERE NOT EXISTS(SELECT 1 FROM employee_education q WHERE q.employee_id=e.id AND q.education_level=e.highest_education AND q.degree=e.highest_degree AND q.school_id=e.graduation_school_id AND q.graduation_date=e.graduation_date AND q.major=e.major AND q.study_mode=e.education_mode AND NOT EXISTS(SELECT 1 FROM employee_education h WHERE h.employee_id=e.id AND h.education_rank>q.education_rank))",
+    ),
+    (
+        "学历层级与学位对应",
+        "SELECT COUNT(*) FROM employee_education WHERE education_level<>CASE education_rank WHEN 1 THEN '高中及以下' WHEN 2 THEN '专科' WHEN 3 THEN '本科' WHEN 4 THEN '硕士研究生' WHEN 5 THEN '博士研究生' END OR degree<>CASE education_rank WHEN 3 THEN '学士' WHEN 4 THEN '硕士' WHEN 5 THEN '博士' ELSE '无学位' END",
+    ),
+    (
+        "合成教育经历在入职前完成且日期合理",
+        "SELECT COUNT(*) FROM employee_education q JOIN employees e ON e.id=q.employee_id WHERE q.graduation_date>e.hire_date OR q.start_date<date(e.birth_date,'+14 years') OR q.start_date>=q.graduation_date",
+    ),
+    (
+        "教育经历不重叠",
+        "SELECT COUNT(*) FROM employee_education a JOIN employee_education b ON a.employee_id=b.employee_id AND a.education_rank<b.education_rank WHERE a.graduation_date>b.start_date",
+    ),
+    (
+        "院校985标签不重复计入211并保留来源",
+        "SELECT COUNT(*) FROM schools WHERE is_985>is_211 OR source_url=''",
+    ),
+    (
+        "周末打卡只出现在在职周六周日",
+        "SELECT COUNT(*) FROM overtime_attendance a JOIN employees e ON e.id=a.employee_id JOIN work_calendar c ON c.day=a.day WHERE c.is_workday<>0 OR strftime('%w',a.day) NOT IN ('0','6') OR a.day<e.hire_date OR (e.termination_date IS NOT NULL AND a.day>=e.termination_date)",
+    ),
+    (
+        "周末净工时与休息一致",
+        "SELECT COUNT(*) FROM overtime_attendance WHERE work_minutes<>check_out-check_in-break_minutes OR check_out>1320 OR work_minutes<=0",
+    ),
+    (
+        "周末加班申请不超过独立打卡净时长",
+        "SELECT COUNT(*) FROM overtime_requests o LEFT JOIN overtime_attendance a ON a.employee_id=o.employee_id AND a.day=o.day WHERE o.day_type='周末' AND (a.id IS NULL OR o.minutes>a.work_minutes)",
+    ),
+    (
+        "加班日期类别与日历一致",
+        "SELECT COUNT(*) FROM overtime_requests o LEFT JOIN work_calendar c ON c.day=o.day WHERE c.day IS NULL OR (o.day_type='工作日' AND c.is_workday<>1) OR (o.day_type='周末' AND (c.is_workday<>0 OR strftime('%w',o.day) NOT IN ('0','6')))",
     ),
     ("邮箱使用保留示例域名", "SELECT COUNT(*) FROM employees WHERE email NOT LIKE '%@chengchuan.example'"),
 ]

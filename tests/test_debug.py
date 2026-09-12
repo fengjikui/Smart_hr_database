@@ -218,11 +218,11 @@ def test_schema_inventory_covers_actual_fields_and_expressions(client, monkeypat
     response = client.get("/api/data-dictionary")
     assert response.status_code == 200, response.text
     result = response.json()
-    assert result["summary"]["business_tables"] == 21
+    assert result["summary"]["business_tables"] == 24
     assert result["summary"]["application_tables"] == 8
-    assert len(result["metrics"]) == 14
+    assert len(result["metrics"]) == 17
     people = next(t for t in result["tables"] if t["name"] == "employees")
-    assert len(people["fields"]) == 11
+    assert len(people["fields"]) == 17
     assert people["row_count"] == 480
     assert "CHECK" in people["create_sql"]
     assert people["indexes"] and people["foreign_keys"]
@@ -250,3 +250,13 @@ def test_restart_marks_incomplete_and_retention_is_bounded(client):
         DebugRun(principal, f"测试{i}").finish("success")
     with application() as db:
         assert db.execute("SELECT COUNT(*) FROM debug_runs WHERE owner_id='employee'").fetchone()[0] == 50
+
+
+@pytest.mark.parametrize("candidate", [{}, {"kind": "metric"}])
+def test_empty_model_plan_must_retry_instead_of_default_headcount(client, monkeypatch, candidate):
+    mock_model(monkeypatch, [candidate, {"metric": "headcount", "period": "as_of"}])
+    response = chat(client, login(client))
+    run = trace(client, response)
+    assert response.status_code == 200
+    assert len([n for n in run["nodes"] if n["key"] == "model"]) == 2
+    assert any(n["key"] == "schema" and n["status"] == "error" for n in run["nodes"])

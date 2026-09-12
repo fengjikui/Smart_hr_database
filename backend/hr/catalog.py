@@ -12,6 +12,28 @@ def publish_catalog():
     if len(ids) != len(set(ids)):
         raise ValueError("指标 ID 重复")
     with application() as db:
+        if source["version"] == "hr-metrics-1.1":
+            # v1 department meant the exact assignment node, now explicitly named team.
+            for row in db.execute(
+                "SELECT id,plan FROM dashboards WHERE catalog_version='hr-metrics-1.0'"
+            ).fetchall():
+                plan = json.loads(row["plan"])
+                if plan.get("dimension") == "department":
+                    plan["dimension"] = "team"
+                db.execute(
+                    "UPDATE dashboards SET plan=?,catalog_version=? WHERE id=?",
+                    (json.dumps(plan, ensure_ascii=False), source["version"], row["id"]),
+                )
+            for row in db.execute("SELECT id,plan FROM conversations WHERE plan IS NOT NULL").fetchall():
+                plan = json.loads(row["plan"])
+                if "education_scope" not in plan:
+                    if plan.get("dimension") == "department":
+                        plan["dimension"] = "team"
+                    plan["education_scope"] = "highest"
+                    db.execute(
+                        "UPDATE conversations SET plan=? WHERE id=?",
+                        (json.dumps(plan, ensure_ascii=False), row["id"]),
+                    )
         db.execute("DELETE FROM metrics")
         db.execute("DELETE FROM metric_search")
         for item in source["metrics"]:

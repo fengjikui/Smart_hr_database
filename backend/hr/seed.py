@@ -132,7 +132,7 @@ def generate(
         staging.unlink()
     rng = random.Random(seed)
     snapshot = date.fromisoformat(as_of)
-    first_day = (snapshot - timedelta(days=180)).replace(day=1)
+    first_day = snapshot.replace(month=1, day=1)
     db = sqlite3.connect(staging)
     db.executescript(Path(__file__).with_name("schema.sql").read_text())
     db.executemany(
@@ -145,6 +145,7 @@ def generate(
             ("synthetic", "true"),
             ("calendar_policy", "演示日历：周一至周五为工作日，不套用法定节假日"),
             ("catalog_version", config.CATALOG_VERSION),
+            ("data_version", config.DATA_VERSION),
         ],
     )
     db.executemany(
@@ -293,7 +294,7 @@ def generate(
             rng.randint(1, 28),
         )
         db.execute(
-            "INSERT INTO employees VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO employees(id,employee_no,name,gender,birth_date,hire_date,termination_date,employment_type,entity_id,location_id,email) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (
                 eid,
                 f"CC{eid:05}",
@@ -352,6 +353,9 @@ def generate(
         "INSERT INTO assignments(employee_id,department_id,manager_id,position_id,grade_id,valid_from,valid_to) VALUES (?,?,?,?,?,?,?)",
         assignments,
     )
+    from .education import populate_education
+
+    populate_education(db, seed)
     for eid in manager_map:
         ancestor = eid
         depth = 0
@@ -363,6 +367,9 @@ def generate(
             db.execute("INSERT INTO reporting_closure VALUES (?,?,?)", (ancestor, eid, depth))
             ancestor = manager_map.get(ancestor)
             depth += 1
+    weekend_rng = random.Random(seed + 9973)
+    weekend_overtime = []
+    weekend_attendance = []
     attendance = []
     leave = []
     overtime = []
@@ -432,6 +439,29 @@ def generate(
                 attendance.append(
                     (e["id"], day.isoformat(), 1, status, checkin, checkout, work, late, early, after)
                 )
+        else:
+            for e in employee_records:
+                if day < e["hire"] or (e["termination"] and day >= e["termination"]):
+                    continue
+                if weekend_rng.random() >= (0.035 if e["id"] > 51 else 0.01):
+                    continue
+                checkin = weekend_rng.choice([540, 570, 600, 780])
+                span = weekend_rng.choice([180, 240, 360, 480, 540])
+                checkout = min(1320, checkin + span)
+                rest = 60 if checkin < 720 and checkout > 780 else 0
+                net = checkout - checkin - rest
+                approved_minutes = (net // 30) * 30
+                weekend_attendance.append((e["id"], day.isoformat(), checkin, checkout, rest, net))
+                weekend_overtime.append(
+                    (
+                        e["id"],
+                        day.isoformat(),
+                        approved_minutes,
+                        "周末",
+                        weekend_rng.choices(["已批准", "待审批", "已拒绝"], [82, 13, 5])[0],
+                        e["manager"],
+                    )
+                )
         day += timedelta(days=1)
     db.executemany(
         "INSERT INTO attendance_daily(employee_id,day,shift_id,status,check_in,check_out,work_minutes,late_minutes,early_minutes,late_departure_minutes) VALUES (?,?,?,?,?,?,?,?,?,?)",
@@ -444,6 +474,14 @@ def generate(
     db.executemany(
         "INSERT INTO overtime_requests(employee_id,day,minutes,approval_status,approver_id) VALUES (?,?,?,?,?)",
         overtime,
+    )
+    db.executemany(
+        "INSERT INTO overtime_attendance(employee_id,day,check_in,check_out,break_minutes,work_minutes) VALUES (?,?,?,?,?,?)",
+        weekend_attendance,
+    )
+    db.executemany(
+        "INSERT INTO overtime_requests(employee_id,day,minutes,day_type,approval_status,approver_id) VALUES (?,?,?,?,?,?)",
+        weekend_overtime,
     )
     db.executemany(
         "INSERT INTO training_courses VALUES (?,?,?)",
@@ -484,6 +522,45 @@ def generate(
     initialize_app(directory / "app.sqlite", reset=reset_app)
     (directory / "validation.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     return report
+
+
+def upgrade_demo_data():
+    from datetime import UTC, datetime
+
+    target = config.BUSINESS_DB
+    if not target.exists():
+        return generate()
+    source = sqlite3.connect(f"file:{target}?mode=ro", uri=True)
+    try:
+        meta = dict(source.execute("SELECT key,value FROM dataset_meta"))
+        if meta.get("data_version") == config.DATA_VERSION:
+            return None
+        if meta.get("synthetic") != "true":
+            raise RuntimeError("自动升级仅适用于本项目合成数据，真实业务库需显式迁移。")
+        backup_dir = target.parent / "backups"
+        backup_dir.mkdir(exist_ok=True)
+        backup = sqlite3.connect(
+            backup_dir / ("hr-before-v2-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f") + ".sqlite")
+        )
+        try:
+            source.backup(backup)
+        finally:
+            backup.close()
+        if config.APP_DB.exists():
+            app_source = sqlite3.connect(f"file:{config.APP_DB}?mode=ro", uri=True)
+            app_backup = sqlite3.connect(
+                backup_dir / ("app-before-v2-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f") + ".sqlite")
+            )
+            try:
+                app_source.backup(app_backup)
+            finally:
+                app_source.close()
+                app_backup.close()
+    finally:
+        source.close()
+    return generate(
+        directory=target.parent, seed=int(meta["seed"]), size=int(meta["size"]), as_of=meta["as_of"]
+    )
 
 
 def main():

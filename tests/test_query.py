@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from backend.hr import config
-from backend.hr.db import application
+from backend.hr.db import application, business
 from backend.hr.models import QueryPlan
 from backend.hr.query import execute
 from backend.hr.security import scope_ids
@@ -93,7 +93,13 @@ def test_overtime_never_equals_observed_late_departure_by_default():
     p = principal("ceo")
     approved = execute(p, QueryPlan(metric="approved_overtime_hours"))["rows"][0]["value"]
     observed = execute(p, QueryPlan(metric="late_departure_hours"))["rows"][0]["value"]
-    assert 0 < approved < observed
+    with business() as db:
+        weekday, weekend = db.execute(
+            "SELECT SUM(CASE WHEN day_type='工作日' THEN minutes ELSE 0 END)/60.0,SUM(CASE WHEN day_type='周末' THEN minutes ELSE 0 END)/60.0 FROM overtime_requests WHERE day BETWEEN '2026-09-01' AND '2026-09-11' AND approval_status='已批准'"
+        ).fetchone()
+    assert approved == round(weekday + weekend, 2)
+    assert 0 < weekday <= observed
+    assert approved != observed
 
 
 def test_employee_only_sees_self_in_details():

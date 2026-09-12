@@ -211,3 +211,56 @@ def test_detail_intent_preserves_scope_and_time(client, monkeypatch):
     assert response.json()["plan"]["kind"] == "attendance"
     assert response.json()["plan"]["relation"] == "self"
     assert all(r["employee_no"] == "CC00052" for r in response.json()["rows"])
+
+
+@pytest.mark.parametrize(
+    "plan",
+    [
+        {"metric": "education_ratio", "department": "平台研发部", "degree": "硕士"},
+        {"metric": "headcount", "schools": ["清华大学", "北京大学"], "education_scope": "any_completed"},
+        {"metric": "workforce_changes", "dimension": "department", "period": "this_year"},
+        {"metric": "weekend_overtime_hours", "dimension": "department"},
+    ],
+)
+def test_new_plans_survive_dashboard_and_csv_roundtrip(client, plan):
+    headers = login(client)
+    result = client.post("/api/query", headers=headers, json=plan)
+    assert result.status_code == 200, result.text
+    expected = result.json()
+    assert expected["applied_conditions"]
+    saved = client.post("/api/dashboards", headers=headers, json={"title": "教育统计回归", "plan": plan})
+    assert saved.status_code == 201
+    board = client.get("/api/dashboards").json()["dashboards"][0]
+    assert board["result"]["rows"] == expected["rows"]
+    assert all(board["plan"][k] == v for k, v in plan.items())
+    export = client.post("/api/export", headers=headers, json=plan)
+    assert export.status_code == 200
+    assert all(c["label"] in export.text for c in expected["columns"])
+
+
+def test_dropped_model_school_filter_is_corrected_and_visible_in_debug(client, monkeypatch):
+    from backend.hr.models import QueryPlan
+
+    async def mistaken_plan(*args, **kwargs):
+        return QueryPlan(), {}
+
+    monkeypatch.setattr("backend.hr.agent.ask_model", mistaken_plan)
+    headers = login(client)
+    response = client.post("/api/chat", headers=headers, json={"question": "清华和北大毕业的员工数量"})
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["plan"]["schools"] == ["清华大学", "北京大学"]
+    assert 0 < result["rows"][0]["value"] < 459
+    run = client.get("/api/debug/runs/" + result["debug_run_id"]).json()
+    intent = next(n for n in run["nodes"] if n["key"] == "intent")
+    assert intent["input"]["model_plan"]["schools"] == []
+    assert {c["field"] for c in intent["output"]["grounded_changes"]} >= {"schools", "education_scope"}
+    assert run["result"]["rows"] == result["rows"]
+
+
+def test_school_catalog_has_no_employee_records(client):
+    login(client, "employee")
+    schools = client.get("/api/catalog").json()["schools"]
+    assert len(schools) == 11
+    assert all(s["is_985"] <= s["is_211"] for s in schools)
+    assert all("employee_id" not in s and "count" not in s for s in schools)

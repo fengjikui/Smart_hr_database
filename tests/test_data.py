@@ -58,3 +58,51 @@ def test_validator_detects_corrupt_business_rule(tmp_path):
     report = validate(target)
     assert not report["passed"]
     assert any("迟到分钟" in c["name"] and not c["passed"] for c in report["checks"])
+
+
+def test_upgrade_backs_up_both_databases_and_preserves_application(tmp_path, monkeypatch):
+    import sqlite3
+
+    from backend.hr import config
+    from backend.hr.seed import generate, upgrade_demo_data
+
+    generate(tmp_path, size=120, seed=42)
+    with sqlite3.connect(tmp_path / "hr.sqlite") as db:
+        db.execute("DELETE FROM dataset_meta WHERE key='data_version'")
+    with sqlite3.connect(tmp_path / "app.sqlite") as db:
+        db.execute(
+            "INSERT INTO dashboards VALUES ('preserved','ceo','我的看板','{}','hr-metrics-1.0','2026-09-11')"
+        )
+    monkeypatch.setattr(config, "BUSINESS_DB", tmp_path / "hr.sqlite")
+    monkeypatch.setattr(config, "APP_DB", tmp_path / "app.sqlite")
+    upgrade_demo_data()
+    assert len(list((tmp_path / "backups").glob("hr-before-*.sqlite"))) == 1
+    assert len(list((tmp_path / "backups").glob("app-before-*.sqlite"))) == 1
+    assert validate(tmp_path / "hr.sqlite")["passed"]
+    with sqlite3.connect(tmp_path / "app.sqlite") as db:
+        assert db.execute("SELECT title FROM dashboards WHERE id='preserved'").fetchone()[0] == "我的看板"
+    assert upgrade_demo_data() is None
+    assert len(list((tmp_path / "backups").glob("*.sqlite"))) == 2
+
+
+def test_validator_rejects_invalid_education_and_weekend_hours(tmp_path):
+    import sqlite3
+
+    target = tmp_path / "invalid_education.sqlite"
+    with business() as db:
+        copy = sqlite3.connect(target)
+        db.backup(copy)
+    copy.execute("UPDATE employees SET highest_degree='未知' WHERE id=1")
+    copy.execute(
+        "UPDATE employee_education SET graduation_date='2030-09-11' WHERE id=(SELECT MAX(id) FROM employee_education WHERE employee_id=1)"
+    )
+    copy.execute(
+        "UPDATE overtime_requests SET minutes=10000 WHERE id=(SELECT MIN(id) FROM overtime_requests WHERE day_type='周末')"
+    )
+    copy.commit()
+    copy.close()
+    report = validate(target)
+    failed = [c["name"] for c in report["checks"] if not c["passed"]]
+    assert any("快照" in x for x in failed)
+    assert any("入职前" in x for x in failed)
+    assert any("周末加班申请" in x for x in failed)

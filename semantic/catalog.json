@@ -1,5 +1,5 @@
 {
-  "version": "hr-metrics-1.0",
+  "version": "hr-metrics-1.1",
   "owner": "演示数据治理组",
   "timezone": "Asia/Shanghai",
   "metrics": [
@@ -18,18 +18,24 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "job_family",
         "location",
         "employment_type",
         "relation",
-        "month"
+        "month",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月在职人数"
@@ -48,15 +54,22 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "location",
-        "month"
+        "month",
+        "quarter",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月新入职人数"
@@ -74,14 +87,21 @@
       "dimensions": [
         "division",
         "department",
-        "month"
+        "team",
+        "month",
+        "quarter",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月离职人数"
@@ -98,14 +118,15 @@
       ],
       "dimensions": [
         "division",
-        "department"
+        "department",
+        "team"
       ],
       "source": [
         "employees",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月人员离职率"
@@ -123,14 +144,20 @@
       "dimensions": [
         "division",
         "department",
-        "job_family"
+        "team",
+        "job_family",
+        "education",
+        "degree",
+        "school"
       ],
       "source": [
         "employees",
-        "assignments"
+        "assignments",
+        "employee_education",
+        "schools"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月平均司龄"
@@ -148,15 +175,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月出勤率"
@@ -174,15 +203,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月迟到人次"
@@ -199,15 +230,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月迟到率"
@@ -226,15 +259,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月考勤异常人次"
@@ -244,7 +279,7 @@
       "name": "已批准加班时长",
       "domain": "考勤",
       "unit": "小时",
-      "description": "选定期间已批准加班申请的分钟数之和 / 60。晚离岗不会自动认定为加班。",
+      "description": "选定期间工作日及周末已批准加班申请分钟数之和 / 60。工作日晚离岗与周末实际打卡分别校验；待审批和拒绝申请不计入。",
       "aliases": [
         "加班",
         "审批加班",
@@ -253,15 +288,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "overtime_requests",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月已批准加班时长"
@@ -280,15 +317,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月晚离岗时长"
@@ -307,15 +346,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "attendance_daily",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月平均有效在岗时长"
@@ -334,15 +375,17 @@
       "dimensions": [
         "division",
         "department",
+        "team",
         "day",
-        "month"
+        "month",
+        "quarter"
       ],
       "source": [
         "leave_requests",
         "assignments"
       ],
       "owner": "HR 数据负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "internal",
       "minimum_group_size": 1,
       "example": "按事业部统计本月已批准请假天数"
@@ -369,10 +412,105 @@
         "assignments"
       ],
       "owner": "薪酬负责人（模拟）",
-      "version": "1.0",
+      "version": "1.1",
       "sensitivity": "restricted_aggregate",
       "minimum_group_size": 5,
       "example": "按事业部统计本月平均基本月薪"
+    },
+    {
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.1",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "id": "workforce_changes",
+      "name": "入离职与净增人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "同一期间分别统计入职人数、离职人数，净增=入职-离职；入职归属入职日组织，离职归属离职日前一日。部门包含下属团队，内部调动不计入离职。无事件的授权组织显示0。",
+      "aliases": [
+        "入离职",
+        "入职和离职",
+        "人员净增",
+        "净增人数"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "team",
+        "month",
+        "quarter",
+        "education",
+        "degree",
+        "school"
+      ],
+      "source": [
+        "employees",
+        "assignments",
+        "employee_education",
+        "schools"
+      ],
+      "example": "整个公司今年各部门入职和离职人数统计"
+    },
+    {
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.1",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "id": "weekend_overtime_hours",
+      "name": "周末已批准加班时长",
+      "domain": "考勤",
+      "unit": "小时",
+      "description": "选定期间周六/周日已批准加班申请分钟之和 / 60；以独立周末打卡净时长为申请上限，不含工作日晚离岗、待审批、拒绝。演示不含节假日调休。无事件的授权组织显示0。",
+      "aliases": [
+        "周末加班",
+        "周六周日加班",
+        "双休日加班"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "team",
+        "day",
+        "month",
+        "quarter"
+      ],
+      "source": [
+        "overtime_requests",
+        "overtime_attendance",
+        "assignments"
+      ],
+      "example": "本月各部门周末加班的总工时"
+    },
+    {
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.1",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "id": "education_ratio",
+      "name": "教育背景人员占比",
+      "domain": "人员",
+      "unit": "%",
+      "description": "满足学历、学位、学校或院校标签条件的去重人数÷同组全部授权人群×100。默认统计日在职人群及最高已完成教育经历；可指定期间入职或离职人群，教育按事件日取值。未知教育计入分母，分母0返回NULL，并列出分子与分母。",
+      "aliases": [
+        "学历占比",
+        "硕士比例",
+        "博士比例",
+        "985比例",
+        "211比例",
+        "毕业院校占比"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "team"
+      ],
+      "source": [
+        "employees",
+        "assignments",
+        "employee_education",
+        "schools"
+      ],
+      "example": "平台研发部硕士及以上学历员工的比例"
     }
   ]
 }

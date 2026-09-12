@@ -18,11 +18,41 @@ MetricId = Literal[
     "avg_work_hours",
     "leave_days",
     "avg_salary",
+    "workforce_changes",
+    "weekend_overtime_hours",
+    "education_ratio",
 ]
 Dimension = Literal[
-    "none", "division", "department", "job_family", "location", "employment_type", "relation", "month", "day"
+    "none",
+    "division",
+    "department",
+    "job_family",
+    "location",
+    "employment_type",
+    "relation",
+    "month",
+    "day",
+    "team",
+    "education",
+    "degree",
+    "school",
+    "quarter",
 ]
-Period = Literal["as_of", "today", "this_month", "last_month", "last_30_days", "last_6_months", "custom"]
+Period = Literal[
+    "as_of",
+    "today",
+    "this_month",
+    "last_month",
+    "last_30_days",
+    "last_6_months",
+    "this_quarter",
+    "last_quarter",
+    "this_year",
+    "last_year",
+    "this_week",
+    "last_week",
+    "custom",
+]
 Relation = Literal["all", "direct", "indirect", "subordinates", "self"]
 
 
@@ -35,6 +65,13 @@ class QueryPlan(BaseModel):
     relation: Relation = "all"
     department: str | None = Field(default=None, max_length=80)
     employee_name: str | None = Field(default=None, max_length=40)
+    education_level: Literal["高中及以下", "专科", "本科", "硕士研究生", "博士研究生"] | None = None
+    minimum_education: Literal["高中及以下", "专科", "本科", "硕士研究生", "博士研究生"] | None = None
+    degree: Literal["无学位", "学士", "硕士", "博士"] | None = None
+    schools: list[str] = Field(default_factory=list, max_length=5)
+    school_tier: Literal["985", "211", "985或211", "211非985", "双非"] | None = None
+    cohort: Literal["active", "hires", "departures"] = "active"
+    education_scope: Literal["highest", "any_completed"] = "highest"
     start_date: str | None = None
     end_date: str | None = None
     limit: int = Field(default=20, ge=1, le=100)
@@ -42,6 +79,13 @@ class QueryPlan(BaseModel):
 
     @model_validator(mode="after")
     def dates(self):
+        if self.cohort != "active" and self.metric != "education_ratio":
+            raise ValueError("人群基数仅用于教育背景占比")
+        if self.education_level and self.minimum_education:
+            raise ValueError("学历精确筛选与最低学历不能同时指定")
+        if any(not name.strip() or len(name) > 80 for name in self.schools):
+            raise ValueError("学校名称需为1–80字符")
+        self.schools = list(dict.fromkeys(name.strip() for name in self.schools))
         for value in (self.start_date, self.end_date):
             if value:
                 date.fromisoformat(value)

@@ -19,6 +19,7 @@ from .catalog import catalog, publish_catalog, search
 from .data_dictionary import inventory
 from .db import application, business, rows
 from .debug import ensure_schema, list_runs, read_run, recover_interrupted
+from .education import school_directory
 from .models import DashboardRequest, PersonaRequest, QueryPlan, QuestionRequest
 from .query import execute
 from .security import (
@@ -31,7 +32,7 @@ from .security import (
     require_csrf,
     scope_ids,
 )
-from .seed import PERSONAS, generate
+from .seed import PERSONAS, generate, upgrade_demo_data
 from .validate import validate
 
 
@@ -41,6 +42,7 @@ async def lifespan(app):
         raise RuntimeError("当前交付是回环地址演示版。生产 SSO 和数据库隔离尚需按部署文档接入。")
     if not config.BUSINESS_DB.exists() or not config.APP_DB.exists():
         generate()
+    upgrade_demo_data()
     publish_catalog()
     ensure_schema()
     recover_interrupted()
@@ -196,8 +198,11 @@ async def chat(body: QuestionRequest, request: Request, principal=Depends(get_pr
 
 @app.get("/api/catalog")
 def get_catalog(q: str = Query(default="", max_length=80), principal=Depends(get_principal)):
+    with business() as db:
+        schools = school_directory(db)
     return {
         "metrics": search(principal, q),
+        "schools": schools,
         "version": catalog()["version"],
         "storage": "Git 版本化 JSON → SQLite 指标目录 + FTS5 派生索引",
     }
@@ -333,7 +338,7 @@ def governance(principal=Depends(get_principal)):
         "validation": report,
         "audit": events,
         "storage": {
-            "business": "SQLite 只读业务库（21 张关系表）",
+            "business": "SQLite 只读业务库（24 张关系表）",
             "application": "独立 SQLite 应用库：身份、会话、指标、看板与审计",
             "semantics": "Git JSON 源文件 + 运行目录 + FTS5 派生索引",
             "vectors": "未启用；当前目录规模不需要向量数据库",
