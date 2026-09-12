@@ -1,0 +1,51 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.vinext/
+/out/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# local environment
+.env*
+
+# deployment and generated files
+.vercel
+next-env.d.ts
+/dist/
+/.wrangler/
+/outputs/
+/work/
+
+# Local runtime and generated synthetic data
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+data/*.db*
+data/*.sqlite*
+data/*.json
+logs/
+test-results/
+playwright-report/
+!.env.example
