@@ -30,7 +30,7 @@
         "row_count": 2
       },
       "passed": true,
-      "seconds": 2.88
+      "seconds": 2.85
     },
     {
       "persona": "rd",
@@ -57,7 +57,7 @@
         "row_count": 1
       },
       "passed": true,
-      "seconds": 2.44
+      "seconds": 2.52
     },
     {
       "persona": "rd",
@@ -84,7 +84,7 @@
         "row_count": 3
       },
       "passed": true,
-      "seconds": 2.24
+      "seconds": 2.32
     },
     {
       "persona": "ceo",
@@ -112,7 +112,7 @@
         "row_count": 6
       },
       "passed": true,
-      "seconds": 2.5
+      "seconds": 2.58
     },
     {
       "persona": "ceo",
@@ -139,7 +139,7 @@
         "row_count": 6
       },
       "passed": true,
-      "seconds": 2.43
+      "seconds": 2.52
     },
     {
       "persona": "ceo",
@@ -166,7 +166,7 @@
         "row_count": 40
       },
       "passed": true,
-      "seconds": 2.49
+      "seconds": 2.58
     },
     {
       "persona": "ceo",
@@ -193,7 +193,7 @@
         "row_count": 6
       },
       "passed": true,
-      "seconds": 2.43
+      "seconds": 2.52
     },
     {
       "persona": "rd",
@@ -220,7 +220,7 @@
         "row_count": 9
       },
       "passed": true,
-      "seconds": 2.22
+      "seconds": 2.3
     },
     {
       "persona": "rd",
@@ -247,7 +247,7 @@
         "row_count": 1
       },
       "passed": true,
-      "seconds": 3.39
+      "seconds": 3.47
     },
     {
       "persona": "ceo",
@@ -273,7 +273,7 @@
         "row_count": 1
       },
       "passed": true,
-      "seconds": 2.5
+      "seconds": 2.58
     },
     {
       "persona": "ceo",
@@ -299,7 +299,7 @@
         "row_count": 1
       },
       "passed": true,
-      "seconds": 2.53
+      "seconds": 2.54
     },
     {
       "persona": "ceo",
@@ -326,7 +326,7 @@
         "row_count": 6
       },
       "passed": true,
-      "seconds": 2.54
+      "seconds": 2.53
     },
     {
       "persona": "employee",
@@ -353,7 +353,7 @@
         "row_count": 1
       },
       "passed": true,
-      "seconds": 2.39
+      "seconds": 2.36
     },
     {
       "persona": "rd",
@@ -405,7 +405,7 @@
         "row_count": 0
       },
       "passed": true,
-      "seconds": 2.81
+      "seconds": 2.82
     },
     {
       "persona": "employee",
@@ -457,7 +457,7 @@
         "row_count": 0
       },
       "passed": true,
-      "seconds": 3.27
+      "seconds": 3.29
     },
     {
       "persona": "ceo",
@@ -470,7 +470,7 @@
         "detail": "当前尚未开放年龄、性别、学历、数值阈值、同比环比、排名或预测条件。请使用指标字典中的指标和分组；系统没有忽略这些条件执行查询。"
       },
       "passed": true,
-      "seconds": 0.0
+      "seconds": 0.01
     },
     {
       "persona": "ceo",
@@ -483,7 +483,7 @@
         "detail": "当前尚未开放年龄、性别、学历、数值阈值、同比环比、排名或预测条件。请使用指标字典中的指标和分组；系统没有忽略这些条件执行查询。"
       },
       "passed": true,
-      "seconds": 0.0
+      "seconds": 0.01
     },
     {
       "persona": "ceo",
@@ -496,7 +496,7 @@
         "detail": "当前尚未开放年龄、性别、学历、数值阈值、同比环比、排名或预测条件。请使用指标字典中的指标和分组；系统没有忽略这些条件执行查询。"
       },
       "passed": true,
-      "seconds": 0.0
+      "seconds": 0.01
     }
   ]
 }

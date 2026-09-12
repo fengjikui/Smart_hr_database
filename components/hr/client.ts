@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public debugRunId?: string,
+  ) {
+    super(message);
+  }
+}
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set('Content-Type', 'application/json');
@@ -11,10 +21,12 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
   const body = (await response.json()) as { detail?: unknown };
   if (!response.ok)
-    throw new Error(
+    throw new ApiError(
       typeof body.detail === 'string'
         ? body.detail
         : '请求未通过校验，请检查输入后重试。',
+      response.status,
+      response.headers.get('x-debug-run-id') ?? undefined,
     );
   return body as T;
 }

@@ -76,7 +76,10 @@ PERSONAS = [
 
 
 def initialize_app(path: Path, reset=False):
+    from .debug import ensure_schema
+
     if path.exists() and not reset:
+        ensure_schema(path)
         return
     if path.exists():
         path.unlink()
@@ -110,6 +113,7 @@ def initialize_app(path: Path, reset=False):
         )
     db.commit()
     db.close()
+    ensure_schema(path)
 
 
 def generate(

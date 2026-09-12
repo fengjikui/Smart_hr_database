@@ -1,0 +1,2986 @@
+{
+  "tables": [
+    {
+      "name": "dataset_meta",
+      "database": "business",
+      "description": "数据集元信息；每个配置键一行",
+      "row_count": 7,
+      "fields": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "配置键"
+        },
+        {
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "配置值"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_dataset_meta_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "key"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE dataset_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)"
+    },
+    {
+      "name": "legal_entities",
+      "database": "business",
+      "description": "法人主体；每个主体一行",
+      "row_count": 2,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE TABLE legal_entities (id INTEGER PRIMARY KEY, name TEXT NOT NULL)"
+    },
+    {
+      "name": "locations",
+      "database": "business",
+      "description": "办公地点；每个地点一行",
+      "row_count": 3,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "timezone",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "IANA时区"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE TABLE locations (id INTEGER PRIMARY KEY, name TEXT NOT NULL, timezone TEXT NOT NULL)"
+    },
+    {
+      "name": "departments",
+      "database": "business",
+      "description": "组织节点；四级树，每个组织一行",
+      "row_count": 51,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "parent_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "父组织；根节点为空"
+        },
+        {
+          "name": "level",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "公司1/事业部2/部门3/团队4"
+        },
+        {
+          "name": "division_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "所属事业部标识"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "departments",
+          "from": "division_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "departments",
+          "from": "parent_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_departments_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "name"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE departments (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, parent_id INTEGER REFERENCES departments(id), level INTEGER NOT NULL CHECK(level BETWEEN 1 AND 4), division_id INTEGER REFERENCES departments(id))"
+    },
+    {
+      "name": "job_families",
+      "database": "business",
+      "description": "岗位序列；每个序列一行",
+      "row_count": 7,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_job_families_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "name"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE job_families (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE)"
+    },
+    {
+      "name": "grades",
+      "database": "business",
+      "description": "职级及模拟薪资范围；每级一行",
+      "row_count": 9,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "salary_min",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "模拟月薪下限，元"
+        },
+        {
+          "name": "salary_max",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "模拟月薪上限，元"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE TABLE grades (id INTEGER PRIMARY KEY, name TEXT NOT NULL, salary_min INTEGER NOT NULL, salary_max INTEGER NOT NULL CHECK(salary_max>=salary_min))"
+    },
+    {
+      "name": "positions",
+      "database": "business",
+      "description": "岗位字典；每个岗位一行",
+      "row_count": 10,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "family_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "岗位序列标识"
+        },
+        {
+          "name": "is_manager",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "管理岗位标记0/1"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "job_families",
+          "from": "family_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [],
+      "create_sql": "CREATE TABLE positions (id INTEGER PRIMARY KEY, name TEXT NOT NULL, family_id INTEGER NOT NULL REFERENCES job_families(id), is_manager INTEGER NOT NULL CHECK(is_manager IN (0,1)))"
+    },
+    {
+      "name": "employees",
+      "database": "business",
+      "description": "人员基础档案；每名员工一行",
+      "row_count": 480,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_no",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "稳定工号（CC前缀）"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "gender",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "模拟性别，未开放查询条件"
+        },
+        {
+          "name": "birth_date",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "模拟出生日期，未开放查询条件"
+        },
+        {
+          "name": "hire_date",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "最近入职日期"
+        },
+        {
+          "name": "termination_date",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "离职日期；当日不计在职，空表示未离职"
+        },
+        {
+          "name": "employment_type",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "正式/实习/外包"
+        },
+        {
+          "name": "entity_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "法人主体标识"
+        },
+        {
+          "name": "location_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "地点标识"
+        },
+        {
+          "name": "email",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "保留示例域名邮箱"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "locations",
+          "from": "location_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "legal_entities",
+          "from": "entity_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_employees_2",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "email"
+          ],
+          "sql": null
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_employees_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_no"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE employees (id INTEGER PRIMARY KEY, employee_no TEXT NOT NULL UNIQUE, name TEXT NOT NULL, gender TEXT NOT NULL CHECK(gender IN ('女','男')), birth_date TEXT NOT NULL, hire_date TEXT NOT NULL, termination_date TEXT, employment_type TEXT NOT NULL CHECK(employment_type IN ('正式','实习','外包')), entity_id INTEGER NOT NULL REFERENCES legal_entities(id), location_id INTEGER NOT NULL REFERENCES locations(id), email TEXT NOT NULL UNIQUE, CHECK(termination_date IS NULL OR termination_date>=hire_date))"
+    },
+    {
+      "name": "employee_private",
+      "database": "business",
+      "description": "私人信息；每名员工一行，全部SIM标记且不开放查询",
+      "row_count": 480,
+      "fields": [
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "员工标识"
+        },
+        {
+          "name": "phone",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "SIM模拟电话标记"
+        },
+        {
+          "name": "identity_document",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "SIM模拟证件标记"
+        },
+        {
+          "name": "bank_account",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "SIM模拟银行账户标记"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [],
+      "create_sql": "CREATE TABLE employee_private (employee_id INTEGER PRIMARY KEY REFERENCES employees(id), phone TEXT NOT NULL, identity_document TEXT NOT NULL, bank_account TEXT NOT NULL)"
+    },
+    {
+      "name": "assignments",
+      "database": "business",
+      "description": "任职历史；每个人每段连续任职一行，左闭右开",
+      "row_count": 511,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "department_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "任职或需求所属组织"
+        },
+        {
+          "name": "manager_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "直属上级员工标识"
+        },
+        {
+          "name": "position_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "岗位标识"
+        },
+        {
+          "name": "grade_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "职级标识"
+        },
+        {
+          "name": "valid_from",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "生效日期，包含当天"
+        },
+        {
+          "name": "valid_to",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "结束日期，不包含当天；空表示当前"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "grades",
+          "from": "grade_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "positions",
+          "from": "position_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 2,
+          "seq": 0,
+          "table": "employees",
+          "from": "manager_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 3,
+          "seq": 0,
+          "table": "departments",
+          "from": "department_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 4,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_assignment_dept",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "department_id",
+            "valid_from"
+          ],
+          "sql": "CREATE INDEX idx_assignment_dept ON assignments(department_id,valid_from)"
+        },
+        {
+          "seq": 1,
+          "name": "idx_assignment_asof",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "valid_from",
+            "valid_to"
+          ],
+          "sql": "CREATE INDEX idx_assignment_asof ON assignments(employee_id,valid_from,valid_to)"
+        },
+        {
+          "seq": 2,
+          "name": "uq_current_assignment",
+          "unique": 1,
+          "origin": "c",
+          "partial": 1,
+          "columns": [
+            "employee_id"
+          ],
+          "sql": "CREATE UNIQUE INDEX uq_current_assignment ON assignments(employee_id) WHERE valid_to IS NULL"
+        },
+        {
+          "seq": 3,
+          "name": "sqlite_autoindex_assignments_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "valid_from"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE assignments (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), department_id INTEGER NOT NULL REFERENCES departments(id), manager_id INTEGER REFERENCES employees(id), position_id INTEGER NOT NULL REFERENCES positions(id), grade_id INTEGER NOT NULL REFERENCES grades(id), valid_from TEXT NOT NULL, valid_to TEXT, CHECK(manager_id IS NULL OR manager_id<>employee_id), CHECK(valid_to IS NULL OR valid_to>valid_from), UNIQUE(employee_id,valid_from))"
+    },
+    {
+      "name": "reporting_closure",
+      "database": "business",
+      "description": "当前管理关系闭包；每个祖先/后代对一行",
+      "row_count": 2321,
+      "fields": [
+        {
+          "name": "ancestor_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "管理链祖先员工标识"
+        },
+        {
+          "name": "descendant_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 2,
+          "description": "管理链后代员工标识"
+        },
+        {
+          "name": "depth",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "0本人/1直属/2及以上间接"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "employees",
+          "from": "descendant_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "ancestor_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_closure_desc",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "descendant_id"
+          ],
+          "sql": "CREATE INDEX idx_closure_desc ON reporting_closure(descendant_id)"
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_reporting_closure_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "ancestor_id",
+            "descendant_id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE reporting_closure (ancestor_id INTEGER NOT NULL REFERENCES employees(id), descendant_id INTEGER NOT NULL REFERENCES employees(id), depth INTEGER NOT NULL CHECK(depth>=0), PRIMARY KEY(ancestor_id,descendant_id))"
+    },
+    {
+      "name": "work_calendar",
+      "database": "business",
+      "description": "演示工作日历；每天一行，未接正式节假日调休",
+      "row_count": 195,
+      "fields": [
+        {
+          "name": "day",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "业务日期YYYY-MM-DD"
+        },
+        {
+          "name": "is_workday",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "应工作日标记0/1"
+        },
+        {
+          "name": "note",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "备注与模拟日历说明"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_work_calendar_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "day"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE work_calendar (day TEXT PRIMARY KEY, is_workday INTEGER NOT NULL CHECK(is_workday IN (0,1)), note TEXT NOT NULL)"
+    },
+    {
+      "name": "shift_policies",
+      "database": "business",
+      "description": "班次政策；每个政策版本一行",
+      "row_count": 1,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "earliest_in",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "弹性到岗起点；距午夜分钟"
+        },
+        {
+          "name": "latest_in",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "迟到阈值；距午夜分钟"
+        },
+        {
+          "name": "earliest_out",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "最早应离岗；距午夜分钟"
+        },
+        {
+          "name": "required_work_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "要求净工作分钟"
+        },
+        {
+          "name": "lunch_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "午休分钟"
+        },
+        {
+          "name": "version",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "定义版本"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE TABLE shift_policies (id INTEGER PRIMARY KEY, name TEXT NOT NULL, earliest_in INTEGER NOT NULL, latest_in INTEGER NOT NULL, earliest_out INTEGER NOT NULL, required_work_minutes INTEGER NOT NULL, lunch_minutes INTEGER NOT NULL, version TEXT NOT NULL)"
+    },
+    {
+      "name": "attendance_daily",
+      "database": "business",
+      "description": "每日考勤事实；每人每个应工作日一行",
+      "row_count": 62339,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "day",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务日期YYYY-MM-DD"
+        },
+        {
+          "name": "shift_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "班次政策标识"
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务状态；取值由对应表约束与生成器定义"
+        },
+        {
+          "name": "check_in",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "到岗时刻；距午夜分钟，缺卡可空"
+        },
+        {
+          "name": "check_out",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "离岗时刻；距午夜分钟，缺卡可空"
+        },
+        {
+          "name": "work_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "扣除午休后的净在岗分钟"
+        },
+        {
+          "name": "late_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "超过09:30的分钟数"
+        },
+        {
+          "name": "early_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "早于个人应离岗的分钟数"
+        },
+        {
+          "name": "late_departure_minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "超过个人应离岗的分钟数，不等于批准加班"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "shift_policies",
+          "from": "shift_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "work_calendar",
+          "from": "day",
+          "to": "day",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 2,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_attendance_day_employee",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "day",
+            "employee_id"
+          ],
+          "sql": "CREATE INDEX idx_attendance_day_employee ON attendance_daily(day,employee_id)"
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_attendance_daily_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "day"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE attendance_daily (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL REFERENCES work_calendar(day), shift_id INTEGER NOT NULL REFERENCES shift_policies(id), status TEXT NOT NULL CHECK(status IN ('正常','远程','请假','缺勤','缺卡')), check_in INTEGER, check_out INTEGER, work_minutes INTEGER NOT NULL CHECK(work_minutes>=0), late_minutes INTEGER NOT NULL CHECK(late_minutes>=0), early_minutes INTEGER NOT NULL CHECK(early_minutes>=0), late_departure_minutes INTEGER NOT NULL CHECK(late_departure_minutes>=0), UNIQUE(employee_id,day), CHECK(check_in IS NULL OR check_out IS NULL OR check_out>=check_in))"
+    },
+    {
+      "name": "leave_requests",
+      "database": "business",
+      "description": "整日请假申请；每人每日最多一行",
+      "row_count": 2182,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "day",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务日期YYYY-MM-DD"
+        },
+        {
+          "name": "leave_type",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "模拟假别"
+        },
+        {
+          "name": "days",
+          "type": "REAL",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "请假天数；当前仅整日"
+        },
+        {
+          "name": "approval_status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "已批准/待审批/已拒绝"
+        },
+        {
+          "name": "approver_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "审批人员工标识"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "employees",
+          "from": "approver_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_leave_requests_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "day"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE leave_requests (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL, leave_type TEXT NOT NULL, days REAL NOT NULL CHECK(days>0 AND days<=1), approval_status TEXT NOT NULL CHECK(approval_status IN ('已批准','待审批','已拒绝')), approver_id INTEGER REFERENCES employees(id), UNIQUE(employee_id,day))"
+    },
+    {
+      "name": "overtime_requests",
+      "database": "business",
+      "description": "加班申请；每人每日最多一行，与晚离岗分开",
+      "row_count": 8751,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "day",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务日期YYYY-MM-DD"
+        },
+        {
+          "name": "minutes",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "申请加班分钟"
+        },
+        {
+          "name": "approval_status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "已批准/待审批/已拒绝"
+        },
+        {
+          "name": "approver_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "审批人员工标识"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "employees",
+          "from": "approver_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_overtime_requests_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "day"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE overtime_requests (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL, minutes INTEGER NOT NULL CHECK(minutes>0), approval_status TEXT NOT NULL CHECK(approval_status IN ('已批准','待审批','已拒绝')), approver_id INTEGER REFERENCES employees(id), UNIQUE(employee_id,day))"
+    },
+    {
+      "name": "compensation",
+      "database": "business",
+      "description": "基本月薪有效期记录；受限汇总来源",
+      "row_count": 480,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "valid_from",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "生效日期，包含当天"
+        },
+        {
+          "name": "valid_to",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "结束日期，不包含当天；空表示当前"
+        },
+        {
+          "name": "monthly_base",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "模拟基本月薪金额，元"
+        },
+        {
+          "name": "currency",
+          "type": "TEXT",
+          "not_null": true,
+          "default": "'CNY'",
+          "primary_key_position": 0,
+          "description": "币种CNY"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_compensation_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "valid_from"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE compensation (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), valid_from TEXT NOT NULL, valid_to TEXT, monthly_base INTEGER NOT NULL CHECK(monthly_base>=0), currency TEXT NOT NULL DEFAULT 'CNY', UNIQUE(employee_id,valid_from))"
+    },
+    {
+      "name": "performance_reviews",
+      "database": "business",
+      "description": "绩效评价；每人每周期一行，尚未开放查询",
+      "row_count": 459,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "period",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "评价周期"
+        },
+        {
+          "name": "rating",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "卓越/优秀/达标/待提升"
+        },
+        {
+          "name": "reviewer_id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "评价人员工标识"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "employees",
+          "from": "reviewer_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_performance_reviews_1",
+          "unique": 1,
+          "origin": "u",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "period"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE performance_reviews (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), period TEXT NOT NULL, rating TEXT NOT NULL CHECK(rating IN ('卓越','优秀','达标','待提升')), reviewer_id INTEGER REFERENCES employees(id), UNIQUE(employee_id,period))"
+    },
+    {
+      "name": "training_courses",
+      "database": "business",
+      "description": "培训课程；每门课一行，尚未开放查询",
+      "row_count": 3,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "name",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务名称"
+        },
+        {
+          "name": "hours",
+          "type": "REAL",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "课程时长，小时"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE TABLE training_courses (id INTEGER PRIMARY KEY, name TEXT NOT NULL, hours REAL NOT NULL)"
+    },
+    {
+      "name": "training_enrollments",
+      "database": "business",
+      "description": "培训参加记录；每人每课程一行，尚未开放查询",
+      "row_count": 960,
+      "fields": [
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "员工标识"
+        },
+        {
+          "name": "course_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 2,
+          "description": "课程标识"
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务状态；取值由对应表约束与生成器定义"
+        },
+        {
+          "name": "completed_at",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "完成日期，可空"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "training_courses",
+          "from": "course_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "employees",
+          "from": "employee_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_training_enrollments_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "employee_id",
+            "course_id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE training_enrollments (employee_id INTEGER NOT NULL REFERENCES employees(id), course_id INTEGER NOT NULL REFERENCES training_courses(id), status TEXT NOT NULL, completed_at TEXT, PRIMARY KEY(employee_id,course_id))"
+    },
+    {
+      "name": "recruitment_requisitions",
+      "database": "business",
+      "description": "招聘需求；每个需求一行，尚未开放查询",
+      "row_count": 15,
+      "fields": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "department_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "任职或需求所属组织"
+        },
+        {
+          "name": "position_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "岗位标识"
+        },
+        {
+          "name": "openings",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "招聘名额"
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务状态；取值由对应表约束与生成器定义"
+        },
+        {
+          "name": "opened_at",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "需求创建日期"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "positions",
+          "from": "position_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        },
+        {
+          "id": 1,
+          "seq": 0,
+          "table": "departments",
+          "from": "department_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [],
+      "create_sql": "CREATE TABLE recruitment_requisitions (id INTEGER PRIMARY KEY, department_id INTEGER NOT NULL REFERENCES departments(id), position_id INTEGER NOT NULL REFERENCES positions(id), openings INTEGER NOT NULL CHECK(openings>0), status TEXT NOT NULL, opened_at TEXT NOT NULL)"
+    },
+    {
+      "name": "principals",
+      "database": "application",
+      "description": "演示主体及授权；每个演示身份一行",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "employee_id",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "员工标识"
+        },
+        {
+          "name": "role",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "角色类型"
+        },
+        {
+          "name": "label",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "身份显示名称"
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "显示标题"
+        },
+        {
+          "name": "scope_mode",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "reports/organization/self"
+        },
+        {
+          "name": "scope_root",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "授权根：员工或组织ID，取决于scope_mode"
+        },
+        {
+          "name": "salary_aggregate",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "薪酬受限聚合能力0/1"
+        },
+        {
+          "name": "can_export",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "导出能力0/1，仍受指标和范围限制"
+        },
+        {
+          "name": "enabled",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": "1",
+          "primary_key_position": 0,
+          "description": "账号启用0/1"
+        },
+        {
+          "name": "policy_version",
+          "type": "INTEGER",
+          "not_null": true,
+          "default": "1",
+          "primary_key_position": 0,
+          "description": "权限策略版本"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_principals_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE principals(id TEXT PRIMARY KEY, employee_id INTEGER NOT NULL, role TEXT NOT NULL, label TEXT NOT NULL, title TEXT NOT NULL, scope_mode TEXT NOT NULL, scope_root INTEGER NOT NULL, salary_aggregate INTEGER NOT NULL, can_export INTEGER NOT NULL, enabled INTEGER NOT NULL DEFAULT 1, policy_version INTEGER NOT NULL DEFAULT 1)"
+    },
+    {
+      "name": "sessions",
+      "database": "application",
+      "description": "会话；仅保存令牌摘要，不保存原令牌",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "token_hash",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "会话令牌SHA-256摘要"
+        },
+        {
+          "name": "principal_id",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "应用身份标识"
+        },
+        {
+          "name": "csrf",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "会话CSRF校验值"
+        },
+        {
+          "name": "expires_at",
+          "type": "REAL",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "到期Unix时间戳秒"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "principals",
+          "from": "principal_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_sessions_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "token_hash"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE sessions(token_hash TEXT PRIMARY KEY, principal_id TEXT NOT NULL REFERENCES principals(id), csrf TEXT NOT NULL, expires_at REAL NOT NULL)"
+    },
+    {
+      "name": "metrics",
+      "database": "application",
+      "description": "已发布指标目录；每个指标一行JSON定义",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "definition",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "指标JSON定义"
+        },
+        {
+          "name": "version",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "定义版本"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_metrics_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE metrics(id TEXT PRIMARY KEY, definition TEXT NOT NULL, version TEXT NOT NULL)"
+    },
+    {
+      "name": "metric_search",
+      "database": "application",
+      "description": "由指标目录派生的FTS5 trigram检索索引，可重建",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "FTS TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "记录标识"
+        },
+        {
+          "name": "content",
+          "type": "FTS TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "派生检索文本"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE VIRTUAL TABLE metric_search USING fts5(id UNINDEXED, content, tokenize='trigram')"
+    },
+    {
+      "name": "dashboards",
+      "database": "application",
+      "description": "私人看板；存查询计划，不持久复制结果",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "owner_id",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "记录所属身份"
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "显示标题"
+        },
+        {
+          "name": "plan",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "严格类型查询计划JSON"
+        },
+        {
+          "name": "catalog_version",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "指标目录版本"
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "记录创建时间ISO格式"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "principals",
+          "from": "owner_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_dashboards_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE dashboards(id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES principals(id), title TEXT NOT NULL, plan TEXT NOT NULL, catalog_version TEXT NOT NULL, created_at TEXT NOT NULL)"
+    },
+    {
+      "name": "audit_events",
+      "database": "application",
+      "description": "应用审计事件；不包含业务结果或个人证件",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "principal_id",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "应用身份标识"
+        },
+        {
+          "name": "action",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "操作名称"
+        },
+        {
+          "name": "outcome",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "执行或授权结果"
+        },
+        {
+          "name": "metric_id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "指标标识"
+        },
+        {
+          "name": "scope_count",
+          "type": "INTEGER",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "该次授权候选人数（不等于在职人数）"
+        },
+        {
+          "name": "policy_version",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "权限策略版本"
+        },
+        {
+          "name": "duration_ms",
+          "type": "REAL",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "操作时长毫秒"
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "记录创建时间ISO格式"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_audit_principal",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "principal_id",
+            "created_at"
+          ],
+          "sql": "CREATE INDEX idx_audit_principal ON audit_events(principal_id,created_at)"
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_audit_events_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE audit_events(id TEXT PRIMARY KEY, principal_id TEXT NOT NULL, action TEXT NOT NULL, outcome TEXT NOT NULL, metric_id TEXT, scope_count INTEGER, policy_version TEXT NOT NULL, duration_ms REAL NOT NULL, created_at TEXT NOT NULL)"
+    },
+    {
+      "name": "conversations",
+      "database": "application",
+      "description": "最小对话记录；用于同一身份的前次计划继承",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "principal_id",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "应用身份标识"
+        },
+        {
+          "name": "question",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "用户问题；生产需制定脱敏及留存策略"
+        },
+        {
+          "name": "plan",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "严格类型查询计划JSON"
+        },
+        {
+          "name": "outcome",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "执行或授权结果"
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "记录创建时间ISO格式"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_conversations_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE conversations(id TEXT PRIMARY KEY, principal_id TEXT NOT NULL, question TEXT NOT NULL, plan TEXT, outcome TEXT NOT NULL, created_at TEXT NOT NULL)"
+    },
+    {
+      "name": "debug_runs",
+      "database": "application",
+      "description": "逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "记录标识"
+        },
+        {
+          "name": "owner_id",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "记录所属身份"
+        },
+        {
+          "name": "grant_fingerprint",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "身份能力、授权人员集合及策略版本的SHA-256指纹；读取时重新核验"
+        },
+        {
+          "name": "question",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "用户问题；生产需制定脱敏及留存策略"
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "业务状态；取值由对应表约束与生成器定义"
+        },
+        {
+          "name": "started_at",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "执行开始时间UTC ISO格式"
+        },
+        {
+          "name": "finished_at",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "执行结束时间UTC ISO格式；运行中为空"
+        },
+        {
+          "name": "duration_ms",
+          "type": "REAL",
+          "not_null": true,
+          "default": "0",
+          "primary_key_position": 0,
+          "description": "操作时长毫秒"
+        },
+        {
+          "name": "payload",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "已脱敏的逐节点输入、输出、耗时、错误及最终响应JSON"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "id": 0,
+          "seq": 0,
+          "table": "principals",
+          "from": "owner_id",
+          "to": "id",
+          "on_update": "NO ACTION",
+          "on_delete": "NO ACTION",
+          "match": "NONE"
+        }
+      ],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_debug_owner",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "owner_id",
+            "started_at"
+          ],
+          "sql": "CREATE INDEX idx_debug_owner ON debug_runs(owner_id, started_at DESC)"
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_debug_runs_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE debug_runs (\n            id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES principals(id),\n            grant_fingerprint TEXT NOT NULL, question TEXT NOT NULL, status TEXT NOT NULL,\n            started_at TEXT NOT NULL, finished_at TEXT, duration_ms REAL NOT NULL DEFAULT 0,\n            payload TEXT NOT NULL\n        )"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "headcount",
+      "name": "在职人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "在统计日已入职且尚未离职的去重员工数，包含正式、实习和外包。离职日不计在职。",
+      "aliases": [
+        "人数",
+        "员工数",
+        "人员规模",
+        "下属"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "job_family",
+        "location",
+        "employment_type",
+        "relation",
+        "month"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月在职人数",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "job_family": "岗位序列",
+        "location": "工作地",
+        "employment_type": "用工类型",
+        "relation": "汇报关系",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "headcount",
+        "dimension": "none",
+        "period": "as_of",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "COUNT(DISTINCT e.id)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,1 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day))\n    SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "hires",
+      "name": "新入职人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "入职日期落在选定期间的去重员工数，组织按入职时任职关系归属。",
+      "aliases": [
+        "新增",
+        "入职",
+        "招聘入职"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "location",
+        "month"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月新入职人数",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "location": "工作地",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "hires",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "COUNT(DISTINCT e.id)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,e.hire_date AS event_day,e.hire_date AS attr_day,1 AS amount FROM scoped e WHERE e.hire_date BETWEEN :start AND :end)\n    SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "departures",
+      "name": "离职人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "离职日期落在选定期间的去重员工数，组织按离职日前一天归属。",
+      "aliases": [
+        "离职",
+        "流失人数"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "month"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月离职人数",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "departures",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "COUNT(DISTINCT e.id)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,e.termination_date AS event_day,date(e.termination_date,'-1 day') AS attr_day,1 AS amount FROM scoped e WHERE e.termination_date BETWEEN :start AND :end)\n    SELECT '合计' AS label,COUNT(DISTINCT e.id) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "turnover_rate",
+      "name": "人员离职率",
+      "domain": "人员",
+      "unit": "%",
+      "description": "期间离职人数 ÷ ((期初在职人数 + 期末在职人数) / 2) × 100。为演示统一口径，不进行年化。",
+      "aliases": [
+        "离职率",
+        "流失率"
+      ],
+      "dimensions": [
+        "division",
+        "department"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月人员离职率",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "turnover_rate",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(200.0*SUM(f.exits)/NULLIF(SUM(f.opening)+SUM(f.closing),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT id AS employee_id,:begin AS event_day,:begin AS attr_day,1 AS opening,0 AS closing,0 AS exits FROM scoped WHERE hire_date<=:begin AND (termination_date IS NULL OR termination_date>:begin)\n        UNION ALL SELECT id,:end,:end,0,1,0 FROM scoped WHERE hire_date<=:end AND (termination_date IS NULL OR termination_date>:end)\n        UNION ALL SELECT id,termination_date,date(termination_date,'-1 day'),0,0,1 FROM scoped WHERE termination_date BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(200.0*SUM(f.exits)/NULLIF(SUM(f.opening)+SUM(f.closing),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "avg_tenure",
+      "name": "平均司龄",
+      "domain": "人员",
+      "unit": "年",
+      "description": "统计日在职员工从最近入职日起至统计日的天数 / 365.25 的算术平均。",
+      "aliases": [
+        "司龄",
+        "工龄"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "job_family"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月平均司龄",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "job_family": "岗位序列"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "avg_tenure",
+        "dimension": "none",
+        "period": "as_of",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(AVG(f.amount),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,(julianday(t.day)-julianday(e.hire_date))/365.25 AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t \n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day))\n    SELECT '合计' AS label,ROUND(AVG(f.amount),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "attendance_rate",
+      "name": "出勤率",
+      "domain": "考勤",
+      "unit": "%",
+      "description": "正常或远程出勤人日 ÷ (应出勤人日 - 已批准整日请假人日) × 100。缺卡、缺勤不计完成出勤。",
+      "aliases": [
+        "出勤",
+        "到岗率"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月出勤率",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "attendance_rate",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(100.0*SUM(CASE WHEN f.status IN ('正常','远程') THEN 1 ELSE 0 END)/NULLIF(SUM(CASE WHEN f.status<>'请假' THEN 1 ELSE 0 END),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(100.0*SUM(CASE WHEN f.status IN ('正常','远程') THEN 1 ELSE 0 END)/NULLIF(SUM(CASE WHEN f.status<>'请假' THEN 1 ELSE 0 END),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "late_count",
+      "name": "迟到人次",
+      "domain": "考勤",
+      "unit": "人次",
+      "description": "工作日上班打卡晚于 09:30 的人日数。09:30 整不迟到。",
+      "aliases": [
+        "迟到",
+        "迟到次数"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月迟到人次",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "late_count",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "COALESCE(SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END),0)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,COALESCE(SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END),0) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "late_rate",
+      "name": "迟到率",
+      "domain": "考勤",
+      "unit": "%",
+      "description": "迟到人次 ÷ 有上班打卡的应出勤人次 × 100。远程同样按弹性规则统计。",
+      "aliases": [
+        "迟到率"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月迟到率",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "late_rate",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(100.0*SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END)/NULLIF(COUNT(f.check_in),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(100.0*SUM(CASE WHEN f.late_minutes>0 THEN 1 ELSE 0 END)/NULLIF(COUNT(f.check_in),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "abnormal_count",
+      "name": "考勤异常人次",
+      "domain": "考勤",
+      "unit": "人次",
+      "description": "迟到、早退、缺勤或缺卡任一条件成立的人日数，同一人同一天只计一次。",
+      "aliases": [
+        "异常",
+        "缺卡",
+        "考勤异常"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月考勤异常人次",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "abnormal_count",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "COALESCE(SUM(CASE WHEN f.late_minutes>0 OR f.early_minutes>0 OR f.status IN ('缺勤','缺卡') THEN 1 ELSE 0 END),0)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,COALESCE(SUM(CASE WHEN f.late_minutes>0 OR f.early_minutes>0 OR f.status IN ('缺勤','缺卡') THEN 1 ELSE 0 END),0) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "approved_overtime_hours",
+      "name": "已批准加班时长",
+      "domain": "考勤",
+      "unit": "小时",
+      "description": "选定期间已批准加班申请的分钟数之和 / 60。晚离岗不会自动认定为加班。",
+      "aliases": [
+        "加班",
+        "审批加班",
+        "加班时长"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "overtime_requests",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月已批准加班时长",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "approved_overtime_hours",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(COALESCE(SUM(f.amount),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,minutes/60.0 AS amount FROM overtime_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准')\n    SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "late_departure_hours",
+      "name": "晚离岗时长",
+      "domain": "考勤",
+      "unit": "小时",
+      "description": "下班晚于个人应离岗时间的分钟数之和 / 60。应离岗时间为 max(18:00, 上班时间 + 9小时)，午休为1小时。该指标不是劳动报酬口径。",
+      "aliases": [
+        "晚下班",
+        "晚离岗",
+        "晚走"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月晚离岗时长",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "late_departure_hours",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(COALESCE(SUM(f.late_departure_minutes),0)/60.0,2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(COALESCE(SUM(f.late_departure_minutes),0)/60.0,2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "avg_work_hours",
+      "name": "平均有效在岗时长",
+      "domain": "考勤",
+      "unit": "小时/人日",
+      "description": "正常或远程且上下班打卡完整的净在岗分钟（打卡间隔减60分钟午休）÷ 完整打卡人日 ÷ 60。",
+      "aliases": [
+        "工作时长",
+        "工时",
+        "在岗时长"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月平均有效在岗时长",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "avg_work_hours",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(AVG(CASE WHEN f.status IN ('正常','远程') AND f.check_in IS NOT NULL AND f.check_out IS NOT NULL THEN f.work_minutes/60.0 END),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT *,day AS event_day,day AS attr_day FROM attendance_daily WHERE day BETWEEN :start AND :end)\n    SELECT '合计' AS label,ROUND(AVG(CASE WHEN f.status IN ('正常','远程') AND f.check_in IS NOT NULL AND f.check_out IS NOT NULL THEN f.work_minutes/60.0 END),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "leave_days",
+      "name": "已批准请假天数",
+      "domain": "考勤",
+      "unit": "天",
+      "description": "选定期间已批准整日请假天数。演示不包含半天、跨时区与跨午夜班次。",
+      "aliases": [
+        "请假",
+        "休假",
+        "年假"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "leave_requests",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月已批准请假天数",
+      "dimension_labels": {
+        "division": "事业部",
+        "department": "部门",
+        "day": "日期",
+        "month": "月份"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "leave_days",
+        "dimension": "none",
+        "period": "this_month",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(COALESCE(SUM(f.amount),0),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT employee_id,day AS event_day,day AS attr_day,days AS amount FROM leave_requests WHERE day BETWEEN :start AND :end AND approval_status='已批准')\n    SELECT '合计' AS label,ROUND(COALESCE(SUM(f.amount),0),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    },
+    {
+      "id": "avg_salary",
+      "name": "平均基本月薪",
+      "domain": "薪酬",
+      "unit": "元/月",
+      "description": "统计日在职员工有效基本月薪的算术平均，仅CNY，不含奖金和补贴。仅公司负责人获准汇总，少于5人的分组不显示；不开放任意人员过滤。",
+      "aliases": [
+        "薪资",
+        "工资",
+        "薪酬",
+        "月薪",
+        "平均工资"
+      ],
+      "dimensions": [
+        "division"
+      ],
+      "source": [
+        "compensation",
+        "employees",
+        "assignments"
+      ],
+      "owner": "薪酬负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "restricted_aggregate",
+      "minimum_group_size": 5,
+      "example": "按事业部统计本月平均基本月薪",
+      "dimension_labels": {
+        "division": "事业部"
+      },
+      "example_plan": {
+        "kind": "metric",
+        "metric": "avg_salary",
+        "dimension": "none",
+        "period": "as_of",
+        "relation": "all",
+        "department": null,
+        "employee_name": null,
+        "start_date": null,
+        "end_date": null,
+        "limit": 20,
+        "message": null
+      },
+      "sql_expression": "ROUND(AVG(f.amount),2)",
+      "example_sql": "WITH scoped AS (SELECT * FROM employees WHERE id IN (:s0,:s1,:s2,:s3,:s4,:s5,:s6,:s7,:s8,:s9,:s10,:s11,:s12,:s13,:s14,:s15,:s16,:s17,:s18,:s19,:s20,:s21,:s22,:s23,:s24,:s25,:s26,:s27,:s28,:s29,:s30,:s31,:s32,:s33,:s34,:s35,:s36,:s37,:s38,:s39,:s40,:s41,:s42,:s43,:s44,:s45,:s46,:s47,:s48,:s49,:s50,:s51,:s52,:s53,:s54,:s55,:s56,:s57,:s58,:s59,:s60,:s61,:s62,:s63,:s64,:s65,:s66,:s67,:s68,:s69,:s70,:s71,:s72,:s73,:s74,:s75,:s76,:s77,:s78,:s79,:s80,:s81,:s82,:s83,:s84,:s85,:s86,:s87,:s88,:s89,:s90,:s91,:s92,:s93,:s94,:s95,:s96,:s97,:s98,:s99,:s100,:s101,:s102,:s103,:s104,:s105,:s106,:s107,:s108,:s109,:s110,:s111,:s112,:s113,:s114,:s115,:s116,:s117,:s118,:s119,:s120,:s121,:s122,:s123,:s124,:s125,:s126,:s127,:s128,:s129,:s130,:s131,:s132,:s133,:s134,:s135,:s136,:s137,:s138,:s139,:s140,:s141,:s142,:s143,:s144,:s145,:s146,:s147,:s148,:s149,:s150,:s151,:s152,:s153,:s154,:s155,:s156,:s157,:s158,:s159,:s160,:s161,:s162,:s163,:s164,:s165,:s166,:s167,:s168,:s169,:s170,:s171,:s172,:s173,:s174,:s175,:s176,:s177,:s178,:s179,:s180,:s181,:s182,:s183,:s184,:s185,:s186,:s187,:s188,:s189,:s190,:s191,:s192,:s193,:s194,:s195,:s196,:s197,:s198,:s199,:s200,:s201,:s202,:s203,:s204,:s205,:s206,:s207,:s208,:s209,:s210,:s211,:s212,:s213,:s214,:s215,:s216,:s217,:s218,:s219,:s220,:s221,:s222,:s223,:s224,:s225,:s226,:s227,:s228,:s229,:s230,:s231,:s232,:s233,:s234,:s235,:s236,:s237,:s238,:s239,:s240,:s241,:s242,:s243,:s244,:s245,:s246,:s247,:s248,:s249,:s250,:s251,:s252,:s253,:s254,:s255,:s256,:s257,:s258,:s259,:s260,:s261,:s262,:s263,:s264,:s265,:s266,:s267,:s268,:s269,:s270,:s271,:s272,:s273,:s274,:s275,:s276,:s277,:s278,:s279,:s280,:s281,:s282,:s283,:s284,:s285,:s286,:s287,:s288,:s289,:s290,:s291,:s292,:s293,:s294,:s295,:s296,:s297,:s298,:s299,:s300,:s301,:s302,:s303,:s304,:s305,:s306,:s307,:s308,:s309,:s310,:s311,:s312,:s313,:s314,:s315,:s316,:s317,:s318,:s319,:s320,:s321,:s322,:s323,:s324,:s325,:s326,:s327,:s328,:s329,:s330,:s331,:s332,:s333,:s334,:s335,:s336,:s337,:s338,:s339,:s340,:s341,:s342,:s343,:s344,:s345,:s346,:s347,:s348,:s349,:s350,:s351,:s352,:s353,:s354,:s355,:s356,:s357,:s358,:s359,:s360,:s361,:s362,:s363,:s364,:s365,:s366,:s367,:s368,:s369,:s370,:s371,:s372,:s373,:s374,:s375,:s376,:s377,:s378,:s379,:s380,:s381,:s382,:s383,:s384,:s385,:s386,:s387,:s388,:s389,:s390,:s391,:s392,:s393,:s394,:s395,:s396,:s397,:s398,:s399,:s400,:s401,:s402,:s403,:s404,:s405,:s406,:s407,:s408,:s409,:s410,:s411,:s412,:s413,:s414,:s415,:s416,:s417,:s418,:s419,:s420,:s421,:s422,:s423,:s424,:s425,:s426,:s427,:s428,:s429,:s430,:s431,:s432,:s433,:s434,:s435,:s436,:s437,:s438,:s439,:s440,:s441,:s442,:s443,:s444,:s445,:s446,:s447,:s448,:s449,:s450,:s451,:s452,:s453,:s454,:s455,:s456,:s457,:s458,:s459,:s460,:s461,:s462,:s463,:s464,:s465,:s466,:s467,:s468,:s469,:s470,:s471,:s472,:s473,:s474,:s475,:s476,:s477,:s478,:s479)), facts AS (SELECT e.id AS employee_id,t.day AS event_day,t.day AS attr_day,c.monthly_base AS amount FROM scoped e CROSS JOIN (SELECT :p0 AS day) t JOIN compensation c ON c.employee_id=e.id AND c.valid_from<=t.day AND (c.valid_to IS NULL OR c.valid_to>t.day)\n        WHERE e.hire_date<=t.day AND (e.termination_date IS NULL OR e.termination_date>t.day))\n    SELECT '合计' AS label,ROUND(AVG(f.amount),2) AS value,COUNT(DISTINCT e.id) AS sample_size\n    FROM facts f JOIN scoped e ON e.id=f.employee_id\n    JOIN assignments a ON a.employee_id=e.id AND a.valid_from<=f.attr_day AND (a.valid_to IS NULL OR a.valid_to>f.attr_day)\n    JOIN departments d ON d.id=a.department_id LEFT JOIN departments v ON v.id=d.division_id\n    JOIN positions p ON p.id=a.position_id JOIN job_families j ON j.id=p.family_id JOIN locations l ON l.id=e.location_id\n    LEFT JOIN reporting_closure rc ON rc.descendant_id=e.id AND rc.ancestor_id=:viewer\n     ORDER BY value DESC,label LIMIT 400"
+    }
+  ],
+  "storage": [
+    {
+      "name": "业务库",
+      "location": "data/hr.sqlite",
+      "purpose": "员工、任职、组织、考勤等21张关系表；查询服务只读。"
+    },
+    {
+      "name": "应用库",
+      "location": "data/app.sqlite",
+      "purpose": "身份、会话、指标、看板、审计、对话与逐节点调试记录；与业务库分离。"
+    },
+    {
+      "name": "指标定义源",
+      "location": "semantic/catalog.json",
+      "purpose": "Git版本化的名称、定义、来源、维度、责任人与敏感级别；发布到应用库metrics。"
+    },
+    {
+      "name": "检索索引",
+      "location": "app.sqlite.metric_search",
+      "purpose": "FTS5 trigram派生全文索引，用于指标搜索；当前问数直接注入全量已授权指标，没有向量检索。"
+    },
+    {
+      "name": "公式实现",
+      "location": "backend/hr/query.py",
+      "purpose": "确定性SQL编译器实现口径和权限；下面的公式与示例SQL从实际编译结果提取。"
+    }
+  ],
+  "conventions": [
+    {
+      "name": "数据范围",
+      "value": "全部为可复现合成数据，演示时区Asia/Shanghai；今天/本月按数据截止日解释。"
+    },
+    {
+      "name": "组织与授权",
+      "value": "公司→事业部→部门→团队。当前管理闭包决定授权集合；本人depth=0、直属=1、间接>=2；HRBP用服务组织范围。"
+    },
+    {
+      "name": "在职与历史归属",
+      "value": "hire_date<=统计日，termination_date为空或>统计日。任职有效期[valid_from,valid_to)，历史分组按业务发生日任职。离职归属离职日前一天。"
+    },
+    {
+      "name": "弹性班次",
+      "value": "08:00–09:30到岗，09:30整不迟到。演示补充净工作480分钟、午休60分钟，应离岗=max(18:00,到岗+9小时)。"
+    },
+    {
+      "name": "晚离岗与加班",
+      "value": "晚离岗=max(下班-应离岗,0)；仅已批准申请计加班。两者分别建模，不自动等同。模拟打卡最晚22:00。"
+    },
+    {
+      "name": "日历与请假",
+      "value": "仅周一至周五模拟日历；整日请假；未实现节假日调休、半天假、跨夜班。正常/远程算完成出勤，缺卡与缺勤不算。"
+    },
+    {
+      "name": "除零、空值与精度",
+      "value": "比率分母为0返回NULL。人数为去重员工，人次为员工×日期。比例、均值与小时数按SQL保留2位；界面部分摘要显示1位。"
+    },
+    {
+      "name": "查询边界",
+      "value": "单指标、单维度。明细1–100行；聚合最多400组；日期差不超过366天。当前不支持部门数量、离职人员日期明细、年龄/性别/学历筛选、多指标、排名、同比环比、预测。"
+    },
+    {
+      "name": "历史趋势",
+      "value": "人数月趋势统计月末，当前月截至数据日；入职按入职日，离职按离职日。没有事实的分组可能缺席，不补造历史记录。"
+    },
+    {
+      "name": "薪酬保护",
+      "value": "只开放当前全授权范围/事业部的基本月薪均值，仅CNY。小于5人及必要互补组隐藏；禁止人员筛选、历史差分、明细和导出。"
+    }
+  ],
+  "dataset": {
+    "as_of": "2026-09-11",
+    "seed": "20260911",
+    "size": "480",
+    "calendar_start": "2026-03-01",
+    "synthetic": "true",
+    "calendar_policy": "演示日历：周一至周五为工作日，不套用法定节假日",
+    "catalog_version": "hr-metrics-1.0"
+  },
+  "catalog_version": "hr-metrics-1.0",
+  "summary": {
+    "business_tables": 21,
+    "application_tables": 8,
+    "fields": 157,
+    "metrics": 14
+  },
+  "note": "从实际SQLite结构与查询编译器读取；未读取私人信息或会话值。FTS5影子表为自动生成实现细节，未计入业务/应用逻辑表数量。"
+}

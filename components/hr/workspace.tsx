@@ -4,6 +4,7 @@ import {
   Activity,
   ArrowUpRight,
   BookOpen,
+  Bug,
   Check,
   ChevronRight,
   CircleHelp,
@@ -38,6 +39,8 @@ import {
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { api, mutation } from './client';
 import { Failure, LoadingBlock } from './results';
+import { DebugPanel } from './debug-panel';
+import { DataDictionary } from './data-dictionary';
 import {
   Boards,
   Catalog,
@@ -55,6 +58,8 @@ const NAV = [
   { id: 'organization' as View, label: '组织与权限', icon: GitBranch },
   { id: 'catalog' as View, label: '指标字典', icon: BookOpen },
   { id: 'governance' as View, label: '数据治理', icon: Database },
+  { id: 'dictionary' as View, label: '数据库与口径', icon: BookOpen },
+  { id: 'debug' as View, label: '节点调试', icon: Bug },
 ];
 function Navigation({
   view,
@@ -96,6 +101,7 @@ export default function Workspace() {
   const [initial, setInitial] = useState('');
   const [toast, setToast] = useState('');
   const [chatKey, setChatKey] = useState(0);
+  const [debugRunId, setDebugRunId] = useState<string | undefined>();
   const epoch = useRef(0);
   const initialize = useCallback(async (persona?: string) => {
     const version = ++epoch.current;
@@ -122,6 +128,7 @@ export default function Workspace() {
       if (version !== epoch.current) return;
       setBoot(data);
       setInitial('');
+      setDebugRunId(undefined);
       setChatKey((v) => v + 1);
     } catch (e) {
       if (version === epoch.current) setError((e as Error).message);
@@ -143,6 +150,10 @@ export default function Workspace() {
     setInitial(q);
     setChatKey((v) => v + 1);
     setView('chat');
+  }
+  function openDebug(id?: string) {
+    setDebugRunId(id);
+    setView('debug');
   }
   async function save(answer: Answer) {
     if (!boot) return;
@@ -276,6 +287,7 @@ export default function Workspace() {
                     initialQuestion={initial}
                     onSave={save}
                     onExport={download}
+                    onDebug={openDebug}
                   />
                 ) : null}
                 {view === 'boards' ? (
@@ -286,6 +298,14 @@ export default function Workspace() {
                   <Catalog boot={boot} onAsk={ask} />
                 ) : null}
                 {view === 'governance' ? <Governance boot={boot} /> : null}
+                {view === 'dictionary' ? <DataDictionary boot={boot} /> : null}
+                {view === 'debug' ? (
+                  <DebugPanel
+                    key={`${boot.principal.id}:${debugRunId ?? 'latest'}`}
+                    boot={boot}
+                    initialRunId={debugRunId}
+                  />
+                ) : null}
               </div>
             )}
           </main>

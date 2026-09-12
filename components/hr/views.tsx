@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
+  Bug,
   Check,
   CircleCheck,
   Database,
@@ -30,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { api, mutation, number, useResource } from './client';
+import { api, ApiError, mutation, number, useResource } from './client';
 import { Chart, DataTable, Failure, LoadingBlock, Result } from './results';
 import type {
   Answer,
@@ -247,17 +248,24 @@ const EXAMPLES = [
   },
   { icon: BookOpen, label: '查看人员趋势', question: '近半年每月在职人数趋势' },
 ];
-type Exchange = { question: string; answer?: Answer; error?: string };
+type Exchange = {
+  question: string;
+  answer?: Answer;
+  error?: string;
+  debugRunId?: string;
+};
 export function Chat({
   boot,
   initialQuestion,
   onSave,
   onExport,
+  onDebug,
 }: {
   boot: Bootstrap;
   initialQuestion: string;
   onSave: (a: Answer) => Promise<void>;
   onExport: (a: Answer) => Promise<void>;
+  onDebug: (id?: string) => void;
 }) {
   const [question, setQuestion] = useState(initialQuestion);
   const [messages, setMessages] = useState<Exchange[]>([]);
@@ -299,7 +307,13 @@ export function Chat({
       if (!activeRequest.signal.aborted && controller.current === activeRequest)
         setMessages((v) =>
           v.map((m, i) =>
-            i === v.length - 1 ? { ...m, error: (e as Error).message } : m,
+            i === v.length - 1
+              ? {
+                  ...m,
+                  error: (e as Error).message,
+                  debugRunId: e instanceof ApiError ? e.debugRunId : undefined,
+                }
+              : m,
           ),
         );
     } finally {
@@ -388,6 +402,18 @@ export function Chat({
                     </div>
                   </div>
                 )}
+                {m.answer?.debug_run_id || m.debugRunId ? (
+                  <Button
+                    className="open-debug-link"
+                    variant="ghost"
+                    onClick={() =>
+                      onDebug(m.answer?.debug_run_id ?? m.debugRunId)
+                    }
+                  >
+                    <Bug size={15} />
+                    查看本次节点输入与输出
+                  </Button>
+                ) : null}
               </div>
             ))}
           </div>

@@ -16,7 +16,9 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from . import config
 from .agent import answer, model_status
 from .catalog import catalog, publish_catalog, search
+from .data_dictionary import inventory
 from .db import application, business, rows
+from .debug import ensure_schema, list_runs, read_run, recover_interrupted
 from .models import DashboardRequest, PersonaRequest, QueryPlan, QuestionRequest
 from .query import execute
 from .security import (
@@ -40,6 +42,8 @@ async def lifespan(app):
     if not config.BUSINESS_DB.exists() or not config.APP_DB.exists():
         generate()
     publish_catalog()
+    ensure_schema()
+    recover_interrupted()
     yield
 
 
@@ -138,6 +142,21 @@ async def bootstrap(principal=Depends(get_principal)):
 @app.get("/api/model")
 async def model(principal=Depends(get_principal)):
     return await model_status()
+
+
+@app.get("/api/debug/runs")
+def debug_runs(principal=Depends(get_principal)):
+    return {"runs": list_runs(principal), "retention": 50}
+
+
+@app.get("/api/data-dictionary")
+def data_dictionary(principal=Depends(get_principal)):
+    return inventory(principal)
+
+
+@app.get("/api/debug/runs/{run_id}")
+def debug_run(run_id: str, principal=Depends(get_principal)):
+    return read_run(principal, run_id)
 
 
 @app.get("/api/overview")

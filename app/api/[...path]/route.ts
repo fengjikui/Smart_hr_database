@@ -31,6 +31,7 @@ async function proxy(request: Request) {
       'set-cookie',
       'content-disposition',
       'retry-after',
+      'x-debug-run-id',
     ]) {
       const value = upstream.headers.get(key);
       if (value) responseHeaders.set(key, value);

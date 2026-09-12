@@ -12,6 +12,7 @@ from pydantic import ValidationError
 from . import config
 from .catalog import visible_catalog
 from .db import application, business
+from .debug import CURRENT_RUN, DebugRun, actor, error_info, step
 from .models import QueryPlan
 from .query import execute
 from .security import audit, scope_ids
@@ -95,62 +96,147 @@ async def ask_model(messages):
             "json_schema": {"name": "hr_query_plan", "schema": QueryPlan.model_json_schema()},
         },
     }
-    async with httpx.AsyncClient(trust_env=False, timeout=config.MODEL_TIMEOUT) as client:
-        response = await client.post(f"{config.MODEL_URL}/chat/completions", json=payload)
-        response.raise_for_status()
-        data = response.json()
-    choice = data["choices"][0]
-    if choice.get("finish_reason") == "length":
-        raise ValueError("模型输出达到长度上限")
-    content = choice["message"].get("content") or choice["message"].get("reasoning_content", "")
-    content = re.sub(r"<think>.*?</think>", "", content, flags=re.S).strip()
-    if content.startswith("```"):
-        content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content)
-    return QueryPlan.model_validate_json(content), data.get("usage", {})
+    with step(
+        "model",
+        "本地模型调用",
+        {
+            "endpoint": f"{config.MODEL_URL}/chat/completions",
+            "timeout_seconds": config.MODEL_TIMEOUT,
+            "request": payload,
+        },
+    ) as trace:
+        async with httpx.AsyncClient(trust_env=False, timeout=config.MODEL_TIMEOUT) as client:
+            response = await client.post(f"{config.MODEL_URL}/chat/completions", json=payload)
+            trace["http_status"] = response.status_code
+            response.raise_for_status()
+            data = response.json()
+        choice = data["choices"][0]
+        trace.update(
+            usage=data.get("usage", {}),
+            finish_reason=choice.get("finish_reason"),
+            model=data.get("model", config.MODEL_ID),
+        )
+        if choice.get("finish_reason") == "length":
+            raise ValueError("模型输出达到长度上限")
+        message = choice["message"]
+        content = message.get("content") or message.get("reasoning_content", "")
+        content = re.sub(r"<think>.*?</think>", "", content, flags=re.S).strip()
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content)
+        # Some local MLX adapters place structured JSON in reasoning_content.
+        # Only a standalone JSON value from that channel is captured, never prose.
+        try:
+            candidate = json.loads(content)
+        except (ValueError, TypeError):
+            candidate = content if message.get("content") else "[非结构化内部推理内容已省略]"
+        trace.update(
+            response=candidate,
+            content_source="content" if message.get("content") else "structured_json_from_reasoning_channel",
+        )
+    with step(
+        "schema", "查询计划结构校验", {"candidate": candidate, "schema": QueryPlan.model_json_schema()}
+    ) as trace:
+        plan = QueryPlan.model_validate_json(content)
+        trace.update(plan=plan.model_dump(), valid=True)
+    return plan, data.get("usage", {})
 
 
 async def answer(principal, question, previous_id=None):
-    if re.search(
-        r"性别|女性|男性|女员工|男员工|学历|年龄|\d+\s*岁|同比|环比|预测|排名|工资.{0,8}(超过|高于|低于)|薪资.{0,8}(超过|高于|低于)",
-        question,
-    ):
-        audit(principal, "agent.intent", "unsupported")
+    run = DebugRun(principal, question)
+    token = CURRENT_RUN.set(run)
+    try:
+        output = await _answer(principal, question, previous_id)
+        output["debug_run_id"] = run.id
+        output["trace"] = [
+            {"name": node["name"], "detail": node["status"], "duration_ms": node["duration_ms"]}
+            for node in run.data["nodes"]
+        ]
+        run.finish(output["status"], result={k: v for k, v in output.items() if k != "trace"})
+        return output
+    except HTTPException as exc:
+        run.finish("blocked" if exc.status_code in (403, 404, 422) else "error", error=error_info(exc))
+        exc.headers = {**(exc.headers or {}), "X-Debug-Run-Id": run.id}
+        raise
+    except asyncio.CancelledError:
+        run.finish("interrupted", error={"message": "请求被取消，已记录完成的节点。"})
+        raise
+    except Exception as exc:
+        run.finish("error", error=error_info(exc))
         raise HTTPException(
-            422,
-            detail="当前尚未开放年龄、性别、学历、数值阈值、同比环比、排名或预测条件。请使用指标字典中的指标和分组；系统没有忽略这些条件执行查询。",
-        )
-    if _gate.locked():
-        raise HTTPException(429, detail="本地模型正在处理一个问题，请稍后重试。固定看板仍可使用。")
+            500, detail="查询处理失败，请打开调试面板查看节点。", headers={"X-Debug-Run-Id": run.id}
+        ) from exc
+    finally:
+        CURRENT_RUN.reset(token)
+
+
+async def _answer(principal, question, previous_id=None):
     started = time.perf_counter()
-    with business() as db:
-        as_of = db.execute("SELECT value FROM dataset_meta WHERE key='as_of'").fetchone()[0]
-    previous = None
-    if previous_id:
-        with application() as db:
-            row = db.execute(
-                "SELECT plan FROM conversations WHERE id=? AND principal_id=? AND outcome=?",
-                (previous_id, principal["id"], "success"),
-            ).fetchone()
-        if not row:
-            raise HTTPException(404, detail="前次查询不存在或不属于当前身份。请重新描述问题。")
-        previous = json.loads(row[0])
-    messages = [
-        {"role": "system", "content": instructions(principal, as_of, previous)},
-        {"role": "user", "content": question},
-    ]
-    repaired = False
+    with step("request", "接收问题", {"question": question, "previous_id": previous_id}) as trace:
+        trace.update(question=question.strip(), received_at=datetime.now(UTC).isoformat())
+    with step("authorization", "身份与人员范围", {"principal_id": principal["id"]}) as trace:
+        ids = scope_ids(principal)
+        trace.update(
+            actor=actor(principal),
+            authorized_employee_ids=ids,
+            candidate_count=len(ids),
+            note="候选集合包含历史离职人员；在职数在指标查询时计算。",
+            policy_version=config.POLICY_VERSION,
+        )
+    with step("capability", "能力边界检查", {"question": question}) as trace:
+        unsupported = re.search(
+            r"性别|女性|男性|女员工|男员工|学历|年龄|\d+\s*岁|同比|环比|预测|排名|工资.{0,8}(超过|高于|低于)|薪资.{0,8}(超过|高于|低于)",
+            question,
+        )
+        if unsupported:
+            trace.update(allowed=False, matched_text=unsupported.group(0), rule="unsupported_conditions")
+            audit(principal, "agent.intent", "unsupported")
+            raise HTTPException(
+                422,
+                detail="当前尚未开放年龄、性别、学历、数值阈值、同比环比、排名或预测条件。请使用指标字典中的指标和分组；系统没有忽略这些条件执行查询。",
+            )
+        trace.update(allowed=True)
+    with step(
+        "context", "构建模型上下文", {"previous_id": previous_id, "catalog_version": config.CATALOG_VERSION}
+    ) as trace:
+        with business() as db:
+            as_of = db.execute("SELECT value FROM dataset_meta WHERE key='as_of'").fetchone()[0]
+        previous = None
+        if previous_id:
+            with application() as db:
+                row = db.execute(
+                    "SELECT plan FROM conversations WHERE id=? AND principal_id=? AND outcome=?",
+                    (previous_id, principal["id"], "success"),
+                ).fetchone()
+            if not row:
+                raise HTTPException(404, detail="前次查询不存在或不属于当前身份。请重新描述问题。")
+            previous = json.loads(row[0])
+        messages = [
+            {"role": "system", "content": instructions(principal, as_of, previous)},
+            {"role": "user", "content": question},
+        ]
+        trace.update(
+            as_of=as_of,
+            previous_plan=previous,
+            messages=messages,
+            context_strategy="全部已授权指标和组织元数据直接加入上下文；本步骤没有执行FTS或向量检索。",
+            available_metrics=[m["id"] for m in visible_catalog(principal)],
+        )
+    with step("capacity", "模型并发检查", {"max_concurrency": 1}) as trace:
+        if _gate.locked():
+            raise HTTPException(429, detail="本地模型正在处理一个问题，请稍后重试。固定看板仍可使用。")
+        trace.update(available=True)
     async with _gate:
         try:
             try:
                 plan, usage = await ask_model(messages)
             except (ValidationError, ValueError, KeyError, TypeError):
-                repaired = True
-                messages.append(
-                    {
+                with step("repair", "结构错误修复重试", {"attempt": 1, "maximum_retries": 1}) as trace:
+                    instruction = {
                         "role": "user",
                         "content": "上次输出未通过结构校验。请仅输出完整合法JSON，日期不明确时留空，禁止编造字段。",
                     }
-                )
+                    messages.append(instruction)
+                    trace.update(appended_message=instruction)
                 plan, usage = await ask_model(messages)
         except httpx.TimeoutException as exc:
             audit(principal, "agent", "timeout")
@@ -160,71 +246,64 @@ async def answer(principal, question, previous_id=None):
             raise HTTPException(
                 503, detail="本地模型暂时不可用或未产生有效计划。未执行数据库查询，请检查 LM Studio 后重试。"
             ) from exc
-    if (
-        plan.kind == "metric"
-        and plan.metric in ("abnormal_count", "late_count")
-        and re.search(r"明细|名单|哪些人", question)
-    ):
-        plan = plan.model_copy(update={"kind": "attendance", "dimension": "none"})
+    with step(
+        "intent", "明细意图与计划校正", {"question": question, "model_plan": plan.model_dump()}
+    ) as trace:
+        corrected = (
+            plan.kind == "metric"
+            and plan.metric in ("abnormal_count", "late_count")
+            and bool(re.search(r"明细|名单|哪些人", question))
+        )
+        if corrected:
+            plan = plan.model_copy(update={"kind": "attendance", "dimension": "none"})
+        trace.update(
+            corrected=corrected,
+            final_plan=plan.model_dump(),
+            rule="异常/迟到且要求明细时，将汇总计划转为考勤明细",
+        )
     model_ms = round((time.perf_counter() - started) * 1000, 2)
-    trace = [
-        {"name": "身份与范围", "detail": "服务端读取当前授权", "duration_ms": 0},
-        {
-            "name": "语义规划",
-            "detail": "LM Studio · Qwen3.8 27B" + (" · 校验后重试1次" if repaired else ""),
-            "duration_ms": model_ms,
-        },
-    ]
     if plan.kind in ("clarify", "refuse"):
-        output = {
-            "status": plan.kind,
-            "summary": plan.message
-            or (
-                "请明确希望查看的指标或时间范围。"
-                if plan.kind == "clarify"
-                else "该请求不属于当前开放的查询能力。"
-            ),
-            "plan": plan.model_dump(),
-            "rows": [],
-            "columns": [],
-            "trace": trace,
-            "model": config.MODEL_ID,
-            "model_ms": model_ms,
-        }
-        audit(principal, "agent", plan.kind)
+        with step("decision", "返回澄清或拒绝", {"plan": plan.model_dump()}) as trace:
+            output = {
+                "status": plan.kind,
+                "summary": plan.message or "请明确希望查看的指标或时间范围。",
+                "plan": plan.model_dump(),
+                "rows": [],
+                "columns": [],
+                "model": config.MODEL_ID,
+                "model_ms": model_ms,
+            }
+            trace.update(output, database_executed=False)
+            audit(principal, "agent", plan.kind)
     else:
-        # Refresh entitlements after the slow inference step, before querying.
-        with application() as db:
-            current = db.execute(
-                "SELECT * FROM principals WHERE id=? AND enabled=1", (principal["id"],)
-            ).fetchone()
-        if not current:
-            raise HTTPException(403, detail="当前身份授权已失效。")
+        with step("reauthorize", "执行前重新鉴权", {"original_actor": actor(principal)}) as trace:
+            with application() as db:
+                current = db.execute(
+                    "SELECT * FROM principals WHERE id=? AND enabled=1", (principal["id"],)
+                ).fetchone()
+            if not current:
+                raise HTTPException(403, detail="当前身份授权已失效。")
+            trace.update(current_actor=actor(dict(current)), authorized_employee_ids=scope_ids(dict(current)))
         output = await asyncio.to_thread(execute, dict(current), plan)
-        trace.extend(
-            [
-                {"name": "权限与计划校验", "detail": "范围、字段、指标与查询形状", "duration_ms": 0},
-                {
-                    "name": "只读查询",
-                    "detail": f"返回 {len(output['rows'])} 条记录",
-                    "duration_ms": output["duration_ms"],
-                },
-                {"name": "结果与口径", "detail": "确定性计算，无模型补造数字", "duration_ms": 0},
-            ]
-        )
-        output.update({"trace": trace, "model": config.MODEL_ID, "model_ms": model_ms, "usage": usage})
-    conversation_id = uuid4().hex
-    with application() as db:
-        db.execute(
-            "INSERT INTO conversations VALUES (?,?,?,?,?,?)",
-            (
-                conversation_id,
-                principal["id"],
-                question,
-                json.dumps(plan.model_dump(), ensure_ascii=False),
-                output["status"],
-                datetime.now(UTC).isoformat(),
-            ),
-        )
-    output["conversation_id"] = conversation_id
+        output.update(model=config.MODEL_ID, model_ms=model_ms, usage=usage)
+    with step(
+        "conversation",
+        "保存本轮查询计划",
+        {"owner_id": principal["id"], "plan": plan.model_dump(), "outcome": output["status"]},
+    ) as trace:
+        conversation_id = uuid4().hex
+        with application() as db:
+            db.execute(
+                "INSERT INTO conversations VALUES (?,?,?,?,?,?)",
+                (
+                    conversation_id,
+                    principal["id"],
+                    question,
+                    json.dumps(plan.model_dump(), ensure_ascii=False),
+                    output["status"],
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
+        output["conversation_id"] = conversation_id
+        trace.update(conversation_id=conversation_id, saved=True)
     return output

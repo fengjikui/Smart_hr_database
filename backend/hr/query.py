@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from . import config
 from .catalog import metric
 from .db import business, rows
+from .debug import actor, step
 from .models import QueryPlan
 from .security import audit, scope_ids
 
@@ -296,7 +297,18 @@ def execute(principal, plan: QueryPlan, record_audit=True):
     started = time.perf_counter()
     try:
         with business() as db:
-            sql, params, columns, ids, metadata = compile_query(principal, plan, db)
+            with step(
+                "compile", "权限校验与 SQL 编译", {"plan": plan.model_dump(), "actor": actor(principal)}
+            ) as trace:
+                sql, params, columns, ids, metadata = compile_query(principal, plan, db)
+                trace.update(
+                    sql=sql,
+                    parameters=params,
+                    columns=columns,
+                    filtered_employee_ids=ids,
+                    candidate_count=len(ids),
+                    dataset=metadata,
+                )
             deadline = time.monotonic() + 2.0
             db.set_progress_handler(lambda: int(time.monotonic() > deadline), 10000)
             # A second database-layer check: allowlisted reads/functions only.
@@ -332,76 +344,114 @@ def execute(principal, plan: QueryPlan, record_audit=True):
                 return sqlite3.SQLITE_DENY
 
             db.set_authorizer(authorize)
-            result = rows(db, sql, params)
-        definition = metric(plan.metric)
-        suppressed = 0
-        if plan.metric == "avg_salary":
-            for row in result:
-                if row["sample_size"] < 5:
-                    row["value"] = None
-                    row["sample_size"] = None
-                    row["protected"] = True
+            with step(
+                "database",
+                "执行只读 SQL",
+                {
+                    "sql": sql,
+                    "parameters": params,
+                    "guards": {"query_only": True, "deadline_seconds": 2, "read_tables": sorted(READ_TABLES)},
+                },
+            ) as trace:
+                result = rows(db, sql, params)
+                trace.update(
+                    row_count=len(result),
+                    rows=result if plan.metric != "avg_salary" else None,
+                    capture_note="薪酬原始聚合不写入调试记录，请查看保护后的结果。"
+                    if plan.metric == "avg_salary"
+                    else "数据库返回的授权内结果。",
+                )
+        with step(
+            "protection",
+            "聚合保护与空值处理",
+            {"metric": plan.metric, "row_count": len(result), "minimum_salary_group": 5},
+        ) as trace:
+            definition = metric(plan.metric)
+            suppressed = 0
+            if plan.metric == "avg_salary":
+                for row in result:
+                    if row["sample_size"] < 5:
+                        row["value"] = None
+                        row["sample_size"] = None
+                        row["protected"] = True
+                        suppressed += 1
+            if plan.metric == "avg_salary" and suppressed == 1:
+                # Complementary suppression prevents reconstructing the hidden group
+                # using the overall average and the other groups' known headcounts.
+                eligible = [row for row in result if not row.get("protected")]
+                if eligible:
+                    secondary = min(eligible, key=lambda row: row["sample_size"])
+                    secondary.update(value=None, sample_size=None, protected=True)
                     suppressed += 1
-        if plan.metric == "avg_salary" and suppressed == 1:
-            # Complementary suppression prevents reconstructing the hidden group
-            # using the overall average and the other groups' known headcounts.
-            eligible = [row for row in result if not row.get("protected")]
-            if eligible:
-                secondary = min(eligible, key=lambda row: row["sample_size"])
-                secondary.update(value=None, sample_size=None, protected=True)
-                suppressed += 1
-        if plan.kind == "metric" and not result:
-            if plan.dimension == "none":
-                result = [{"label": "合计", "value": None, "sample_size": 0}]
-        duration = round((time.perf_counter() - started) * 1000, 2)
-        if plan.kind == "metric":
-            summary = (
-                f"已按{DIMENSION_LABELS[plan.dimension]}统计{definition['name']}，共 {len(result)} 组。"
-                if plan.dimension != "none"
-                else f"{definition['name']}为 {result[0]['value'] if result and result[0]['value'] is not None else '暂无可展示结果'}{definition['unit'] if result and result[0]['value'] is not None else ''}。"
-            )
-        else:
-            summary = (
-                f"已找到 {len(result)} 条授权范围内的{'人员' if plan.kind == 'people' else '考勤异常'}记录。"
-            )
-        warnings = [
-            "所有数据均为合成数据；“今天”以演示数据截止日为准。",
-            "历史人员范围按当前授权关系确定，组织分组按业务发生时任职记录归属。",
-        ]
-        if plan.metric in ATTENDANCE_METRICS or plan.kind == "attendance":
-            warnings.append("演示日历仅采用周一至周五，不代表实际法定节假日安排。")
-        if suppressed:
-            warnings.append("少于 5 人的薪酬分组及必要的互补分组已隐藏，避免结合总计反推个人薪酬。")
-        if plan.kind != "metric" and len(result) == plan.limit:
-            warnings.append(f"明细最多显示 {plan.limit} 条，请缩小范围查看其他记录。")
-        output = {
-            "status": "success",
-            "summary": summary,
-            "rows": result,
-            "columns": [{"key": k, "label": v} for k, v in columns],
-            "plan": plan.model_dump(),
-            "metric": definition,
-            "period": {"start": params["start"], "end": params["end"]},
-            "scope": {
-                "count": len(ids),
-                "label": "当前身份授权范围",
-                "policy_version": f"{config.POLICY_VERSION}:{principal['policy_version']}",
-            },
-            "as_of": metadata["as_of"],
-            "catalog_version": config.CATALOG_VERSION,
-            "sql": sql,
-            "sql_parameter_count": len(params),
-            "duration_ms": duration,
-            "warnings": warnings,
-            "suppressed_groups": suppressed,
-            "chart_type": "line"
-            if plan.dimension in ("month", "day")
-            else "bar"
-            if plan.kind == "metric" and plan.dimension != "none"
-            else "table",
-        }
+            if plan.kind == "metric" and not result:
+                if plan.dimension == "none":
+                    result = [{"label": "合计", "value": None, "sample_size": 0}]
+            trace.update(rows=result, row_count=len(result), suppressed_groups=suppressed)
+        with step(
+            "format",
+            "格式化结果与统计口径",
+            {"plan": plan.model_dump(), "definition": definition, "rows": result},
+        ) as trace:
+            duration = round((time.perf_counter() - started) * 1000, 2)
+            if plan.kind == "metric":
+                summary = (
+                    f"已按{DIMENSION_LABELS[plan.dimension]}统计{definition['name']}，共 {len(result)} 组。"
+                    if plan.dimension != "none"
+                    else f"{definition['name']}为 {result[0]['value'] if result and result[0]['value'] is not None else '暂无可展示结果'}{definition['unit'] if result and result[0]['value'] is not None else ''}。"
+                )
+            else:
+                summary = f"已找到 {len(result)} 条授权范围内的{'人员' if plan.kind == 'people' else '考勤异常'}记录。"
+            warnings = [
+                "所有数据均为合成数据；“今天”以演示数据截止日为准。",
+                "历史人员范围按当前授权关系确定，组织分组按业务发生时任职记录归属。",
+            ]
+            if plan.metric in ATTENDANCE_METRICS or plan.kind == "attendance":
+                warnings.append("演示日历仅采用周一至周五，不代表实际法定节假日安排。")
+            if suppressed:
+                warnings.append("少于 5 人的薪酬分组及必要的互补分组已隐藏，避免结合总计反推个人薪酬。")
+            if plan.kind != "metric" and len(result) == plan.limit:
+                warnings.append(f"明细最多显示 {plan.limit} 条，请缩小范围查看其他记录。")
+            output = {
+                "status": "success",
+                "summary": summary,
+                "rows": result,
+                "columns": [{"key": k, "label": v} for k, v in columns],
+                "plan": plan.model_dump(),
+                "metric": definition,
+                "period": {"start": params["start"], "end": params["end"]},
+                "scope": {
+                    "count": len(ids),
+                    "label": "当前身份授权范围",
+                    "policy_version": f"{config.POLICY_VERSION}:{principal['policy_version']}",
+                },
+                "as_of": metadata["as_of"],
+                "catalog_version": config.CATALOG_VERSION,
+                "sql": sql,
+                "sql_parameter_count": len(params),
+                "duration_ms": duration,
+                "warnings": warnings,
+                "suppressed_groups": suppressed,
+                "chart_type": "line"
+                if plan.dimension in ("month", "day")
+                else "bar"
+                if plan.kind == "metric" and plan.dimension != "none"
+                else "table",
+            }
+            trace.update(output)
         if record_audit:
-            audit(principal, "query", "allowed", plan.metric, len(ids), duration)
+            with step(
+                "audit",
+                "写入查询审计",
+                {
+                    "principal_id": principal["id"],
+                    "metric": plan.metric,
+                    "scope_count": len(ids),
+                    "outcome": "allowed",
+                    "duration_ms": duration,
+                },
+            ) as trace:
+                audit(principal, "query", "allowed", plan.metric, len(ids), duration)
+                trace.update(written=True)
         return output
     except HTTPException:
         if record_audit:

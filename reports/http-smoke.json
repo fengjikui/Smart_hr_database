@@ -5,9 +5,13 @@
   "checks": [
     "production HTML and security headers; API authentication",
     "ceo: 459 authorized active employees; CSRF enforced",
+    "ceo: dictionary role enforced; failed-query trace linked through proxy",
     "rd: 168 authorized active employees; CSRF enforced",
+    "rd: dictionary role enforced; failed-query trace linked through proxy",
     "employee: 1 authorized active employees; CSRF enforced",
+    "employee: dictionary role enforced; failed-query trace linked through proxy",
     "employee cannot access salary aggregate",
-    "real LM Studio through production proxy: 5 direct / 453 indirect"
+    "real LM Studio through production proxy: 5 direct / 453 indirect",
+    "real model input/output, schema validation, SQL rows and final response visible in debug"
   ]
 }

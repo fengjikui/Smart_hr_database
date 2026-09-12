@@ -31,6 +31,25 @@ def main():
             assert response.status_code == 200, response.text
             assert response.json()["rows"][0]["value"] == expected, response.text
             checks.append(f"{persona}: {expected} authorized active employees; CSRF enforced")
+            dictionary = client.get("/api/data-dictionary")
+            assert dictionary.status_code == (200 if persona == "ceo" else 403)
+            if persona == "ceo":
+                assert dictionary.json()["summary"] == {
+                    "business_tables": 21,
+                    "application_tables": 8,
+                    "fields": 157,
+                    "metrics": 14,
+                }
+            blocked = client.post(
+                "/api/chat", json={"question": "查询30岁以上员工人数"}, headers={"X-CSRF-Token": csrf}
+            )
+            assert blocked.status_code == 422
+            run_id = blocked.headers["x-debug-run-id"]
+            debug = client.get(f"/api/debug/runs/{run_id}").json()
+            assert debug["status"] == "blocked"
+            assert [node["key"] for node in debug["nodes"]] == ["request", "authorization", "capability"]
+            assert debug["nodes"][-1]["error"]["status_code"] == 422
+            checks.append(f"{persona}: dictionary role enforced; failed-query trace linked through proxy")
         salary = client.post("/api/query", json={"metric": "avg_salary"}, headers={"X-CSRF-Token": csrf})
         assert salary.status_code == 403
         checks.append("employee cannot access salary aggregate")
@@ -47,6 +66,17 @@ def main():
             assert result["status"] == "success", result
             assert {row["value"] for row in result["rows"]} == {5, 453}, result
             checks.append("real LM Studio through production proxy: 5 direct / 453 indirect")
+            debug = client.get(f"/api/debug/runs/{result['debug_run_id']}").json()
+            nodes = {node["key"]: node for node in debug["nodes"]}
+            assert debug["status"] == "success"
+            assert nodes["model"]["input"]["request"]["model"] == "hr-qwen"
+            assert nodes["model"]["output"]["http_status"] == 200
+            assert nodes["schema"]["output"]["valid"] is True
+            assert nodes["database"]["output"]["row_count"] == 2
+            assert debug["result"]["rows"] == result["rows"]
+            checks.append(
+                "real model input/output, schema validation, SQL rows and final response visible in debug"
+            )
     report = {"passed": True, "mode": "production-http", "live_model": args.model, "checks": checks}
     filename = "http-smoke.json" if args.model else "http-smoke-ci.json"
     output = Path(__file__).resolve().parents[1] / "reports" / filename
