@@ -1,0 +1,378 @@
+{
+  "version": "hr-metrics-1.0",
+  "owner": "演示数据治理组",
+  "timezone": "Asia/Shanghai",
+  "metrics": [
+    {
+      "id": "headcount",
+      "name": "在职人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "在统计日已入职且尚未离职的去重员工数，包含正式、实习和外包。离职日不计在职。",
+      "aliases": [
+        "人数",
+        "员工数",
+        "人员规模",
+        "下属"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "job_family",
+        "location",
+        "employment_type",
+        "relation",
+        "month"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月在职人数"
+    },
+    {
+      "id": "hires",
+      "name": "新入职人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "入职日期落在选定期间的去重员工数，组织按入职时任职关系归属。",
+      "aliases": [
+        "新增",
+        "入职",
+        "招聘入职"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "location",
+        "month"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月新入职人数"
+    },
+    {
+      "id": "departures",
+      "name": "离职人数",
+      "domain": "人员",
+      "unit": "人",
+      "description": "离职日期落在选定期间的去重员工数，组织按离职日前一天归属。",
+      "aliases": [
+        "离职",
+        "流失人数"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "month"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月离职人数"
+    },
+    {
+      "id": "turnover_rate",
+      "name": "人员离职率",
+      "domain": "人员",
+      "unit": "%",
+      "description": "期间离职人数 ÷ ((期初在职人数 + 期末在职人数) / 2) × 100。为演示统一口径，不进行年化。",
+      "aliases": [
+        "离职率",
+        "流失率"
+      ],
+      "dimensions": [
+        "division",
+        "department"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月人员离职率"
+    },
+    {
+      "id": "avg_tenure",
+      "name": "平均司龄",
+      "domain": "人员",
+      "unit": "年",
+      "description": "统计日在职员工从最近入职日起至统计日的天数 / 365.25 的算术平均。",
+      "aliases": [
+        "司龄",
+        "工龄"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "job_family"
+      ],
+      "source": [
+        "employees",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月平均司龄"
+    },
+    {
+      "id": "attendance_rate",
+      "name": "出勤率",
+      "domain": "考勤",
+      "unit": "%",
+      "description": "正常或远程出勤人日 ÷ (应出勤人日 - 已批准整日请假人日) × 100。缺卡、缺勤不计完成出勤。",
+      "aliases": [
+        "出勤",
+        "到岗率"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月出勤率"
+    },
+    {
+      "id": "late_count",
+      "name": "迟到人次",
+      "domain": "考勤",
+      "unit": "人次",
+      "description": "工作日上班打卡晚于 09:30 的人日数。09:30 整不迟到。",
+      "aliases": [
+        "迟到",
+        "迟到次数"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月迟到人次"
+    },
+    {
+      "id": "late_rate",
+      "name": "迟到率",
+      "domain": "考勤",
+      "unit": "%",
+      "description": "迟到人次 ÷ 有上班打卡的应出勤人次 × 100。远程同样按弹性规则统计。",
+      "aliases": [
+        "迟到率"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月迟到率"
+    },
+    {
+      "id": "abnormal_count",
+      "name": "考勤异常人次",
+      "domain": "考勤",
+      "unit": "人次",
+      "description": "迟到、早退、缺勤或缺卡任一条件成立的人日数，同一人同一天只计一次。",
+      "aliases": [
+        "异常",
+        "缺卡",
+        "考勤异常"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月考勤异常人次"
+    },
+    {
+      "id": "approved_overtime_hours",
+      "name": "已批准加班时长",
+      "domain": "考勤",
+      "unit": "小时",
+      "description": "选定期间已批准加班申请的分钟数之和 / 60。晚离岗不会自动认定为加班。",
+      "aliases": [
+        "加班",
+        "审批加班",
+        "加班时长"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "overtime_requests",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月已批准加班时长"
+    },
+    {
+      "id": "late_departure_hours",
+      "name": "晚离岗时长",
+      "domain": "考勤",
+      "unit": "小时",
+      "description": "下班晚于个人应离岗时间的分钟数之和 / 60。应离岗时间为 max(18:00, 上班时间 + 9小时)，午休为1小时。该指标不是劳动报酬口径。",
+      "aliases": [
+        "晚下班",
+        "晚离岗",
+        "晚走"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月晚离岗时长"
+    },
+    {
+      "id": "avg_work_hours",
+      "name": "平均有效在岗时长",
+      "domain": "考勤",
+      "unit": "小时/人日",
+      "description": "正常或远程且上下班打卡完整的净在岗分钟（打卡间隔减60分钟午休）÷ 完整打卡人日 ÷ 60。",
+      "aliases": [
+        "工作时长",
+        "工时",
+        "在岗时长"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "attendance_daily",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月平均有效在岗时长"
+    },
+    {
+      "id": "leave_days",
+      "name": "已批准请假天数",
+      "domain": "考勤",
+      "unit": "天",
+      "description": "选定期间已批准整日请假天数。演示不包含半天、跨时区与跨午夜班次。",
+      "aliases": [
+        "请假",
+        "休假",
+        "年假"
+      ],
+      "dimensions": [
+        "division",
+        "department",
+        "day",
+        "month"
+      ],
+      "source": [
+        "leave_requests",
+        "assignments"
+      ],
+      "owner": "HR 数据负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "internal",
+      "minimum_group_size": 1,
+      "example": "按事业部统计本月已批准请假天数"
+    },
+    {
+      "id": "avg_salary",
+      "name": "平均基本月薪",
+      "domain": "薪酬",
+      "unit": "元/月",
+      "description": "统计日在职员工有效基本月薪的算术平均，仅CNY，不含奖金和补贴。仅公司负责人获准汇总，少于5人的分组不显示；不开放任意人员过滤。",
+      "aliases": [
+        "薪资",
+        "工资",
+        "薪酬",
+        "月薪",
+        "平均工资"
+      ],
+      "dimensions": [
+        "division"
+      ],
+      "source": [
+        "compensation",
+        "employees",
+        "assignments"
+      ],
+      "owner": "薪酬负责人（模拟）",
+      "version": "1.0",
+      "sensitivity": "restricted_aggregate",
+      "minimum_group_size": 5,
+      "example": "按事业部统计本月平均基本月薪"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "name": "sites-project",
+  "name": "chengguan-hr",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -8,9 +8,15 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "start": "vinext start --hostname 127.0.0.1",
     "lint": "oxlint",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "typecheck": "tsc --noEmit",
+    "api": "uv run uvicorn backend.hr.api:app --host 127.0.0.1 --port 8000",
+    "seed": "uv run python -m backend.hr.seed",
+    "test": "uv run pytest -q",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "demo": "node scripts/dev.mjs"
   },
   "dependencies": {
     "react": "19.2.6",
