@@ -9,7 +9,9 @@ flowchart TD
     UI[问数 / 总览 / 私人看板] --> API[同源 API 与可信会话]
     API --> Auth[当前身份和授权范围]
     Auth --> Planner[语义计划器]
-    Catalog[应用库指标目录] --> Planner
+    Catalog[独立语义库：字段 / 指标 / 问题] --> Planner
+    Planner --> Inspect[LangGraph按需补充定义 最多两轮]
+    Inspect --> Planner
     Planner <--> LM[本机 Qwen / JSON Schema]
     Planner --> Validate[计划校验与重新鉴权]
     Validate --> SQL[确定性 SQL 编译 / 参数绑定]
@@ -18,7 +20,7 @@ flowchart TD
     Result --> UI
     UI --> Saved[(应用库：仅保存看板计划)]
     Saved --> Validate
-    Git[Git 指标定义源] --> Catalog
+    Git[Git JSON语义定义源] --> Catalog
     Catalog --> Search[FTS5 派生检索索引]
     Validate --> Audit[(应用库审计)]
 ```
@@ -28,7 +30,7 @@ flowchart TD
 1. 浏览器以 HttpOnly、SameSite=Strict 的不透明会话访问同源 API。
 2. 后端从应用库取得身份与完整授权记录，客户端不能指定角色。
 3. 能力边界检查拒绝已知未开放条件，避免模型静默丢弃筛选条件。
-4. 按权限选取指标目录与组织元数据，连同当前演示日期和同身份的上一轮计划发给本地 LM Studio。
+4. LangGraph按权限检索相关指标/字段，披露有限定义和轻量索引，连同截止日和本人前次计划发给本地LM Studio；可通过inspect补充读取，最多两轮。
 5. Qwen3.8-27B-MLX 返回 JSON 查询计划；Pydantic 严格验证枚举、字段、日期和限额。结构错误最多重试一次。
 6. 检查明细意图与计划类型一致；推理完成后重新读取最新权限，防止推理期间撤权。
 7. 确定性编译器将受限计划编译为 SQL。人员范围由服务端绑定；所有聚合前先限制人员。
@@ -47,13 +49,14 @@ flowchart TD
 | 业务库 | 独立 SQLite 文件，24 张规范化关系表 | 零外部依赖、方便会议演示；生产优先复用现有仓库或 PostgreSQL 分析库 |
 | 应用库 | 独立 SQLite WAL 文件 | 身份、会话、指标、看板、查询计划和审计与业务数据分离 |
 | 指标定义 | Git 中 JSON 源文件 | 可审核、版本化；指标含名称、定义、来源、维度、责任人、分级和小样本规则 |
-| 指标检索 | SQLite FTS5 trigram + 中文短词精确匹配 | 当前只有17个指标，无须向量库；检索只能发现已授权指标 |
+| 语义检索 | 独立SQLite文档表 + FTS5 trigram + 短别名 | 462条表/字段/指标/问题/关系定义；按权限过滤和渐进式披露，暂不引入向量库 |
+| 流程编排 | LangGraph StateGraph | 实际条件边、最多两轮补读和一次结构修复；无共享checkpointer，关闭外部追踪 |
 | 模型 | 本机 LM Studio，模型别名 hr-qwen | 实测安装模型为 qwen3.8-27b-mlx，8192上下文，单路推理 |
 | 性能 | 看板跳过模型、查询范围先收窄、索引、行数及时间限额 | 演示不使用跨用户结果缓存，降低撤权与共享缓存风险 |
 
 ## 口径存储的职责
 
-- `semantic/catalog.json` 是经 Git 审核的定义源，包含可查指标与允许分组。
+- `semantic/*.json`是经Git管理的表、字段、指标及题库定义源；发布到独立`semantic.sqlite`结构化文档与FTS索引。详细决策与流程见[语义层与LangGraph](SEMANTIC_ARCHITECTURE.md)。
 - `app.sqlite.metrics` 是发布到应用库的指标目录；`metric_search` 是派生全文索引。
 - 查询编译的实现与定义在同一 Git 版本交付。修改公式、适用范围或含义需要变更版本和回归评测。
 - Markdown 用来解释业务背景、架构和决策，不作为运行时授权源。

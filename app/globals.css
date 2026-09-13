@@ -2548,3 +2548,259 @@ button:disabled {
     gap: 5px;
   }
 }
+
+/* Semantic registry: searchable index and one continuous definition document. */
+.semantic-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.semantic-layout {
+  grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);
+}
+.semantic-list {
+  max-height: 920px;
+  overflow-y: auto;
+}
+.semantic-list button > span {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 550;
+}
+.semantic-list button code {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.semantic-list button small {
+  font-size: 11px;
+}
+.semantic-detail {
+  min-width: 0;
+}
+.semantic-detail-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.semantic-detail-title code {
+  overflow-wrap: anywhere;
+  color: var(--muted-foreground);
+}
+.semantic-detail h2 {
+  font-size: 23px;
+  font-weight: 600;
+  line-height: 1.5;
+  margin: 16px 0 22px;
+}
+.semantic-status {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--muted);
+}
+.semantic-status.available {
+  color: var(--primary);
+  background: var(--accent);
+}
+.semantic-status.planned {
+  color: #825f1e;
+  background: #faf2df;
+}
+.semantic-aliases {
+  font-size: 13px;
+  line-height: 1.9;
+  margin-bottom: 20px;
+}
+.semantic-aliases strong {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+.semantic-definitions > div {
+  display: grid;
+  grid-template-columns: 115px minmax(0, 1fr);
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.9;
+}
+.semantic-definitions dt {
+  color: var(--muted-foreground);
+}
+.semantic-definitions dd {
+  overflow-wrap: anywhere;
+}
+.semantic-related h3,
+.semantic-examples h3 {
+  margin: 26px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.semantic-related > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.semantic-related button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  max-width: 100%;
+  color: var(--primary);
+  font-size: 12px;
+}
+.semantic-related code {
+  overflow-wrap: anywhere;
+}
+.semantic-related button:hover {
+  text-decoration: underline;
+}
+.semantic-related button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.semantic-examples > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.semantic-examples > div > span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.semantic-examples button {
+  flex-shrink: 0;
+}
+.semantic-storage {
+  margin-top: 26px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.9;
+}
+.semantic-storage summary {
+  cursor: pointer;
+  color: var(--foreground);
+  padding: 12px 0;
+}
+.semantic-storage dl > div {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 18px;
+  margin: 8px 0;
+}
+.semantic-storage code {
+  font-size: 11px;
+}
+.semantic-workflow {
+  padding: 24px 0;
+}
+.semantic-workflow-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.semantic-workflow-heading h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+.semantic-workflow-heading p {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin-top: 8px;
+}
+.semantic-run-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding: 14px 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.semantic-run-info strong {
+  color: var(--primary);
+}
+.semantic-flow {
+  border-top: 1px solid var(--border);
+  margin-top: 14px;
+}
+.semantic-flow > li {
+  display: grid;
+  grid-template-columns: 32px minmax(190px, 1fr) minmax(220px, 1.8fr);
+  gap: 20px;
+  align-items: center;
+  padding: 14px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.semantic-flow > li > span {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.semantic-flow strong {
+  font-weight: 550;
+}
+.semantic-flow code {
+  display: block;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+.semantic-flow-next {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+}
+.semantic-flow-next svg {
+  flex-shrink: 0;
+}
+@media (max-width: 900px) {
+  .semantic-layout {
+    grid-template-columns: 215px minmax(0, 1fr);
+  }
+  .semantic-definitions > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+  .semantic-flow > li {
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 8px 16px;
+  }
+  .semantic-flow-next {
+    grid-column: 2;
+  }
+}
+@media (max-width: 700px) {
+  .semantic-layout {
+    grid-template-columns: 1fr;
+  }
+  .semantic-list {
+    max-height: 250px;
+  }
+  .semantic-workflow-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .semantic-examples > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .semantic-storage dl > div {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .semantic-tabs {
+    width: 100%;
+  }
+}

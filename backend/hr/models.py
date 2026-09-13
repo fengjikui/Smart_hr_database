@@ -104,6 +104,23 @@ class QuestionRequest(BaseModel):
     previous_id: str | None = Field(default=None, max_length=80)
 
 
+class MetadataRequest(BaseModel):
+    """Model-only control message; never accepted by the SQL query endpoint."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+    kind: Literal["inspect"]
+    ids: list[str] = Field(default_factory=list, max_length=6)
+    search: str | None = Field(default=None, max_length=100)
+
+    @model_validator(mode="after")
+    def requested(self):
+        if not self.ids and not self.search:
+            raise ValueError("补充读取必须指定语义ID或检索词")
+        if any(not x or len(x) > 120 for x in self.ids):
+            raise ValueError("语义ID长度无效")
+        return self
+
+
 class DashboardRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     title: str = Field(min_length=1, max_length=80)

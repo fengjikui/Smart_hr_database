@@ -3,7 +3,7 @@
     {
       "name": "dataset_meta",
       "database": "business",
-      "description": "数据集元信息；每个配置键一行",
+      "description": "数据集元信息；每个配置键一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 8,
       "fields": [
         {
@@ -12,7 +12,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "配置键"
+          "description": "配置键",
+          "id": "dataset_meta.key"
         },
         {
           "name": "value",
@@ -20,7 +21,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "配置值"
+          "description": "配置值",
+          "id": "dataset_meta.value"
         }
       ],
       "foreign_keys": [],
@@ -42,7 +44,7 @@
     {
       "name": "legal_entities",
       "database": "business",
-      "description": "法人主体；每个主体一行",
+      "description": "法人主体；每个主体一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 2,
       "fields": [
         {
@@ -51,7 +53,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "法人主体的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "legal_entities.id"
         },
         {
           "name": "name",
@@ -59,7 +62,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "法人主体的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "legal_entities.name"
         }
       ],
       "foreign_keys": [],
@@ -69,7 +73,7 @@
     {
       "name": "locations",
       "database": "business",
-      "description": "办公地点；每个地点一行",
+      "description": "办公地点；每个地点一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 3,
       "fields": [
         {
@@ -78,7 +82,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "办公地点的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "locations.id"
         },
         {
           "name": "name",
@@ -86,7 +91,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "办公地点的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "locations.name"
         },
         {
           "name": "timezone",
@@ -94,7 +100,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "IANA时区"
+          "description": "IANA时区",
+          "id": "locations.timezone"
         }
       ],
       "foreign_keys": [],
@@ -104,7 +111,7 @@
     {
       "name": "departments",
       "database": "business",
-      "description": "组织节点；四级树，每个组织一行",
+      "description": "组织节点；四级树，每个组织一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 51,
       "fields": [
         {
@@ -113,7 +120,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "组织节点的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "departments.id"
         },
         {
           "name": "name",
@@ -121,7 +129,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "组织节点的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "departments.name"
         },
         {
           "name": "parent_id",
@@ -129,7 +138,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "父组织；根节点为空"
+          "description": "父组织；根节点为空",
+          "id": "departments.parent_id"
         },
         {
           "name": "level",
@@ -137,7 +147,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "公司1/事业部2/部门3/团队4"
+          "description": "公司1/事业部2/部门3/团队4",
+          "id": "departments.level"
         },
         {
           "name": "division_id",
@@ -145,7 +156,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "所属事业部标识"
+          "description": "所属事业部标识",
+          "id": "departments.division_id"
         }
       ],
       "foreign_keys": [
@@ -188,7 +200,7 @@
     {
       "name": "job_families",
       "database": "business",
-      "description": "岗位序列；每个序列一行",
+      "description": "岗位序列；每个序列一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 7,
       "fields": [
         {
@@ -197,7 +209,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "岗位序列的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "job_families.id"
         },
         {
           "name": "name",
@@ -205,7 +218,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "岗位序列的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "job_families.name"
         }
       ],
       "foreign_keys": [],
@@ -227,7 +241,7 @@
     {
       "name": "grades",
       "database": "business",
-      "description": "职级及模拟薪资范围；每级一行",
+      "description": "职级及模拟薪资范围；每级一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 9,
       "fields": [
         {
@@ -236,7 +250,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "职级及模拟薪资范围的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "grades.id"
         },
         {
           "name": "name",
@@ -244,7 +259,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "职级及模拟薪资范围的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "grades.name"
         },
         {
           "name": "salary_min",
@@ -252,7 +268,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "模拟月薪下限，元"
+          "description": "模拟月薪下限，元",
+          "id": "grades.salary_min"
         },
         {
           "name": "salary_max",
@@ -260,7 +277,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "模拟月薪上限，元"
+          "description": "模拟月薪上限，元",
+          "id": "grades.salary_max"
         }
       ],
       "foreign_keys": [],
@@ -270,7 +288,7 @@
     {
       "name": "positions",
       "database": "business",
-      "description": "岗位字典；每个岗位一行",
+      "description": "岗位字典；每个岗位一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 10,
       "fields": [
         {
@@ -279,7 +297,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "岗位字典的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "positions.id"
         },
         {
           "name": "name",
@@ -287,7 +306,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "岗位字典的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "positions.name"
         },
         {
           "name": "family_id",
@@ -295,7 +315,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "岗位序列标识"
+          "description": "岗位序列标识",
+          "id": "positions.family_id"
         },
         {
           "name": "is_manager",
@@ -303,7 +324,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "管理岗位标记0/1"
+          "description": "管理岗位标记0/1",
+          "id": "positions.is_manager"
         }
       ],
       "foreign_keys": [
@@ -324,7 +346,7 @@
     {
       "name": "schools",
       "database": "business",
-      "description": "院校名称、别名与历史211/985标签；每校一行，不含员工数据",
+      "description": "院校名称、别名与历史211/985标签；每校一行，不含员工数据。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 11,
       "fields": [
         {
@@ -333,7 +355,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "院校名称、别名与历史211/985标签的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "schools.id"
         },
         {
           "name": "name",
@@ -341,7 +364,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "院校名称、别名与历史211/985标签的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "schools.name"
         },
         {
           "name": "aliases",
@@ -349,7 +373,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "院校简称JSON数组，精确归一到院校ID"
+          "description": "院校简称JSON数组，精确归一到院校ID",
+          "id": "schools.aliases"
         },
         {
           "name": "is_985",
@@ -357,7 +382,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "历史985项目院校标签0/1；为1时is_211必须为1"
+          "description": "历史985项目院校标签0/1；为1时is_211必须为1",
+          "id": "schools.is_985"
         },
         {
           "name": "is_211",
@@ -365,7 +391,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "历史211项目院校标签0/1，包含985院校"
+          "description": "历史211项目院校标签0/1，包含985院校",
+          "id": "schools.is_211"
         },
         {
           "name": "classification_basis",
@@ -373,7 +400,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "标签分类依据；真实院校历史名单或虚构标记，不等于双一流"
+          "description": "标签分类依据；真实院校历史名单或虚构标记，不等于双一流",
+          "id": "schools.classification_basis"
         },
         {
           "name": "source_url",
@@ -381,7 +409,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "教育部项目名单链接；虚构学校为synthetic标记"
+          "description": "教育部项目名单链接；虚构学校为synthetic标记",
+          "id": "schools.source_url"
         }
       ],
       "foreign_keys": [],
@@ -403,7 +432,7 @@
     {
       "name": "employees",
       "database": "business",
-      "description": "人员基础档案；每名员工一行",
+      "description": "人员基础档案；每名员工一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 480,
       "fields": [
         {
@@ -412,7 +441,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "人员基础档案的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "employees.id"
         },
         {
           "name": "employee_no",
@@ -420,7 +450,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "稳定工号（CC前缀）"
+          "description": "稳定工号（CC前缀）",
+          "id": "employees.employee_no"
         },
         {
           "name": "name",
@@ -428,7 +459,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "人员基础档案的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "employees.name"
         },
         {
           "name": "gender",
@@ -436,7 +468,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "模拟性别，未开放查询条件"
+          "description": "模拟性别，未开放查询条件",
+          "id": "employees.gender"
         },
         {
           "name": "birth_date",
@@ -444,7 +477,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "模拟出生日期，未开放查询条件"
+          "description": "模拟出生日期，未开放查询条件",
+          "id": "employees.birth_date"
         },
         {
           "name": "hire_date",
@@ -452,7 +486,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "最近入职日期"
+          "description": "最近入职日期",
+          "id": "employees.hire_date"
         },
         {
           "name": "termination_date",
@@ -460,7 +495,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "离职日期；当日不计在职，空表示未离职"
+          "description": "离职日期；当日不计在职，空表示未离职",
+          "id": "employees.termination_date"
         },
         {
           "name": "employment_type",
@@ -468,7 +504,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "正式/实习/外包"
+          "description": "正式/实习/外包",
+          "id": "employees.employment_type"
         },
         {
           "name": "entity_id",
@@ -476,7 +513,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "法人主体标识"
+          "description": "法人主体标识",
+          "id": "employees.entity_id"
         },
         {
           "name": "location_id",
@@ -484,7 +522,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "地点标识"
+          "description": "地点标识",
+          "id": "employees.location_id"
         },
         {
           "name": "email",
@@ -492,7 +531,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "保留示例域名邮箱"
+          "description": "保留示例域名邮箱",
+          "id": "employees.email"
         },
         {
           "name": "highest_education",
@@ -500,7 +540,8 @@
           "not_null": true,
           "default": "'未知'",
           "primary_key_position": 0,
-          "description": "当前最高已完成学历快照；未知/高中及以下/专科/本科/硕士研究生/博士研究生"
+          "description": "当前最高已完成学历快照；未知/高中及以下/专科/本科/硕士研究生/博士研究生",
+          "id": "employees.highest_education"
         },
         {
           "name": "highest_degree",
@@ -508,7 +549,8 @@
           "not_null": true,
           "default": "'未知'",
           "primary_key_position": 0,
-          "description": "当前最高已完成教育经历对应学位快照；未知/无学位/学士/硕士/博士"
+          "description": "当前最高已完成教育经历对应学位快照；未知/无学位/学士/硕士/博士",
+          "id": "employees.highest_degree"
         },
         {
           "name": "graduation_school_id",
@@ -516,7 +558,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "当前最高已完成教育经历毕业院校标识"
+          "description": "当前最高已完成教育经历毕业院校标识",
+          "id": "employees.graduation_school_id"
         },
         {
           "name": "major",
@@ -524,7 +567,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "所学专业；演示未开放按专业筛选"
+          "description": "所学专业；演示未开放按专业筛选",
+          "id": "employees.major"
         },
         {
           "name": "graduation_date",
@@ -532,7 +576,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "毕业日期；只有不晚于统计日的已完成经历参与查询"
+          "description": "毕业日期；只有不晚于统计日的已完成经历参与查询",
+          "id": "employees.graduation_date"
         },
         {
           "name": "education_mode",
@@ -540,7 +585,8 @@
           "not_null": true,
           "default": "'未知'",
           "primary_key_position": 0,
-          "description": "当前最高教育经历学习形式快照；未知/全日制/非全日制"
+          "description": "当前最高教育经历学习形式快照；未知/全日制/非全日制",
+          "id": "employees.education_mode"
         }
       ],
       "foreign_keys": [
@@ -604,7 +650,7 @@
     {
       "name": "employee_education",
       "database": "business",
-      "description": "已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历",
+      "description": "已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 619,
       "fields": [
         {
@@ -613,7 +659,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "已完成教育经历的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "employee_education.id"
         },
         {
           "name": "employee_id",
@@ -621,7 +668,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "employee_education.employee_id"
         },
         {
           "name": "school_id",
@@ -629,7 +677,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "该段教育经历的毕业院校标识"
+          "description": "该段教育经历的毕业院校标识",
+          "id": "employee_education.school_id"
         },
         {
           "name": "education_level",
@@ -637,7 +686,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "学历层级名称，与education_rank对应"
+          "description": "学历层级名称，与education_rank对应",
+          "id": "employee_education.education_level"
         },
         {
           "name": "education_rank",
@@ -645,7 +695,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "学历排序：高中及以下1/专科2/本科3/硕士研究生4/博士研究生5"
+          "description": "学历排序：高中及以下1/专科2/本科3/硕士研究生4/博士研究生5",
+          "id": "employee_education.education_rank"
         },
         {
           "name": "degree",
@@ -653,7 +704,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "已取得学位：无学位/学士/硕士/博士；不同于学历"
+          "description": "已取得学位：无学位/学士/硕士/博士；不同于学历",
+          "id": "employee_education.degree"
         },
         {
           "name": "major",
@@ -661,7 +713,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "所学专业；演示未开放按专业筛选"
+          "description": "所学专业；演示未开放按专业筛选",
+          "id": "employee_education.major"
         },
         {
           "name": "start_date",
@@ -669,7 +722,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "教育经历开始日期"
+          "description": "教育经历开始日期",
+          "id": "employee_education.start_date"
         },
         {
           "name": "graduation_date",
@@ -677,7 +731,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "毕业日期；只有不晚于统计日的已完成经历参与查询"
+          "description": "毕业日期；只有不晚于统计日的已完成经历参与查询",
+          "id": "employee_education.graduation_date"
         },
         {
           "name": "study_mode",
@@ -685,7 +740,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "该段教育经历学习形式：全日制/非全日制"
+          "description": "该段教育经历学习形式：全日制/非全日制",
+          "id": "employee_education.study_mode"
         }
       ],
       "foreign_keys": [
@@ -755,7 +811,7 @@
     {
       "name": "employee_private",
       "database": "business",
-      "description": "私人信息；每名员工一行，全部SIM标记且不开放查询",
+      "description": "私人信息；每名员工一行，全部SIM标记且不开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 480,
       "fields": [
         {
@@ -764,7 +820,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "employee_private.employee_id"
         },
         {
           "name": "phone",
@@ -772,7 +829,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "SIM模拟电话标记"
+          "description": "SIM模拟电话标记",
+          "id": "employee_private.phone"
         },
         {
           "name": "identity_document",
@@ -780,7 +838,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "SIM模拟证件标记"
+          "description": "SIM模拟证件标记",
+          "id": "employee_private.identity_document"
         },
         {
           "name": "bank_account",
@@ -788,7 +847,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "SIM模拟银行账户标记"
+          "description": "SIM模拟银行账户标记",
+          "id": "employee_private.bank_account"
         }
       ],
       "foreign_keys": [
@@ -809,7 +869,7 @@
     {
       "name": "assignments",
       "database": "business",
-      "description": "任职历史；每个人每段连续任职一行，左闭右开",
+      "description": "任职历史；每个人每段连续任职一行，左闭右开。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 511,
       "fields": [
         {
@@ -818,7 +878,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "任职历史的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "assignments.id"
         },
         {
           "name": "employee_id",
@@ -826,7 +887,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "assignments.employee_id"
         },
         {
           "name": "department_id",
@@ -834,7 +896,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "任职或需求所属组织"
+          "description": "任职或需求所属组织",
+          "id": "assignments.department_id"
         },
         {
           "name": "manager_id",
@@ -842,7 +905,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "直属上级员工标识"
+          "description": "直属上级员工标识",
+          "id": "assignments.manager_id"
         },
         {
           "name": "position_id",
@@ -850,7 +914,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "岗位标识"
+          "description": "岗位标识",
+          "id": "assignments.position_id"
         },
         {
           "name": "grade_id",
@@ -858,7 +923,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "职级标识"
+          "description": "职级标识",
+          "id": "assignments.grade_id"
         },
         {
           "name": "valid_from",
@@ -866,7 +932,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "生效日期，包含当天"
+          "description": "生效日期，包含当天",
+          "id": "assignments.valid_from"
         },
         {
           "name": "valid_to",
@@ -874,7 +941,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "结束日期，不包含当天；空表示当前"
+          "description": "结束日期，不包含当天；空表示当前",
+          "id": "assignments.valid_to"
         }
       ],
       "foreign_keys": [
@@ -984,7 +1052,7 @@
     {
       "name": "reporting_closure",
       "database": "business",
-      "description": "当前管理关系闭包；每个祖先/后代对一行",
+      "description": "当前管理关系闭包；每个祖先/后代对一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 2321,
       "fields": [
         {
@@ -993,7 +1061,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 1,
-          "description": "管理链祖先员工标识"
+          "description": "管理链祖先员工标识",
+          "id": "reporting_closure.ancestor_id"
         },
         {
           "name": "descendant_id",
@@ -1001,7 +1070,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 2,
-          "description": "管理链后代员工标识"
+          "description": "管理链后代员工标识",
+          "id": "reporting_closure.descendant_id"
         },
         {
           "name": "depth",
@@ -1009,7 +1079,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "0本人/1直属/2及以上间接"
+          "description": "0本人/1直属/2及以上间接",
+          "id": "reporting_closure.depth"
         }
       ],
       "foreign_keys": [
@@ -1064,7 +1135,7 @@
     {
       "name": "work_calendar",
       "database": "business",
-      "description": "演示工作日历；每天一行，未接正式节假日调休",
+      "description": "演示工作日历；每天一行，未接正式节假日调休。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 254,
       "fields": [
         {
@@ -1073,7 +1144,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "业务日期YYYY-MM-DD"
+          "description": "业务日期YYYY-MM-DD",
+          "id": "work_calendar.day"
         },
         {
           "name": "is_workday",
@@ -1081,7 +1153,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "应工作日标记0/1"
+          "description": "应工作日标记0/1",
+          "id": "work_calendar.is_workday"
         },
         {
           "name": "note",
@@ -1089,7 +1162,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "备注与模拟日历说明"
+          "description": "备注与模拟日历说明",
+          "id": "work_calendar.note"
         }
       ],
       "foreign_keys": [],
@@ -1111,7 +1185,7 @@
     {
       "name": "shift_policies",
       "database": "business",
-      "description": "班次政策；每个政策版本一行",
+      "description": "班次政策；每个政策版本一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 1,
       "fields": [
         {
@@ -1120,7 +1194,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "班次政策的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "shift_policies.id"
         },
         {
           "name": "name",
@@ -1128,7 +1203,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "班次政策的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "shift_policies.name"
         },
         {
           "name": "earliest_in",
@@ -1136,7 +1212,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "弹性到岗起点；距午夜分钟"
+          "description": "弹性到岗起点；距午夜分钟",
+          "id": "shift_policies.earliest_in"
         },
         {
           "name": "latest_in",
@@ -1144,7 +1221,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "迟到阈值；距午夜分钟"
+          "description": "迟到阈值；距午夜分钟",
+          "id": "shift_policies.latest_in"
         },
         {
           "name": "earliest_out",
@@ -1152,7 +1230,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "最早应离岗；距午夜分钟"
+          "description": "最早应离岗；距午夜分钟",
+          "id": "shift_policies.earliest_out"
         },
         {
           "name": "required_work_minutes",
@@ -1160,7 +1239,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "要求净工作分钟"
+          "description": "要求净工作分钟",
+          "id": "shift_policies.required_work_minutes"
         },
         {
           "name": "lunch_minutes",
@@ -1168,7 +1248,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "午休分钟"
+          "description": "午休分钟",
+          "id": "shift_policies.lunch_minutes"
         },
         {
           "name": "version",
@@ -1176,7 +1257,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "定义版本"
+          "description": "定义版本",
+          "id": "shift_policies.version"
         }
       ],
       "foreign_keys": [],
@@ -1186,7 +1268,7 @@
     {
       "name": "attendance_daily",
       "database": "business",
-      "description": "每日考勤事实；每人每个应工作日一行",
+      "description": "每日考勤事实；每人每个应工作日一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 79735,
       "fields": [
         {
@@ -1195,7 +1277,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "每日考勤事实的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "attendance_daily.id"
         },
         {
           "name": "employee_id",
@@ -1203,7 +1286,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "attendance_daily.employee_id"
         },
         {
           "name": "day",
@@ -1211,7 +1295,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务日期YYYY-MM-DD"
+          "description": "业务日期YYYY-MM-DD",
+          "id": "attendance_daily.day"
         },
         {
           "name": "shift_id",
@@ -1219,7 +1304,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "班次政策标识"
+          "description": "班次政策标识",
+          "id": "attendance_daily.shift_id"
         },
         {
           "name": "status",
@@ -1227,7 +1313,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务状态；取值由对应表约束与生成器定义"
+          "description": "应出勤日考勤结果：正常/远程/请假/缺勤/缺卡。正常或远程用于完成出勤；缺勤、缺卡属于异常。",
+          "id": "attendance_daily.status"
         },
         {
           "name": "check_in",
@@ -1235,7 +1322,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "到岗时刻；距午夜分钟，缺卡可空"
+          "description": "到岗时刻；距午夜分钟，缺卡可空",
+          "id": "attendance_daily.check_in"
         },
         {
           "name": "check_out",
@@ -1243,7 +1331,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "离岗时刻；距午夜分钟，缺卡可空"
+          "description": "离岗时刻；距午夜分钟，缺卡可空",
+          "id": "attendance_daily.check_out"
         },
         {
           "name": "work_minutes",
@@ -1251,7 +1340,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "扣除午休后的净在岗分钟"
+          "description": "工作日完整打卡间隔减午休60分钟后的净在岗分钟；缺卡不产生完整工时样本。",
+          "id": "attendance_daily.work_minutes"
         },
         {
           "name": "late_minutes",
@@ -1259,7 +1349,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "超过09:30的分钟数"
+          "description": "超过09:30的分钟数",
+          "id": "attendance_daily.late_minutes"
         },
         {
           "name": "early_minutes",
@@ -1267,7 +1358,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "早于个人应离岗的分钟数"
+          "description": "早于个人应离岗的分钟数",
+          "id": "attendance_daily.early_minutes"
         },
         {
           "name": "late_departure_minutes",
@@ -1275,7 +1367,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "超过个人应离岗的分钟数，不等于批准加班"
+          "description": "超过个人应离岗的分钟数，不等于批准加班",
+          "id": "attendance_daily.late_departure_minutes"
         }
       ],
       "foreign_keys": [
@@ -1341,7 +1434,7 @@
     {
       "name": "leave_requests",
       "database": "business",
-      "description": "整日请假申请；每人每日最多一行",
+      "description": "整日请假申请；每人每日最多一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 2793,
       "fields": [
         {
@@ -1350,7 +1443,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "整日请假申请的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "leave_requests.id"
         },
         {
           "name": "employee_id",
@@ -1358,7 +1452,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "leave_requests.employee_id"
         },
         {
           "name": "day",
@@ -1366,7 +1461,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务日期YYYY-MM-DD"
+          "description": "业务日期YYYY-MM-DD",
+          "id": "leave_requests.day"
         },
         {
           "name": "leave_type",
@@ -1374,7 +1470,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "模拟假别"
+          "description": "模拟假别",
+          "id": "leave_requests.leave_type"
         },
         {
           "name": "days",
@@ -1382,7 +1479,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "请假天数；当前仅整日"
+          "description": "请假天数；当前仅整日",
+          "id": "leave_requests.days"
         },
         {
           "name": "approval_status",
@@ -1390,7 +1488,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "已批准/待审批/已拒绝"
+          "description": "已批准/待审批/已拒绝",
+          "id": "leave_requests.approval_status"
         },
         {
           "name": "approver_id",
@@ -1398,7 +1497,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "审批人员工标识"
+          "description": "审批人员工标识",
+          "id": "leave_requests.approver_id"
         }
       ],
       "foreign_keys": [
@@ -1442,7 +1542,7 @@
     {
       "name": "overtime_requests",
       "database": "business",
-      "description": "加班申请；每人每日最多一行，与晚离岗分开",
+      "description": "加班申请；每人每日最多一行，与晚离岗分开。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 12042,
       "fields": [
         {
@@ -1451,7 +1551,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "加班申请的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "overtime_requests.id"
         },
         {
           "name": "employee_id",
@@ -1459,7 +1560,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "overtime_requests.employee_id"
         },
         {
           "name": "day",
@@ -1467,7 +1569,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务日期YYYY-MM-DD"
+          "description": "业务日期YYYY-MM-DD",
+          "id": "overtime_requests.day"
         },
         {
           "name": "minutes",
@@ -1475,7 +1578,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "申请加班分钟"
+          "description": "申请加班分钟",
+          "id": "overtime_requests.minutes"
         },
         {
           "name": "day_type",
@@ -1483,7 +1587,8 @@
           "not_null": true,
           "default": "'工作日'",
           "primary_key_position": 0,
-          "description": "加班日期类型：工作日/周末；与演示日历一致"
+          "description": "加班日期类型：工作日/周末；与演示日历一致",
+          "id": "overtime_requests.day_type"
         },
         {
           "name": "approval_status",
@@ -1491,7 +1596,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "已批准/待审批/已拒绝"
+          "description": "已批准/待审批/已拒绝",
+          "id": "overtime_requests.approval_status"
         },
         {
           "name": "approver_id",
@@ -1499,7 +1605,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "审批人员工标识"
+          "description": "审批人员工标识",
+          "id": "overtime_requests.approver_id"
         }
       ],
       "foreign_keys": [
@@ -1556,7 +1663,7 @@
     {
       "name": "compensation",
       "database": "business",
-      "description": "基本月薪有效期记录；受限汇总来源",
+      "description": "基本月薪有效期记录；受限汇总来源。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 480,
       "fields": [
         {
@@ -1565,7 +1672,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "基本月薪有效期记录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "compensation.id"
         },
         {
           "name": "employee_id",
@@ -1573,7 +1681,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "compensation.employee_id"
         },
         {
           "name": "valid_from",
@@ -1581,7 +1690,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "生效日期，包含当天"
+          "description": "生效日期，包含当天",
+          "id": "compensation.valid_from"
         },
         {
           "name": "valid_to",
@@ -1589,7 +1699,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "结束日期，不包含当天；空表示当前"
+          "description": "结束日期，不包含当天；空表示当前",
+          "id": "compensation.valid_to"
         },
         {
           "name": "monthly_base",
@@ -1597,7 +1708,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "模拟基本月薪金额，元"
+          "description": "模拟基本月薪金额，元",
+          "id": "compensation.monthly_base"
         },
         {
           "name": "currency",
@@ -1605,7 +1717,8 @@
           "not_null": true,
           "default": "'CNY'",
           "primary_key_position": 0,
-          "description": "币种CNY"
+          "description": "币种CNY",
+          "id": "compensation.currency"
         }
       ],
       "foreign_keys": [
@@ -1639,7 +1752,7 @@
     {
       "name": "performance_reviews",
       "database": "business",
-      "description": "绩效评价；每人每周期一行，尚未开放查询",
+      "description": "绩效评价；每人每周期一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 459,
       "fields": [
         {
@@ -1648,7 +1761,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "绩效评价的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "performance_reviews.id"
         },
         {
           "name": "employee_id",
@@ -1656,7 +1770,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "performance_reviews.employee_id"
         },
         {
           "name": "period",
@@ -1664,7 +1779,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "评价周期"
+          "description": "评价周期",
+          "id": "performance_reviews.period"
         },
         {
           "name": "rating",
@@ -1672,7 +1788,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "卓越/优秀/达标/待提升"
+          "description": "卓越/优秀/达标/待提升",
+          "id": "performance_reviews.rating"
         },
         {
           "name": "reviewer_id",
@@ -1680,7 +1797,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "评价人员工标识"
+          "description": "评价人员工标识",
+          "id": "performance_reviews.reviewer_id"
         }
       ],
       "foreign_keys": [
@@ -1724,7 +1842,7 @@
     {
       "name": "training_courses",
       "database": "business",
-      "description": "培训课程；每门课一行，尚未开放查询",
+      "description": "培训课程；每门课一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 3,
       "fields": [
         {
@@ -1733,7 +1851,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "培训课程的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "training_courses.id"
         },
         {
           "name": "name",
@@ -1741,7 +1860,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务名称"
+          "description": "培训课程的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。",
+          "id": "training_courses.name"
         },
         {
           "name": "hours",
@@ -1749,7 +1869,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "课程时长，小时"
+          "description": "课程时长，小时",
+          "id": "training_courses.hours"
         }
       ],
       "foreign_keys": [],
@@ -1759,7 +1880,7 @@
     {
       "name": "training_enrollments",
       "database": "business",
-      "description": "培训参加记录；每人每课程一行，尚未开放查询",
+      "description": "培训参加记录；每人每课程一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 960,
       "fields": [
         {
@@ -1768,7 +1889,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 1,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "training_enrollments.employee_id"
         },
         {
           "name": "course_id",
@@ -1776,7 +1898,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 2,
-          "description": "课程标识"
+          "description": "课程标识",
+          "id": "training_enrollments.course_id"
         },
         {
           "name": "status",
@@ -1784,7 +1907,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务状态；取值由对应表约束与生成器定义"
+          "description": "业务状态；取值由对应表约束与生成器定义",
+          "id": "training_enrollments.status"
         },
         {
           "name": "completed_at",
@@ -1792,7 +1916,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "完成日期，可空"
+          "description": "完成日期，可空",
+          "id": "training_enrollments.completed_at"
         }
       ],
       "foreign_keys": [
@@ -1836,7 +1961,7 @@
     {
       "name": "recruitment_requisitions",
       "database": "business",
-      "description": "招聘需求；每个需求一行，尚未开放查询",
+      "description": "招聘需求；每个需求一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 15,
       "fields": [
         {
@@ -1845,7 +1970,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "招聘需求的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "recruitment_requisitions.id"
         },
         {
           "name": "department_id",
@@ -1853,7 +1979,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "任职或需求所属组织"
+          "description": "任职或需求所属组织",
+          "id": "recruitment_requisitions.department_id"
         },
         {
           "name": "position_id",
@@ -1861,7 +1988,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "岗位标识"
+          "description": "岗位标识",
+          "id": "recruitment_requisitions.position_id"
         },
         {
           "name": "openings",
@@ -1869,7 +1997,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "招聘名额"
+          "description": "招聘名额",
+          "id": "recruitment_requisitions.openings"
         },
         {
           "name": "status",
@@ -1877,7 +2006,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务状态；取值由对应表约束与生成器定义"
+          "description": "业务状态；取值由对应表约束与生成器定义",
+          "id": "recruitment_requisitions.status"
         },
         {
           "name": "opened_at",
@@ -1885,7 +2015,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "需求创建日期"
+          "description": "需求创建日期",
+          "id": "recruitment_requisitions.opened_at"
         }
       ],
       "foreign_keys": [
@@ -1916,7 +2047,7 @@
     {
       "name": "overtime_attendance",
       "database": "business",
-      "description": "独立周末打卡事实；每人每周末出勤日一行，核验申请时长",
+      "description": "独立周末打卡事实；每人每周末出勤日一行，核验申请时长。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": 965,
       "fields": [
         {
@@ -1925,7 +2056,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "独立周末打卡事实的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "overtime_attendance.id"
         },
         {
           "name": "employee_id",
@@ -1933,7 +2065,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "overtime_attendance.employee_id"
         },
         {
           "name": "day",
@@ -1941,7 +2074,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务日期YYYY-MM-DD"
+          "description": "业务日期YYYY-MM-DD",
+          "id": "overtime_attendance.day"
         },
         {
           "name": "check_in",
@@ -1949,7 +2083,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "到岗时刻；距午夜分钟，缺卡可空"
+          "description": "到岗时刻；距午夜分钟，缺卡可空",
+          "id": "overtime_attendance.check_in"
         },
         {
           "name": "check_out",
@@ -1957,7 +2092,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "离岗时刻；距午夜分钟，缺卡可空"
+          "description": "离岗时刻；距午夜分钟，缺卡可空",
+          "id": "overtime_attendance.check_out"
         },
         {
           "name": "break_minutes",
@@ -1965,7 +2101,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "周末打卡区间内扣除的休息分钟"
+          "description": "周末打卡区间内扣除的休息分钟",
+          "id": "overtime_attendance.break_minutes"
         },
         {
           "name": "work_minutes",
@@ -1973,7 +2110,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "扣除午休后的净在岗分钟"
+          "description": "周末打卡净在岗分钟=check_out-check_in-break_minutes；独立于工作日午休政策，用于核对周末加班申请上限。",
+          "id": "overtime_attendance.work_minutes"
         }
       ],
       "foreign_keys": [
@@ -2017,7 +2155,7 @@
     {
       "name": "principals",
       "database": "application",
-      "description": "演示主体及授权；每个演示身份一行",
+      "description": "演示主体及授权；每个演示身份一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2026,7 +2164,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "演示主体及授权的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "principals.id"
         },
         {
           "name": "employee_id",
@@ -2034,7 +2173,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "员工标识"
+          "description": "员工标识",
+          "id": "principals.employee_id"
         },
         {
           "name": "role",
@@ -2042,7 +2182,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "角色类型"
+          "description": "角色类型",
+          "id": "principals.role"
         },
         {
           "name": "label",
@@ -2050,7 +2191,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "身份显示名称"
+          "description": "身份显示名称",
+          "id": "principals.label"
         },
         {
           "name": "title",
@@ -2058,7 +2200,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "显示标题"
+          "description": "显示标题",
+          "id": "principals.title"
         },
         {
           "name": "scope_mode",
@@ -2066,7 +2209,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "reports/organization/self"
+          "description": "reports/organization/self",
+          "id": "principals.scope_mode"
         },
         {
           "name": "scope_root",
@@ -2074,7 +2218,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "授权根：员工或组织ID，取决于scope_mode"
+          "description": "授权根：员工或组织ID，取决于scope_mode",
+          "id": "principals.scope_root"
         },
         {
           "name": "salary_aggregate",
@@ -2082,7 +2227,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "薪酬受限聚合能力0/1"
+          "description": "薪酬受限聚合能力0/1",
+          "id": "principals.salary_aggregate"
         },
         {
           "name": "can_export",
@@ -2090,7 +2236,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "导出能力0/1，仍受指标和范围限制"
+          "description": "导出能力0/1，仍受指标和范围限制",
+          "id": "principals.can_export"
         },
         {
           "name": "enabled",
@@ -2098,7 +2245,8 @@
           "not_null": true,
           "default": "1",
           "primary_key_position": 0,
-          "description": "账号启用0/1"
+          "description": "账号启用0/1",
+          "id": "principals.enabled"
         },
         {
           "name": "policy_version",
@@ -2106,7 +2254,8 @@
           "not_null": true,
           "default": "1",
           "primary_key_position": 0,
-          "description": "权限策略版本"
+          "description": "权限策略版本",
+          "id": "principals.policy_version"
         }
       ],
       "foreign_keys": [],
@@ -2128,7 +2277,7 @@
     {
       "name": "sessions",
       "database": "application",
-      "description": "会话；仅保存令牌摘要，不保存原令牌",
+      "description": "会话；仅保存令牌摘要，不保存原令牌。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2137,7 +2286,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "会话令牌SHA-256摘要"
+          "description": "会话令牌SHA-256摘要",
+          "id": "sessions.token_hash"
         },
         {
           "name": "principal_id",
@@ -2145,7 +2295,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "应用身份标识"
+          "description": "应用身份标识",
+          "id": "sessions.principal_id"
         },
         {
           "name": "csrf",
@@ -2153,7 +2304,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "会话CSRF校验值"
+          "description": "会话CSRF校验值",
+          "id": "sessions.csrf"
         },
         {
           "name": "expires_at",
@@ -2161,7 +2313,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "到期Unix时间戳秒"
+          "description": "到期Unix时间戳秒",
+          "id": "sessions.expires_at"
         }
       ],
       "foreign_keys": [
@@ -2194,7 +2347,7 @@
     {
       "name": "metrics",
       "database": "application",
-      "description": "已发布指标目录；每个指标一行JSON定义",
+      "description": "已发布指标目录；每个指标一行JSON定义。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2203,7 +2356,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "已发布指标目录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "metrics.id"
         },
         {
           "name": "definition",
@@ -2211,7 +2365,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "指标JSON定义"
+          "description": "指标JSON定义",
+          "id": "metrics.definition"
         },
         {
           "name": "version",
@@ -2219,7 +2374,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "定义版本"
+          "description": "定义版本",
+          "id": "metrics.version"
         }
       ],
       "foreign_keys": [],
@@ -2241,7 +2397,7 @@
     {
       "name": "metric_search",
       "database": "application",
-      "description": "由指标目录派生的FTS5 trigram检索索引，可重建",
+      "description": "由指标目录派生的FTS5 trigram检索索引，可重建。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2250,7 +2406,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "记录标识"
+          "description": "由指标目录派生的FTS5 trigram检索索引，可重建的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "metric_search.id"
         },
         {
           "name": "content",
@@ -2258,7 +2415,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "派生检索文本"
+          "description": "派生检索文本",
+          "id": "metric_search.content"
         }
       ],
       "foreign_keys": [],
@@ -2268,7 +2426,7 @@
     {
       "name": "dashboards",
       "database": "application",
-      "description": "私人看板；存查询计划，不持久复制结果",
+      "description": "私人看板；存查询计划，不持久复制结果。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2277,7 +2435,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "私人看板的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "dashboards.id"
         },
         {
           "name": "owner_id",
@@ -2285,7 +2444,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "记录所属身份"
+          "description": "记录所属身份",
+          "id": "dashboards.owner_id"
         },
         {
           "name": "title",
@@ -2293,7 +2453,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "显示标题"
+          "description": "显示标题",
+          "id": "dashboards.title"
         },
         {
           "name": "plan",
@@ -2301,7 +2462,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "严格类型查询计划JSON"
+          "description": "严格类型查询计划JSON",
+          "id": "dashboards.plan"
         },
         {
           "name": "catalog_version",
@@ -2309,7 +2471,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "指标目录版本"
+          "description": "指标目录版本",
+          "id": "dashboards.catalog_version"
         },
         {
           "name": "created_at",
@@ -2317,7 +2480,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "记录创建时间ISO格式"
+          "description": "记录创建时间ISO格式",
+          "id": "dashboards.created_at"
         }
       ],
       "foreign_keys": [
@@ -2350,7 +2514,7 @@
     {
       "name": "audit_events",
       "database": "application",
-      "description": "应用审计事件；不包含业务结果或个人证件",
+      "description": "应用审计事件；不包含业务结果或个人证件。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2359,7 +2523,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "应用审计事件的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "audit_events.id"
         },
         {
           "name": "principal_id",
@@ -2367,7 +2532,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "应用身份标识"
+          "description": "应用身份标识",
+          "id": "audit_events.principal_id"
         },
         {
           "name": "action",
@@ -2375,7 +2541,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "操作名称"
+          "description": "操作名称",
+          "id": "audit_events.action"
         },
         {
           "name": "outcome",
@@ -2383,7 +2550,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "执行或授权结果"
+          "description": "执行或授权结果",
+          "id": "audit_events.outcome"
         },
         {
           "name": "metric_id",
@@ -2391,7 +2559,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "指标标识"
+          "description": "指标标识",
+          "id": "audit_events.metric_id"
         },
         {
           "name": "scope_count",
@@ -2399,7 +2568,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "该次授权候选人数（不等于在职人数）"
+          "description": "该次授权候选人数（不等于在职人数）",
+          "id": "audit_events.scope_count"
         },
         {
           "name": "policy_version",
@@ -2407,7 +2577,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "权限策略版本"
+          "description": "权限策略版本",
+          "id": "audit_events.policy_version"
         },
         {
           "name": "duration_ms",
@@ -2415,7 +2586,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "操作时长毫秒"
+          "description": "操作时长毫秒",
+          "id": "audit_events.duration_ms"
         },
         {
           "name": "created_at",
@@ -2423,7 +2595,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "记录创建时间ISO格式"
+          "description": "记录创建时间ISO格式",
+          "id": "audit_events.created_at"
         }
       ],
       "foreign_keys": [],
@@ -2457,7 +2630,7 @@
     {
       "name": "conversations",
       "database": "application",
-      "description": "最小对话记录；用于同一身份的前次计划继承",
+      "description": "最小对话记录；用于同一身份的前次计划继承。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2466,7 +2639,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "最小对话记录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "conversations.id"
         },
         {
           "name": "principal_id",
@@ -2474,7 +2648,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "应用身份标识"
+          "description": "应用身份标识",
+          "id": "conversations.principal_id"
         },
         {
           "name": "question",
@@ -2482,7 +2657,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "用户问题；生产需制定脱敏及留存策略"
+          "description": "用户问题；生产需制定脱敏及留存策略",
+          "id": "conversations.question"
         },
         {
           "name": "plan",
@@ -2490,7 +2666,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "严格类型查询计划JSON"
+          "description": "严格类型查询计划JSON",
+          "id": "conversations.plan"
         },
         {
           "name": "outcome",
@@ -2498,7 +2675,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "执行或授权结果"
+          "description": "执行或授权结果",
+          "id": "conversations.outcome"
         },
         {
           "name": "created_at",
@@ -2506,7 +2684,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "记录创建时间ISO格式"
+          "description": "记录创建时间ISO格式",
+          "id": "conversations.created_at"
         }
       ],
       "foreign_keys": [],
@@ -2528,7 +2707,7 @@
     {
       "name": "debug_runs",
       "database": "application",
-      "description": "逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次",
+      "description": "逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。",
       "row_count": null,
       "fields": [
         {
@@ -2537,7 +2716,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 1,
-          "description": "记录标识"
+          "description": "逐节点调试记录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。",
+          "id": "debug_runs.id"
         },
         {
           "name": "owner_id",
@@ -2545,7 +2725,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "记录所属身份"
+          "description": "记录所属身份",
+          "id": "debug_runs.owner_id"
         },
         {
           "name": "grant_fingerprint",
@@ -2553,7 +2734,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "身份能力、授权人员集合及策略版本的SHA-256指纹；读取时重新核验"
+          "description": "身份能力、授权人员集合及策略版本的SHA-256指纹；读取时重新核验",
+          "id": "debug_runs.grant_fingerprint"
         },
         {
           "name": "question",
@@ -2561,7 +2743,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "用户问题；生产需制定脱敏及留存策略"
+          "description": "用户问题；生产需制定脱敏及留存策略",
+          "id": "debug_runs.question"
         },
         {
           "name": "status",
@@ -2569,7 +2752,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "业务状态；取值由对应表约束与生成器定义"
+          "description": "业务状态；取值由对应表约束与生成器定义",
+          "id": "debug_runs.status"
         },
         {
           "name": "started_at",
@@ -2577,7 +2761,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "执行开始时间UTC ISO格式"
+          "description": "执行开始时间UTC ISO格式",
+          "id": "debug_runs.started_at"
         },
         {
           "name": "finished_at",
@@ -2585,7 +2770,8 @@
           "not_null": false,
           "default": null,
           "primary_key_position": 0,
-          "description": "执行结束时间UTC ISO格式；运行中为空"
+          "description": "执行结束时间UTC ISO格式；运行中为空",
+          "id": "debug_runs.finished_at"
         },
         {
           "name": "duration_ms",
@@ -2593,7 +2779,8 @@
           "not_null": true,
           "default": "0",
           "primary_key_position": 0,
-          "description": "操作时长毫秒"
+          "description": "操作时长毫秒",
+          "id": "debug_runs.duration_ms"
         },
         {
           "name": "payload",
@@ -2601,7 +2788,8 @@
           "not_null": true,
           "default": null,
           "primary_key_position": 0,
-          "description": "已脱敏的逐节点输入、输出、耗时、错误及最终响应JSON"
+          "description": "已脱敏的逐节点输入、输出、耗时、错误及最终响应JSON",
+          "id": "debug_runs.payload"
         }
       ],
       "foreign_keys": [
@@ -2642,6 +2830,184 @@
         }
       ],
       "create_sql": "CREATE TABLE debug_runs (\n            id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES principals(id),\n            grant_fingerprint TEXT NOT NULL, question TEXT NOT NULL, status TEXT NOT NULL,\n            started_at TEXT NOT NULL, finished_at TEXT, duration_ms REAL NOT NULL DEFAULT 0,\n            payload TEXT NOT NULL\n        )"
+    },
+    {
+      "name": "semantic_documents",
+      "database": "semantic",
+      "description": "语义条目；独立语义库中的发布结构，由版本化JSON派生。",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "field使用表ID.字段ID；metric使用metric:指标ID。不同种类不得重用标识。",
+          "id": "semantic_documents.id"
+        },
+        {
+          "name": "kind",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "table/field/metric/question/relationship，决定详情结构与检索过滤。",
+          "id": "semantic_documents.kind"
+        },
+        {
+          "name": "table_id",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "字段与表条目的所属表标识；指标和问题不强制只有一张表。",
+          "id": "semantic_documents.table_id"
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "available已支持、planned待建设、reference_only仅结构说明；不能把存在定义当作可执行授权。",
+          "id": "semantic_documents.status"
+        },
+        {
+          "name": "visibility",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "internal通用内部描述、salary薪酬能力、governance仅治理身份；每次检索与读取都重新过滤。",
+          "id": "semantic_documents.visibility"
+        },
+        {
+          "name": "version",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "对应Git语义定义的版本；具体变更另由发布摘要校验。",
+          "id": "semantic_documents.version"
+        },
+        {
+          "name": "definition",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "保存经过校验的别名、正反定义、口径、示例、关系等；不是员工记录或执行结果。",
+          "id": "semantic_documents.definition"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "idx_semantic_kind_scope",
+          "unique": 0,
+          "origin": "c",
+          "partial": 0,
+          "columns": [
+            "kind",
+            "visibility",
+            "status"
+          ],
+          "sql": "CREATE INDEX idx_semantic_kind_scope ON semantic_documents(kind,visibility,status)"
+        },
+        {
+          "seq": 1,
+          "name": "sqlite_autoindex_semantic_documents_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "id"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE semantic_documents (\n id TEXT PRIMARY KEY, kind TEXT NOT NULL, table_id TEXT,\n status TEXT NOT NULL, visibility TEXT NOT NULL, version TEXT NOT NULL,\n definition TEXT NOT NULL CHECK(json_valid(definition))\n)"
+    },
+    {
+      "name": "semantic_search",
+      "database": "semantic",
+      "description": "语义全文索引；独立语义库中的发布结构，由版本化JSON派生。",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "id",
+          "type": "FTS TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "回指semantic_documents.id，仅用于检索定位；索引命中不赋予权限。",
+          "id": "semantic_search.id"
+        },
+        {
+          "name": "title",
+          "type": "FTS TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "从条目名称派生；采用FTS5 trigram分词和BM25排序。",
+          "id": "semantic_search.title"
+        },
+        {
+          "name": "content",
+          "type": "FTS TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "从名称、口语别名、含义派生；反例不作为正向别名，索引可从JSON重建。",
+          "id": "semantic_search.content"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [],
+      "create_sql": "CREATE VIRTUAL TABLE semantic_search USING fts5(id UNINDEXED,title,content,tokenize='trigram')"
+    },
+    {
+      "name": "semantic_meta",
+      "database": "semantic",
+      "description": "语义发布元信息；独立语义库中的发布结构，由版本化JSON派生。",
+      "row_count": null,
+      "fields": [
+        {
+          "name": "key",
+          "type": "TEXT",
+          "not_null": false,
+          "default": null,
+          "primary_key_position": 1,
+          "description": "version/revision/documents等发布状态键。",
+          "id": "semantic_meta.key"
+        },
+        {
+          "name": "value",
+          "type": "TEXT",
+          "not_null": true,
+          "default": null,
+          "primary_key_position": 0,
+          "description": "语义版本、源文件SHA256摘要或条目数，不包含个人业务值。",
+          "id": "semantic_meta.value"
+        }
+      ],
+      "foreign_keys": [],
+      "indexes": [
+        {
+          "seq": 0,
+          "name": "sqlite_autoindex_semantic_meta_1",
+          "unique": 1,
+          "origin": "pk",
+          "partial": 0,
+          "columns": [
+            "key"
+          ],
+          "sql": null
+        }
+      ],
+      "create_sql": "CREATE TABLE semantic_meta (key TEXT PRIMARY KEY,value TEXT NOT NULL)"
     }
   ],
   "metrics": [
@@ -3686,7 +4052,12 @@
     {
       "name": "检索索引",
       "location": "app.sqlite.metric_search",
-      "purpose": "FTS5 trigram派生全文索引，用于指标搜索；当前问数直接注入全量已授权指标，没有向量检索。"
+      "purpose": "兼容原指标搜索页面的派生索引；Agent使用独立语义库的检索与渐进式披露。"
+    },
+    {
+      "name": "语义定义与检索库",
+      "location": "semantic/*.json → data/semantic.sqlite",
+      "purpose": "Git管理表、字段、指标和问题的定义；发布为结构化文档与FTS5子串索引。LangGraph先检索再按需披露，不注入全部字段；暂不使用向量索引。"
     },
     {
       "name": "公式实现",
@@ -3766,7 +4137,8 @@
   "summary": {
     "business_tables": 24,
     "application_tables": 8,
-    "fields": 188,
+    "semantic_tables": 3,
+    "fields": 200,
     "metrics": 17
   },
   "note": "从实际SQLite结构与查询编译器读取；未读取私人信息或会话值。FTS5影子表为自动生成实现细节，未计入业务/应用逻辑表数量。"

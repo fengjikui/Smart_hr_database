@@ -1,0 +1,1303 @@
+{
+  "version": "hr-semantics-1.0",
+  "revision": "351f466b41facfaec0047b2cdf65ce5cf041bd3a333bb7a3f35077c1f5457d87",
+  "documents": 462,
+  "fields": 200,
+  "questions": 160,
+  "library_cases": 102,
+  "initial_recall": 102,
+  "median_ms": 9.64,
+  "p95_ms": 10.66,
+  "note": "这是已知问题库的首次元数据召回，不是独立模型评测。未命中的指标仍可通过轻量索引和inspect补充读取；相似度不决定SQL或权限。",
+  "results": [
+    {
+      "id": "question:HR-046",
+      "question": "现在全公司有多少在职员工",
+      "expected_metric_ids": [
+        "headcount"
+      ],
+      "initial_ids": [
+        "metric:headcount",
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 15.47
+    },
+    {
+      "id": "question:HR-047",
+      "question": "我们团队目前几个人",
+      "expected_metric_ids": [
+        "headcount"
+      ],
+      "initial_ids": [
+        "metric:headcount",
+        "metric:hires"
+      ],
+      "recalled": true,
+      "milliseconds": 10.07
+    },
+    {
+      "id": "question:HR-048",
+      "question": "按事业部统计当前在职人数",
+      "expected_metric_ids": [
+        "headcount"
+      ],
+      "initial_ids": [
+        "metric:headcount",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 10.0
+    },
+    {
+      "id": "question:HR-049",
+      "question": "我的直属和间接下属分别有多少人",
+      "expected_metric_ids": [
+        "headcount"
+      ],
+      "initial_ids": [
+        "metric:headcount",
+        "metric:hires"
+      ],
+      "recalled": true,
+      "milliseconds": 9.42
+    },
+    {
+      "id": "question:HR-050",
+      "question": "平台研发部博士在职人数",
+      "expected_metric_ids": [
+        "headcount"
+      ],
+      "initial_ids": [
+        "metric:headcount",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 10.06
+    },
+    {
+      "id": "question:HR-051",
+      "question": "按最高学历毕业院校统计在职人数",
+      "expected_metric_ids": [
+        "headcount"
+      ],
+      "initial_ids": [
+        "metric:headcount",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 10.4
+    },
+    {
+      "id": "question:HR-052",
+      "question": "本月新来了多少同事",
+      "expected_metric_ids": [
+        "hires"
+      ],
+      "initial_ids": [
+        "metric:hires",
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.11
+    },
+    {
+      "id": "question:HR-053",
+      "question": "上季度整个公司入职博士人数",
+      "expected_metric_ids": [
+        "hires"
+      ],
+      "initial_ids": [
+        "metric:hires",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.73
+    },
+    {
+      "id": "question:HR-054",
+      "question": "今年按月看新入职人数",
+      "expected_metric_ids": [
+        "hires"
+      ],
+      "initial_ids": [
+        "metric:hires",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.53
+    },
+    {
+      "id": "question:HR-055",
+      "question": "今年入职的清华大学毕业员工名单",
+      "expected_metric_ids": [
+        "hires"
+      ],
+      "initial_ids": [
+        "metric:hires"
+      ],
+      "recalled": true,
+      "milliseconds": 9.81
+    },
+    {
+      "id": "question:HR-056",
+      "question": "平台研发部今年入司多少人",
+      "expected_metric_ids": [
+        "hires"
+      ],
+      "initial_ids": [
+        "metric:hires",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.93
+    },
+    {
+      "id": "question:HR-057",
+      "question": "按事业部统计上季度新员工数量",
+      "expected_metric_ids": [
+        "hires"
+      ],
+      "initial_ids": [
+        "metric:hires",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.67
+    },
+    {
+      "id": "question:HR-058",
+      "question": "今年公司走了多少人",
+      "expected_metric_ids": [
+        "departures"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 10.25
+    },
+    {
+      "id": "question:HR-059",
+      "question": "上个月离职人数是多少",
+      "expected_metric_ids": [
+        "departures"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.2
+    },
+    {
+      "id": "question:HR-060",
+      "question": "本季度各部门离职人数",
+      "expected_metric_ids": [
+        "departures"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.59
+    },
+    {
+      "id": "question:HR-061",
+      "question": "今年离职员工名单和离职日期",
+      "expected_metric_ids": [
+        "departures"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:avg_tenure"
+      ],
+      "recalled": true,
+      "milliseconds": 9.61
+    },
+    {
+      "id": "question:HR-062",
+      "question": "按季度统计今年离职人数",
+      "expected_metric_ids": [
+        "departures"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 8.95
+    },
+    {
+      "id": "question:HR-063",
+      "question": "上季度离职的硕士有多少人",
+      "expected_metric_ids": [
+        "departures"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 10.04
+    },
+    {
+      "id": "question:HR-064",
+      "question": "整个公司今年各部门入职和离职人数统计",
+      "expected_metric_ids": [
+        "workforce_changes"
+      ],
+      "initial_ids": [
+        "metric:workforce_changes",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 9.34
+    },
+    {
+      "id": "question:HR-065",
+      "question": "今年每月来了多少人走了多少人",
+      "expected_metric_ids": [
+        "workforce_changes"
+      ],
+      "initial_ids": [
+        "metric:workforce_changes",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 9.71
+    },
+    {
+      "id": "question:HR-066",
+      "question": "上季度各事业部入离职与净增",
+      "expected_metric_ids": [
+        "workforce_changes"
+      ],
+      "initial_ids": [
+        "metric:workforce_changes",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 8.85
+    },
+    {
+      "id": "question:HR-067",
+      "question": "平台研发部今年净增多少员工",
+      "expected_metric_ids": [
+        "workforce_changes"
+      ],
+      "initial_ids": [
+        "metric:workforce_changes"
+      ],
+      "recalled": true,
+      "milliseconds": 9.6
+    },
+    {
+      "id": "question:HR-068",
+      "question": "今年按最高学历看入离职人数",
+      "expected_metric_ids": [
+        "workforce_changes"
+      ],
+      "initial_ids": [
+        "metric:workforce_changes",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 10.16
+    },
+    {
+      "id": "question:HR-069",
+      "question": "本月入离职人数合计",
+      "expected_metric_ids": [
+        "workforce_changes"
+      ],
+      "initial_ids": [
+        "metric:workforce_changes",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 9.27
+    },
+    {
+      "id": "question:HR-070",
+      "question": "平台研发部硕士毕业的比例",
+      "expected_metric_ids": [
+        "education_ratio"
+      ],
+      "initial_ids": [
+        "metric:education_ratio"
+      ],
+      "recalled": true,
+      "milliseconds": 10.11
+    },
+    {
+      "id": "question:HR-071",
+      "question": "各部门硕士及以上学历的比例",
+      "expected_metric_ids": [
+        "education_ratio"
+      ],
+      "initial_ids": [
+        "metric:education_ratio"
+      ],
+      "recalled": true,
+      "milliseconds": 9.29
+    },
+    {
+      "id": "question:HR-072",
+      "question": "平台研发部211或985毕业占比",
+      "expected_metric_ids": [
+        "education_ratio"
+      ],
+      "initial_ids": [
+        "metric:education_ratio"
+      ],
+      "recalled": true,
+      "milliseconds": 9.36
+    },
+    {
+      "id": "question:HR-073",
+      "question": "上季度入职员工中博士占比",
+      "expected_metric_ids": [
+        "education_ratio"
+      ],
+      "initial_ids": [
+        "metric:education_ratio",
+        "metric:hires"
+      ],
+      "recalled": true,
+      "milliseconds": 10.3
+    },
+    {
+      "id": "question:HR-074",
+      "question": "最高学历毕业于清华大学的在职员工比例",
+      "expected_metric_ids": [
+        "education_ratio"
+      ],
+      "initial_ids": [
+        "metric:education_ratio",
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 9.55
+    },
+    {
+      "id": "question:HR-075",
+      "question": "今年离职人员中博士占比",
+      "expected_metric_ids": [
+        "education_ratio"
+      ],
+      "initial_ids": [
+        "metric:education_ratio",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 9.65
+    },
+    {
+      "id": "question:HR-076",
+      "question": "全公司员工平均在司几年",
+      "expected_metric_ids": [
+        "avg_tenure"
+      ],
+      "initial_ids": [
+        "metric:avg_tenure"
+      ],
+      "recalled": true,
+      "milliseconds": 10.07
+    },
+    {
+      "id": "question:HR-077",
+      "question": "各部门平均司龄",
+      "expected_metric_ids": [
+        "avg_tenure"
+      ],
+      "initial_ids": [
+        "metric:avg_tenure"
+      ],
+      "recalled": true,
+      "milliseconds": 10.66
+    },
+    {
+      "id": "question:HR-078",
+      "question": "我的直属下属平均工龄",
+      "expected_metric_ids": [
+        "avg_tenure"
+      ],
+      "initial_ids": [
+        "metric:avg_tenure",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 11.15
+    },
+    {
+      "id": "question:HR-079",
+      "question": "博士员工平均司龄",
+      "expected_metric_ids": [
+        "avg_tenure"
+      ],
+      "initial_ids": [
+        "metric:avg_tenure"
+      ],
+      "recalled": true,
+      "milliseconds": 10.28
+    },
+    {
+      "id": "question:HR-080",
+      "question": "按岗位序列看平均服务年限",
+      "expected_metric_ids": [
+        "avg_tenure"
+      ],
+      "initial_ids": [
+        "metric:avg_tenure"
+      ],
+      "recalled": true,
+      "milliseconds": 10.9
+    },
+    {
+      "id": "question:HR-081",
+      "question": "上月底在职员工的平均司龄",
+      "expected_metric_ids": [
+        "avg_tenure"
+      ],
+      "initial_ids": [
+        "metric:avg_tenure",
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 10.12
+    },
+    {
+      "id": "question:HR-082",
+      "question": "本月各事业部出勤率",
+      "expected_metric_ids": [
+        "attendance_rate"
+      ],
+      "initial_ids": [
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 10.27
+    },
+    {
+      "id": "question:HR-083",
+      "question": "我本月出勤率是多少",
+      "expected_metric_ids": [
+        "attendance_rate"
+      ],
+      "initial_ids": [
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 11.76
+    },
+    {
+      "id": "question:HR-084",
+      "question": "上个月每天正常出勤比例",
+      "expected_metric_ids": [
+        "attendance_rate"
+      ],
+      "initial_ids": [
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.71
+    },
+    {
+      "id": "question:HR-085",
+      "question": "今年按月看出勤率变化",
+      "expected_metric_ids": [
+        "attendance_rate"
+      ],
+      "initial_ids": [
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.64
+    },
+    {
+      "id": "question:HR-086",
+      "question": "平台研发部本季度出勤率",
+      "expected_metric_ids": [
+        "attendance_rate"
+      ],
+      "initial_ids": [
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.62
+    },
+    {
+      "id": "question:HR-087",
+      "question": "清华毕业员工本月出勤率",
+      "expected_metric_ids": [
+        "attendance_rate"
+      ],
+      "initial_ids": [
+        "metric:attendance_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.49
+    },
+    {
+      "id": "question:HR-088",
+      "question": "本月迟到了多少人次",
+      "expected_metric_ids": [
+        "late_count"
+      ],
+      "initial_ids": [
+        "metric:late_count",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 10.3
+    },
+    {
+      "id": "question:HR-089",
+      "question": "各部门上周来晚几次",
+      "expected_metric_ids": [
+        "late_count"
+      ],
+      "initial_ids": [
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.61
+    },
+    {
+      "id": "question:HR-090",
+      "question": "本月每天迟到人次",
+      "expected_metric_ids": [
+        "late_count"
+      ],
+      "initial_ids": [
+        "metric:late_count",
+        "metric:late_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.66
+    },
+    {
+      "id": "question:HR-091",
+      "question": "我今年迟到几次",
+      "expected_metric_ids": [
+        "late_count"
+      ],
+      "initial_ids": [
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.36
+    },
+    {
+      "id": "question:HR-092",
+      "question": "平台研发部硕士本月迟到人次",
+      "expected_metric_ids": [
+        "late_count"
+      ],
+      "initial_ids": [
+        "metric:late_count",
+        "metric:late_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 10.15
+    },
+    {
+      "id": "question:HR-093",
+      "question": "本月迟到人员的考勤明细",
+      "expected_metric_ids": [
+        "late_count"
+      ],
+      "initial_ids": [
+        "metric:late_count",
+        "metric:late_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 8.97
+    },
+    {
+      "id": "question:HR-094",
+      "question": "本月迟到率是多少",
+      "expected_metric_ids": [
+        "late_rate"
+      ],
+      "initial_ids": [
+        "metric:late_rate",
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 10.03
+    },
+    {
+      "id": "question:HR-095",
+      "question": "各事业部本季度迟到率",
+      "expected_metric_ids": [
+        "late_rate"
+      ],
+      "initial_ids": [
+        "metric:late_rate",
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 10.32
+    },
+    {
+      "id": "question:HR-096",
+      "question": "我上个月迟到率",
+      "expected_metric_ids": [
+        "late_rate"
+      ],
+      "initial_ids": [
+        "metric:late_rate",
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.39
+    },
+    {
+      "id": "question:HR-097",
+      "question": "今年按月看迟到比例",
+      "expected_metric_ids": [
+        "late_rate"
+      ],
+      "initial_ids": [
+        "metric:late_rate",
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.71
+    },
+    {
+      "id": "question:HR-098",
+      "question": "平台研发部本周迟到频率",
+      "expected_metric_ids": [
+        "late_rate"
+      ],
+      "initial_ids": [
+        "metric:late_rate",
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.13
+    },
+    {
+      "id": "question:HR-099",
+      "question": "博士员工本月迟到率",
+      "expected_metric_ids": [
+        "late_rate"
+      ],
+      "initial_ids": [
+        "metric:late_rate",
+        "metric:late_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.41
+    },
+    {
+      "id": "question:HR-100",
+      "question": "本月考勤异常多少人次",
+      "expected_metric_ids": [
+        "abnormal_count"
+      ],
+      "initial_ids": [
+        "metric:abnormal_count",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.66
+    },
+    {
+      "id": "question:HR-101",
+      "question": "查看我本月的考勤异常明细",
+      "expected_metric_ids": [
+        "abnormal_count"
+      ],
+      "initial_ids": [
+        "metric:abnormal_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.43
+    },
+    {
+      "id": "question:HR-102",
+      "question": "今年按月统计考勤异常人次",
+      "expected_metric_ids": [
+        "abnormal_count"
+      ],
+      "initial_ids": [
+        "metric:abnormal_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.67
+    },
+    {
+      "id": "question:HR-103",
+      "question": "各部门本周异常考勤数量",
+      "expected_metric_ids": [
+        "abnormal_count"
+      ],
+      "initial_ids": [
+        "metric:abnormal_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.54
+    },
+    {
+      "id": "question:HR-104",
+      "question": "平台研发部上季度考勤出问题几次",
+      "expected_metric_ids": [
+        "abnormal_count"
+      ],
+      "initial_ids": [
+        "metric:abnormal_count"
+      ],
+      "recalled": true,
+      "milliseconds": 9.88
+    },
+    {
+      "id": "question:HR-105",
+      "question": "我的直属下属本月考勤异常明细",
+      "expected_metric_ids": [
+        "abnormal_count"
+      ],
+      "initial_ids": [
+        "metric:abnormal_count",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.04
+    },
+    {
+      "id": "question:HR-106",
+      "question": "本月批准的加班一共有多少小时",
+      "expected_metric_ids": [
+        "approved_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 10.41
+    },
+    {
+      "id": "question:HR-107",
+      "question": "各部门今年已批准加班时长",
+      "expected_metric_ids": [
+        "approved_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:approved_overtime_hours",
+        "metric:leave_days"
+      ],
+      "recalled": true,
+      "milliseconds": 10.19
+    },
+    {
+      "id": "question:HR-108",
+      "question": "上季度每月批下来的加班工时",
+      "expected_metric_ids": [
+        "approved_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:approved_overtime_hours",
+        "metric:avg_work_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.48
+    },
+    {
+      "id": "question:HR-109",
+      "question": "平台研发部博士本月已批准加班多久",
+      "expected_metric_ids": [
+        "approved_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:approved_overtime_hours",
+        "metric:leave_days"
+      ],
+      "recalled": true,
+      "milliseconds": 9.99
+    },
+    {
+      "id": "question:HR-110",
+      "question": "我上个月审核通过多少加班小时",
+      "expected_metric_ids": [
+        "approved_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:approved_overtime_hours",
+        "metric:weekend_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.3
+    },
+    {
+      "id": "question:HR-111",
+      "question": "本周全公司批准加班时长",
+      "expected_metric_ids": [
+        "approved_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:approved_overtime_hours",
+        "metric:weekend_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.85
+    },
+    {
+      "id": "question:HR-112",
+      "question": "各部门周末加班的总工时",
+      "expected_metric_ids": [
+        "weekend_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:weekend_overtime_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.08
+    },
+    {
+      "id": "question:HR-113",
+      "question": "今年各事业部双休日加班小时",
+      "expected_metric_ids": [
+        "weekend_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:weekend_overtime_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.39
+    },
+    {
+      "id": "question:HR-114",
+      "question": "上季度周六周日加班总量",
+      "expected_metric_ids": [
+        "weekend_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:weekend_overtime_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.86
+    },
+    {
+      "id": "question:HR-115",
+      "question": "我本月周末加班多久",
+      "expected_metric_ids": [
+        "weekend_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:weekend_overtime_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.4
+    },
+    {
+      "id": "question:HR-116",
+      "question": "今年每月周末已批准工时",
+      "expected_metric_ids": [
+        "weekend_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:weekend_overtime_hours",
+        "metric:avg_work_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.51
+    },
+    {
+      "id": "question:HR-117",
+      "question": "平台研发部上个月周末加班小时",
+      "expected_metric_ids": [
+        "weekend_overtime_hours"
+      ],
+      "initial_ids": [
+        "metric:weekend_overtime_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.9
+    },
+    {
+      "id": "question:HR-118",
+      "question": "本月晚离岗总时长",
+      "expected_metric_ids": [
+        "late_departure_hours"
+      ],
+      "initial_ids": [
+        "metric:late_departure_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.7
+    },
+    {
+      "id": "question:HR-119",
+      "question": "各部门晚下班一共多久",
+      "expected_metric_ids": [
+        "late_departure_hours"
+      ],
+      "initial_ids": [
+        "metric:late_departure_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.78
+    },
+    {
+      "id": "question:HR-120",
+      "question": "今年每月晚走时长",
+      "expected_metric_ids": [
+        "late_departure_hours"
+      ],
+      "initial_ids": [
+        "metric:late_departure_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.09
+    },
+    {
+      "id": "question:HR-121",
+      "question": "我上周超出应离岗时间多少小时",
+      "expected_metric_ids": [
+        "late_departure_hours"
+      ],
+      "initial_ids": [
+        "metric:late_departure_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.53
+    },
+    {
+      "id": "question:HR-122",
+      "question": "平台研发部本季度晚离岗小时",
+      "expected_metric_ids": [
+        "late_departure_hours"
+      ],
+      "initial_ids": [
+        "metric:late_departure_hours",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 8.97
+    },
+    {
+      "id": "question:HR-123",
+      "question": "本月每天晚离岗时长",
+      "expected_metric_ids": [
+        "late_departure_hours"
+      ],
+      "initial_ids": [
+        "metric:late_departure_hours",
+        "metric:avg_work_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.5
+    },
+    {
+      "id": "question:HR-124",
+      "question": "本月平均有效在岗时长",
+      "expected_metric_ids": [
+        "avg_work_hours"
+      ],
+      "initial_ids": [
+        "metric:avg_work_hours",
+        "metric:late_departure_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.09
+    },
+    {
+      "id": "question:HR-125",
+      "question": "各部门平均每天净工时",
+      "expected_metric_ids": [
+        "avg_work_hours"
+      ],
+      "initial_ids": [
+        "metric:avg_work_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 10.1
+    },
+    {
+      "id": "question:HR-126",
+      "question": "我上个月平均在岗多久",
+      "expected_metric_ids": [
+        "avg_work_hours"
+      ],
+      "initial_ids": [
+        "metric:avg_work_hours",
+        "metric:avg_tenure"
+      ],
+      "recalled": true,
+      "milliseconds": 9.35
+    },
+    {
+      "id": "question:HR-127",
+      "question": "今年每月平均有效工作时间",
+      "expected_metric_ids": [
+        "avg_work_hours"
+      ],
+      "initial_ids": [
+        "metric:avg_work_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.38
+    },
+    {
+      "id": "question:HR-128",
+      "question": "平台研发部本周人均在岗时长",
+      "expected_metric_ids": [
+        "avg_work_hours"
+      ],
+      "initial_ids": [
+        "metric:avg_work_hours",
+        "metric:late_departure_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 10.19
+    },
+    {
+      "id": "question:HR-129",
+      "question": "博士员工本月平均有效在岗小时",
+      "expected_metric_ids": [
+        "avg_work_hours"
+      ],
+      "initial_ids": [
+        "metric:avg_work_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.86
+    },
+    {
+      "id": "question:HR-130",
+      "question": "本月批了多少天假",
+      "expected_metric_ids": [
+        "leave_days"
+      ],
+      "initial_ids": [
+        "metric:leave_days",
+        "metric:hires"
+      ],
+      "recalled": true,
+      "milliseconds": 10.61
+    },
+    {
+      "id": "question:HR-131",
+      "question": "各部门今年已批准请假天数",
+      "expected_metric_ids": [
+        "leave_days"
+      ],
+      "initial_ids": [
+        "metric:leave_days",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.89
+    },
+    {
+      "id": "question:HR-132",
+      "question": "我上个月休了几天批准假",
+      "expected_metric_ids": [
+        "leave_days"
+      ],
+      "initial_ids": [
+        "metric:leave_days"
+      ],
+      "recalled": true,
+      "milliseconds": 9.43
+    },
+    {
+      "id": "question:HR-133",
+      "question": "今年按月统计已批准请假天数",
+      "expected_metric_ids": [
+        "leave_days"
+      ],
+      "initial_ids": [
+        "metric:leave_days",
+        "metric:approved_overtime_hours"
+      ],
+      "recalled": true,
+      "milliseconds": 9.47
+    },
+    {
+      "id": "question:HR-134",
+      "question": "平台研发部本季度请假总天数",
+      "expected_metric_ids": [
+        "leave_days"
+      ],
+      "initial_ids": [
+        "metric:leave_days"
+      ],
+      "recalled": true,
+      "milliseconds": 9.16
+    },
+    {
+      "id": "question:HR-135",
+      "question": "我的直属下属上周批准请假多少天",
+      "expected_metric_ids": [
+        "leave_days"
+      ],
+      "initial_ids": [
+        "metric:leave_days",
+        "metric:headcount"
+      ],
+      "recalled": true,
+      "milliseconds": 9.54
+    },
+    {
+      "id": "question:HR-136",
+      "question": "当前全公司平均基本月薪",
+      "expected_metric_ids": [
+        "avg_salary"
+      ],
+      "initial_ids": [
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 9.43
+    },
+    {
+      "id": "question:HR-137",
+      "question": "各事业部平均基本工资",
+      "expected_metric_ids": [
+        "avg_salary"
+      ],
+      "initial_ids": [
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 9.38
+    },
+    {
+      "id": "question:HR-138",
+      "question": "当前基本薪资均值",
+      "expected_metric_ids": [
+        "avg_salary"
+      ],
+      "initial_ids": [
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 8.69
+    },
+    {
+      "id": "question:HR-139",
+      "question": "本月各事业部基本月薪平均数",
+      "expected_metric_ids": [
+        "avg_salary"
+      ],
+      "initial_ids": [
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 9.11
+    },
+    {
+      "id": "question:HR-140",
+      "question": "全授权范围的平均基本薪资",
+      "expected_metric_ids": [
+        "avg_salary"
+      ],
+      "initial_ids": [
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 9.13
+    },
+    {
+      "id": "question:HR-141",
+      "question": "当前CNY基本月薪均值",
+      "expected_metric_ids": [
+        "avg_salary"
+      ],
+      "initial_ids": [
+        "metric:avg_salary"
+      ],
+      "recalled": true,
+      "milliseconds": 8.87
+    },
+    {
+      "id": "question:HR-142",
+      "question": "本月人员离职率",
+      "expected_metric_ids": [
+        "turnover_rate"
+      ],
+      "initial_ids": [
+        "metric:turnover_rate",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 10.23
+    },
+    {
+      "id": "question:HR-143",
+      "question": "今年各事业部流失率",
+      "expected_metric_ids": [
+        "turnover_rate"
+      ],
+      "initial_ids": [
+        "metric:turnover_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 17.26
+    },
+    {
+      "id": "question:HR-144",
+      "question": "上季度各部门离司比例",
+      "expected_metric_ids": [
+        "turnover_rate"
+      ],
+      "initial_ids": [
+        "metric:turnover_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.22
+    },
+    {
+      "id": "question:HR-145",
+      "question": "平台研发部本季度人员离职率",
+      "expected_metric_ids": [
+        "turnover_rate"
+      ],
+      "initial_ids": [
+        "metric:turnover_rate",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 10.27
+    },
+    {
+      "id": "question:HR-146",
+      "question": "去年整个公司人员离职率",
+      "expected_metric_ids": [
+        "turnover_rate"
+      ],
+      "initial_ids": [
+        "metric:turnover_rate",
+        "metric:departures"
+      ],
+      "recalled": true,
+      "milliseconds": 9.36
+    },
+    {
+      "id": "question:HR-147",
+      "question": "本月博士员工离职率",
+      "expected_metric_ids": [
+        "turnover_rate"
+      ],
+      "initial_ids": [
+        "metric:departures",
+        "metric:turnover_rate"
+      ],
+      "recalled": true,
+      "milliseconds": 9.91
+    }
+  ]
+}

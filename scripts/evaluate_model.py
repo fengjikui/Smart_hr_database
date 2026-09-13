@@ -4,15 +4,18 @@ import argparse
 import asyncio
 import json
 import sys
+import tempfile
 import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from fastapi import HTTPException
 
+from backend.hr import config
 from backend.hr.agent import answer
 from backend.hr.db import application
 from backend.hr.debug import read_run
+from backend.hr.seed import initialize_app
 
 CASES = [
     (
@@ -127,10 +130,18 @@ CASES = [
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="reports/model-evaluation.json")
-    parser.add_argument("--limit", type=int, default=len(CASES))
+    parser.add_argument("--limit", type=int, default=1000)
+    parser.add_argument("--suite", choices=["baseline", "semantics"], default="baseline")
     args = parser.parse_args()
     results = []
-    for who, q, expected in CASES[: args.limit]:
+    cases = (
+        CASES
+        if args.suite == "baseline"
+        else json.loads(
+            (Path(__file__).resolve().parents[1] / "tests/fixtures/semantic_holdout.json").read_text()
+        )
+    )
+    for who, q, expected in cases[: args.limit]:
         with application() as db:
             p = dict(db.execute("SELECT * FROM principals WHERE id=?", (who,)).fetchone())
         started = time.perf_counter()
@@ -151,6 +162,15 @@ async def main():
             model = next((n for n in trace["nodes"] if n["key"] == "model"), None)
             actual["grounded_changes"] = intent["output"].get("grounded_changes", []) if intent else []
             actual["model_plan"] = model["output"].get("response") if model else None
+            actual["orchestration"] = r.get("orchestration")
+            actual["model_attempts"] = [
+                n["output"].get("response") for n in trace["nodes"] if n["key"] == "model"
+            ]
+            actual["prompt_tokens"] = [
+                n["output"].get("usage", {}).get("prompt_tokens")
+                for n in trace["nodes"]
+                if n["key"] == "model"
+            ]
         except HTTPException as e:
             passed = expected.get("status") in ("blocked", "bounded") and e.status_code in (403, 422)
             actual = {"status": e.status_code, "detail": e.detail}
@@ -179,4 +199,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    raise SystemExit(asyncio.run(main()))
+    with tempfile.TemporaryDirectory(prefix="hr-model-evaluation-") as directory:
+        config.APP_DB = Path(directory) / "app.sqlite"
+        initialize_app(config.APP_DB)
+        raise SystemExit(asyncio.run(main()))

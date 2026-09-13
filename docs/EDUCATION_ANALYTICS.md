@@ -12,7 +12,7 @@
 | overtime_attendance | 每人每周末打卡日一行 | `id,employee_id,day,check_in,check_out,break_minutes,work_minutes`；独立核验周末申请工时 |
 | overtime_requests | 每人每日一条申请 | 新增`day_type`工作日/周末；保留申请分钟、审批状态、审批人 |
 
-当前共有24张业务表、8个应用逻辑表/全文索引、188个字段、17个指标。完整逐字段说明、主外键、CHECK、索引和实际DDL见 [完整数据字典](DATA_DICTIONARY.md)，机器版见 [data-dictionary.json](data-dictionary.json)。网页“数据库与口径”由相同的结构读取器生成；“指标字典”末尾可展开院校及简称。
+当前共有24张业务表、8个应用逻辑表/全文索引、3个语义逻辑表/全文索引、200个字段、17个指标。完整逐字段说明、主外键、CHECK、索引和实际DDL见 [完整数据字典](DATA_DICTIONARY.md)，机器版见 [data-dictionary.json](data-dictionary.json)。网页“数据库与口径”由相同的结构读取器生成；“指标字典”末尾可展开院校及简称。
 
 教育学历与学位分开存。高中及以下、专科、本科、硕士研究生、博士研究生分别为层级1–5。模拟经历的学位为无学位、学士、硕士、博士，不能用“博士后”替代博士学位。学习形式、专业目前只展示，尚未开放自然语言筛选。
 

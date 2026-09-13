@@ -56,6 +56,15 @@ export type Answer = {
   conversation_id?: string;
   model?: string;
   model_ms?: number;
+  orchestration?: {
+    framework: string;
+    version: string;
+    model_calls: number;
+    metadata_expansions: number;
+    repairs: number;
+    semantic_revision: string;
+    disclosed_ids: string[];
+  };
   debug_run_id?: string;
 };
 export type Principal = {
@@ -146,6 +155,7 @@ export type View =
   | 'organization'
   | 'catalog'
   | 'governance'
+  | 'semantics'
   | 'dictionary'
   | 'debug';
 
@@ -223,6 +233,7 @@ export type DataDictionary = {
   summary: {
     business_tables: number;
     application_tables: number;
+    semantic_tables: number;
     fields: number;
     metrics: number;
   };

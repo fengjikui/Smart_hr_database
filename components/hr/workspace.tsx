@@ -41,6 +41,7 @@ import { api, mutation } from './client';
 import { Failure, LoadingBlock } from './results';
 import { DebugPanel } from './debug-panel';
 import { DataDictionary } from './data-dictionary';
+import { SemanticCenter } from './semantic-center';
 import {
   Boards,
   Catalog,
@@ -58,6 +59,7 @@ const NAV = [
   { id: 'organization' as View, label: '组织与权限', icon: GitBranch },
   { id: 'catalog' as View, label: '指标字典', icon: BookOpen },
   { id: 'governance' as View, label: '数据治理', icon: Database },
+  { id: 'semantics' as View, label: '语义知识库', icon: GitBranch },
   { id: 'dictionary' as View, label: '数据库与口径', icon: BookOpen },
   { id: 'debug' as View, label: '节点调试', icon: Bug },
 ];
@@ -299,6 +301,14 @@ export default function Workspace() {
                 ) : null}
                 {view === 'governance' ? <Governance boot={boot} /> : null}
                 {view === 'dictionary' ? <DataDictionary boot={boot} /> : null}
+                {view === 'semantics' ? (
+                  <SemanticCenter
+                    key={boot.principal.id}
+                    boot={boot}
+                    onAsk={ask}
+                    onDebug={() => openDebug()}
+                  />
+                ) : null}
                 {view === 'debug' ? (
                   <DebugPanel
                     key={`${boot.principal.id}:${debugRunId ?? 'latest'}`}

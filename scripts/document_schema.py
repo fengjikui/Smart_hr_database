@@ -28,7 +28,7 @@ def generate():
         "",
         "由 `uv run python scripts/document_schema.py` 从实际 SQLite 结构、指标目录和 SQL 编译器生成，与系统“数据库与口径”页共用同一数据源。",
         "",
-        f"当前为 **{summary['business_tables']} 张业务表、{summary['application_tables']} 个应用逻辑表/全文索引、{summary['fields']} 个字段、{summary['metrics']} 个指标**。字段数按各表列数相加，同名关联键分别计数。",
+        f"当前为 **{summary['business_tables']} 张业务表、{summary['application_tables']} 个应用逻辑表/全文索引、{summary['semantic_tables']} 个语义逻辑表/全文索引、{summary['fields']} 个字段、{summary['metrics']} 个指标**。字段数按各表列数相加，同名关联键分别计数。",
         "全部为合成数据；字段存在不代表 Agent 已支持该字段。FTS5 自动影子表不计入逻辑表。表内不附人员、私人资料或会话实际值。",
         "",
         "## 存储位置与职责",

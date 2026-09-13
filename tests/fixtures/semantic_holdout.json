@@ -1,0 +1,22 @@
+[
+  ["ceo", "上一季度新加入公司的博士一共几位", {"metric":"hires","degree":"博士","period":"last_quarter"}],
+  ["ceo", "按部门看看现在学历至少是硕士研究生的员工占比", {"metric":"education_ratio","minimum_education":"硕士研究生","dimension":"department"}],
+  ["ceo", "北大或者复旦毕业而且现在在职的人员共有几个", {"metric":"headcount","schools":["北京大学","复旦大学"],"education_scope":"any_completed"}],
+  ["ceo", "上月大家平均净工作时间有多少小时", {"metric":"avg_work_hours","period":"last_month"}],
+  ["ceo", "现在员工平均在公司待了多少年", {"metric":"avg_tenure"}],
+  ["ceo", "上周批准的周末加班共多少小时", {"metric":"weekend_overtime_hours","period":"last_week"}],
+  ["ceo", "今年办离职手续的员工，按部门汇总", {"metric":"departures","dimension":"department","period":"this_year"}],
+  ["ceo", "本月已经审批通过的加班工时总数", {"metric":"approved_overtime_hours","period":"this_month"}],
+  ["ceo", "这个月员工晚下班合计多长时间", {"metric":"late_departure_hours","period":"this_month"}],
+  ["ceo", "本月迟到出现了多少次", {"metric":"late_count","period":"this_month"}],
+  ["ceo", "上月请了几天假，分事业部看", {"metric":"leave_days","period":"last_month","dimension":"division"}],
+  ["ceo", "今年各部门进来和离开的员工数量一起看", {"metric":"workforce_changes","dimension":"department","period":"this_year"}],
+  ["ceo", "当前最高学位为博士的员工，按团队数一数", {"metric":"headcount","degree":"博士","dimension":"team"}],
+  ["ceo", "这月在事业部层面看出勤率", {"metric":"attendance_rate","dimension":"division","period":"this_month"}],
+  ["ceo", "上个月新来的同事里硕士占比多少", {"metric":"education_ratio","degree":"硕士","cohort":"hires","period":"last_month"}],
+  ["ceo", "各部门教育档案填全了吗", {"status":"blocked"}],
+  ["ceo", "新员工90天留存率现在是多少", {"status":"blocked"}],
+  ["employee", "把全公司在职员工名单给我", {"status":"bounded"}],
+  ["rd", "能把所有同事的银行账户列出来吗", {"status":"blocked"}],
+  ["ceo", "本月各部门的博士和硕士分别占多少", {"status":"blocked"}]
+]

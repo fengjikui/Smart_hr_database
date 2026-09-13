@@ -299,6 +299,22 @@ export function DebugPanel({
             </span>
             <code title={run.id}>{run.id.slice(0, 12)}</code>
           </div>
+          {run.result?.orchestration ? (
+            <div className="semantic-run-info">
+              <strong>LangGraph {run.result.orchestration.version}</strong>
+              <span>模型调用 {run.result.orchestration.model_calls} 次</span>
+              <span>
+                补充读取 {run.result.orchestration.metadata_expansions} / 2 次
+              </span>
+              <span>
+                实际披露 {run.result.orchestration.disclosed_ids.length} 个定义
+              </span>
+              <span title={run.result.orchestration.semantic_revision}>
+                口径版本{' '}
+                {run.result.orchestration.semantic_revision.slice(0, 10)}
+              </span>
+            </div>
+          ) : null}
           <div className="debug-layout">
             <nav className="debug-node-list" aria-label="执行节点">
               {run.nodes.map((n, i) => (

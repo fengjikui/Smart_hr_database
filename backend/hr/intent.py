@@ -11,6 +11,8 @@ from .models import QueryPlan
 
 def explicit_constraints(question):
     q = question
+    # Normalize common event phrasing only; this does not create arbitrary value aliases.
+    q = re.sub(r"新来|新加入|新进员工|办理入职", "入职", q)
     values = {}
     notes = []
     if "直属" in q and "间接" in q:
@@ -74,7 +76,7 @@ def explicit_constraints(question):
         values["school_tier"] = "双非"
     if values.get("school_tier"):
         values["education_scope"] = "any_completed" if re.search(r"任一|任何|曾经", q) else "highest"
-    if "硕士" in q and "博士" in q:
+    if ("硕士" in q and "博士" in q) or ("本科" in q and re.search(r"硕士|博士", q)):
         raise HTTPException(
             422, detail="请分别查询硕士或博士；合并人群可提问‘硕士及以上’，避免混淆精确学位与学历范围。"
         )
@@ -146,7 +148,7 @@ def explicit_constraints(question):
         key
         for pattern, key in [
             (r"每月|按月|各月|[和及、]月份", "month"),
-            (r"每天|每日|按天", "day"),
+            (r"(?<!平均)(?<!人均)(?:每天|每日)|按天", "day"),
             (r"每季度|按季度", "quarter"),
         ]
         if re.search(pattern, q)

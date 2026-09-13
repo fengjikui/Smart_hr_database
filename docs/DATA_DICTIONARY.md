@@ -2,7 +2,7 @@
 
 由 `uv run python scripts/document_schema.py` 从实际 SQLite 结构、指标目录和 SQL 编译器生成，与系统“数据库与口径”页共用同一数据源。
 
-当前为 **24 张业务表、8 个应用逻辑表/全文索引、188 个字段、17 个指标**。字段数按各表列数相加，同名关联键分别计数。
+当前为 **24 张业务表、8 个应用逻辑表/全文索引、3 个语义逻辑表/全文索引、200 个字段、17 个指标**。字段数按各表列数相加，同名关联键分别计数。
 全部为合成数据；字段存在不代表 Agent 已支持该字段。FTS5 自动影子表不计入逻辑表。表内不附人员、私人资料或会话实际值。
 
 ## 存储位置与职责
@@ -12,7 +12,8 @@
 | 业务库 | `data/hr.sqlite` | 员工、教育经历、院校、任职、组织、考勤等24张关系表；查询服务只读。 |
 | 应用库 | `data/app.sqlite` | 身份、会话、指标、看板、审计、对话与逐节点调试记录；与业务库分离。 |
 | 指标定义源 | `semantic/catalog.json` | Git版本化的名称、定义、来源、维度、责任人与敏感级别；发布到应用库metrics。 |
-| 检索索引 | `app.sqlite.metric_search` | FTS5 trigram派生全文索引，用于指标搜索；当前问数直接注入全量已授权指标，没有向量检索。 |
+| 检索索引 | `app.sqlite.metric_search` | 兼容原指标搜索页面的派生索引；Agent使用独立语义库的检索与渐进式披露。 |
+| 语义定义与检索库 | `semantic/*.json → data/semantic.sqlite` | Git管理表、字段、指标和问题的定义；发布为结构化文档与FTS5子串索引。LangGraph先检索再按需披露，不注入全部字段；暂不使用向量索引。 |
 | 公式实现 | `backend/hr/query.py` | 确定性SQL编译器实现口径和权限；下面的公式与示例SQL从实际编译结果提取。 |
 
 ## 数据集元信息
@@ -34,38 +35,41 @@
 
 | 库 / 表 | 用途与粒度 | 全部字段 |
 |---|---|---|
-| business / `dataset_meta` | 数据集元信息；每个配置键一行 | `key`, `value` |
-| business / `legal_entities` | 法人主体；每个主体一行 | `id`, `name` |
-| business / `locations` | 办公地点；每个地点一行 | `id`, `name`, `timezone` |
-| business / `departments` | 组织节点；四级树，每个组织一行 | `id`, `name`, `parent_id`, `level`, `division_id` |
-| business / `job_families` | 岗位序列；每个序列一行 | `id`, `name` |
-| business / `grades` | 职级及模拟薪资范围；每级一行 | `id`, `name`, `salary_min`, `salary_max` |
-| business / `positions` | 岗位字典；每个岗位一行 | `id`, `name`, `family_id`, `is_manager` |
-| business / `schools` | 院校名称、别名与历史211/985标签；每校一行，不含员工数据 | `id`, `name`, `aliases`, `is_985`, `is_211`, `classification_basis`, `source_url` |
-| business / `employees` | 人员基础档案；每名员工一行 | `id`, `employee_no`, `name`, `gender`, `birth_date`, `hire_date`, `termination_date`, `employment_type`, `entity_id`, `location_id`, `email`, `highest_education`, `highest_degree`, `graduation_school_id`, `major`, `graduation_date`, `education_mode` |
-| business / `employee_education` | 已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历 | `id`, `employee_id`, `school_id`, `education_level`, `education_rank`, `degree`, `major`, `start_date`, `graduation_date`, `study_mode` |
-| business / `employee_private` | 私人信息；每名员工一行，全部SIM标记且不开放查询 | `employee_id`, `phone`, `identity_document`, `bank_account` |
-| business / `assignments` | 任职历史；每个人每段连续任职一行，左闭右开 | `id`, `employee_id`, `department_id`, `manager_id`, `position_id`, `grade_id`, `valid_from`, `valid_to` |
-| business / `reporting_closure` | 当前管理关系闭包；每个祖先/后代对一行 | `ancestor_id`, `descendant_id`, `depth` |
-| business / `work_calendar` | 演示工作日历；每天一行，未接正式节假日调休 | `day`, `is_workday`, `note` |
-| business / `shift_policies` | 班次政策；每个政策版本一行 | `id`, `name`, `earliest_in`, `latest_in`, `earliest_out`, `required_work_minutes`, `lunch_minutes`, `version` |
-| business / `attendance_daily` | 每日考勤事实；每人每个应工作日一行 | `id`, `employee_id`, `day`, `shift_id`, `status`, `check_in`, `check_out`, `work_minutes`, `late_minutes`, `early_minutes`, `late_departure_minutes` |
-| business / `leave_requests` | 整日请假申请；每人每日最多一行 | `id`, `employee_id`, `day`, `leave_type`, `days`, `approval_status`, `approver_id` |
-| business / `overtime_requests` | 加班申请；每人每日最多一行，与晚离岗分开 | `id`, `employee_id`, `day`, `minutes`, `day_type`, `approval_status`, `approver_id` |
-| business / `compensation` | 基本月薪有效期记录；受限汇总来源 | `id`, `employee_id`, `valid_from`, `valid_to`, `monthly_base`, `currency` |
-| business / `performance_reviews` | 绩效评价；每人每周期一行，尚未开放查询 | `id`, `employee_id`, `period`, `rating`, `reviewer_id` |
-| business / `training_courses` | 培训课程；每门课一行，尚未开放查询 | `id`, `name`, `hours` |
-| business / `training_enrollments` | 培训参加记录；每人每课程一行，尚未开放查询 | `employee_id`, `course_id`, `status`, `completed_at` |
-| business / `recruitment_requisitions` | 招聘需求；每个需求一行，尚未开放查询 | `id`, `department_id`, `position_id`, `openings`, `status`, `opened_at` |
-| business / `overtime_attendance` | 独立周末打卡事实；每人每周末出勤日一行，核验申请时长 | `id`, `employee_id`, `day`, `check_in`, `check_out`, `break_minutes`, `work_minutes` |
-| application / `principals` | 演示主体及授权；每个演示身份一行 | `id`, `employee_id`, `role`, `label`, `title`, `scope_mode`, `scope_root`, `salary_aggregate`, `can_export`, `enabled`, `policy_version` |
-| application / `sessions` | 会话；仅保存令牌摘要，不保存原令牌 | `token_hash`, `principal_id`, `csrf`, `expires_at` |
-| application / `metrics` | 已发布指标目录；每个指标一行JSON定义 | `id`, `definition`, `version` |
-| application / `metric_search` | 由指标目录派生的FTS5 trigram检索索引，可重建 | `id`, `content` |
-| application / `dashboards` | 私人看板；存查询计划，不持久复制结果 | `id`, `owner_id`, `title`, `plan`, `catalog_version`, `created_at` |
-| application / `audit_events` | 应用审计事件；不包含业务结果或个人证件 | `id`, `principal_id`, `action`, `outcome`, `metric_id`, `scope_count`, `policy_version`, `duration_ms`, `created_at` |
-| application / `conversations` | 最小对话记录；用于同一身份的前次计划继承 | `id`, `principal_id`, `question`, `plan`, `outcome`, `created_at` |
-| application / `debug_runs` | 逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次 | `id`, `owner_id`, `grant_fingerprint`, `question`, `status`, `started_at`, `finished_at`, `duration_ms`, `payload` |
+| business / `dataset_meta` | 数据集元信息；每个配置键一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `key`, `value` |
+| business / `legal_entities` | 法人主体；每个主体一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name` |
+| business / `locations` | 办公地点；每个地点一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `timezone` |
+| business / `departments` | 组织节点；四级树，每个组织一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `parent_id`, `level`, `division_id` |
+| business / `job_families` | 岗位序列；每个序列一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name` |
+| business / `grades` | 职级及模拟薪资范围；每级一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `salary_min`, `salary_max` |
+| business / `positions` | 岗位字典；每个岗位一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `family_id`, `is_manager` |
+| business / `schools` | 院校名称、别名与历史211/985标签；每校一行，不含员工数据。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `aliases`, `is_985`, `is_211`, `classification_basis`, `source_url` |
+| business / `employees` | 人员基础档案；每名员工一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_no`, `name`, `gender`, `birth_date`, `hire_date`, `termination_date`, `employment_type`, `entity_id`, `location_id`, `email`, `highest_education`, `highest_degree`, `graduation_school_id`, `major`, `graduation_date`, `education_mode` |
+| business / `employee_education` | 已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `school_id`, `education_level`, `education_rank`, `degree`, `major`, `start_date`, `graduation_date`, `study_mode` |
+| business / `employee_private` | 私人信息；每名员工一行，全部SIM标记且不开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `employee_id`, `phone`, `identity_document`, `bank_account` |
+| business / `assignments` | 任职历史；每个人每段连续任职一行，左闭右开。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `department_id`, `manager_id`, `position_id`, `grade_id`, `valid_from`, `valid_to` |
+| business / `reporting_closure` | 当前管理关系闭包；每个祖先/后代对一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `ancestor_id`, `descendant_id`, `depth` |
+| business / `work_calendar` | 演示工作日历；每天一行，未接正式节假日调休。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `day`, `is_workday`, `note` |
+| business / `shift_policies` | 班次政策；每个政策版本一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `earliest_in`, `latest_in`, `earliest_out`, `required_work_minutes`, `lunch_minutes`, `version` |
+| business / `attendance_daily` | 每日考勤事实；每人每个应工作日一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `day`, `shift_id`, `status`, `check_in`, `check_out`, `work_minutes`, `late_minutes`, `early_minutes`, `late_departure_minutes` |
+| business / `leave_requests` | 整日请假申请；每人每日最多一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `day`, `leave_type`, `days`, `approval_status`, `approver_id` |
+| business / `overtime_requests` | 加班申请；每人每日最多一行，与晚离岗分开。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `day`, `minutes`, `day_type`, `approval_status`, `approver_id` |
+| business / `compensation` | 基本月薪有效期记录；受限汇总来源。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `valid_from`, `valid_to`, `monthly_base`, `currency` |
+| business / `performance_reviews` | 绩效评价；每人每周期一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `period`, `rating`, `reviewer_id` |
+| business / `training_courses` | 培训课程；每门课一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `name`, `hours` |
+| business / `training_enrollments` | 培训参加记录；每人每课程一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `employee_id`, `course_id`, `status`, `completed_at` |
+| business / `recruitment_requisitions` | 招聘需求；每个需求一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `department_id`, `position_id`, `openings`, `status`, `opened_at` |
+| business / `overtime_attendance` | 独立周末打卡事实；每人每周末出勤日一行，核验申请时长。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `day`, `check_in`, `check_out`, `break_minutes`, `work_minutes` |
+| application / `principals` | 演示主体及授权；每个演示身份一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `employee_id`, `role`, `label`, `title`, `scope_mode`, `scope_root`, `salary_aggregate`, `can_export`, `enabled`, `policy_version` |
+| application / `sessions` | 会话；仅保存令牌摘要，不保存原令牌。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `token_hash`, `principal_id`, `csrf`, `expires_at` |
+| application / `metrics` | 已发布指标目录；每个指标一行JSON定义。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `definition`, `version` |
+| application / `metric_search` | 由指标目录派生的FTS5 trigram检索索引，可重建。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `content` |
+| application / `dashboards` | 私人看板；存查询计划，不持久复制结果。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `owner_id`, `title`, `plan`, `catalog_version`, `created_at` |
+| application / `audit_events` | 应用审计事件；不包含业务结果或个人证件。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `principal_id`, `action`, `outcome`, `metric_id`, `scope_count`, `policy_version`, `duration_ms`, `created_at` |
+| application / `conversations` | 最小对话记录；用于同一身份的前次计划继承。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `principal_id`, `question`, `plan`, `outcome`, `created_at` |
+| application / `debug_runs` | 逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。 | `id`, `owner_id`, `grant_fingerprint`, `question`, `status`, `started_at`, `finished_at`, `duration_ms`, `payload` |
+| semantic / `semantic_documents` | 语义条目；独立语义库中的发布结构，由版本化JSON派生。 | `id`, `kind`, `table_id`, `status`, `visibility`, `version`, `definition` |
+| semantic / `semantic_search` | 语义全文索引；独立语义库中的发布结构，由版本化JSON派生。 | `id`, `title`, `content` |
+| semantic / `semantic_meta` | 语义发布元信息；独立语义库中的发布结构，由版本化JSON派生。 | `key`, `value` |
 
 ## 字段、键、索引与实际建表约束
 
@@ -73,7 +77,7 @@
 
 ### `dataset_meta`
 
-数据集元信息；每个配置键一行。数据库：business。
+数据集元信息；每个配置键一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：8。
 
@@ -92,14 +96,14 @@ CREATE TABLE dataset_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
 ### `legal_entities`
 
-法人主体；每个主体一行。数据库：business。
+法人主体；每个主体一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：2。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 法人主体的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 法人主体的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 
 ```sql
 CREATE TABLE legal_entities (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
@@ -107,14 +111,14 @@ CREATE TABLE legal_entities (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
 
 ### `locations`
 
-办公地点；每个地点一行。数据库：business。
+办公地点；每个地点一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：3。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 办公地点的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 办公地点的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `timezone` | TEXT | NOT NULL | IANA时区 |
 
 ```sql
@@ -123,14 +127,14 @@ CREATE TABLE locations (id INTEGER PRIMARY KEY, name TEXT NOT NULL, timezone TEX
 
 ### `departments`
 
-组织节点；四级树，每个组织一行。数据库：business。
+组织节点；四级树，每个组织一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：51。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 组织节点的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 组织节点的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `parent_id` | INTEGER | → departments.id | 父组织；根节点为空 |
 | `level` | INTEGER | NOT NULL | 公司1/事业部2/部门3/团队4 |
 | `division_id` | INTEGER | → departments.id | 所属事业部标识 |
@@ -145,14 +149,14 @@ CREATE TABLE departments (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, par
 
 ### `job_families`
 
-岗位序列；每个序列一行。数据库：business。
+岗位序列；每个序列一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：7。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 岗位序列的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 岗位序列的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 
 ```sql
 CREATE TABLE job_families (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE);
@@ -164,14 +168,14 @@ CREATE TABLE job_families (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE);
 
 ### `grades`
 
-职级及模拟薪资范围；每级一行。数据库：business。
+职级及模拟薪资范围；每级一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：9。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 职级及模拟薪资范围的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 职级及模拟薪资范围的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `salary_min` | INTEGER | NOT NULL | 模拟月薪下限，元 |
 | `salary_max` | INTEGER | NOT NULL | 模拟月薪上限，元 |
 
@@ -181,14 +185,14 @@ CREATE TABLE grades (id INTEGER PRIMARY KEY, name TEXT NOT NULL, salary_min INTE
 
 ### `positions`
 
-岗位字典；每个岗位一行。数据库：business。
+岗位字典；每个岗位一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：10。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 岗位字典的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 岗位字典的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `family_id` | INTEGER | NOT NULL; → job_families.id | 岗位序列标识 |
 | `is_manager` | INTEGER | NOT NULL | 管理岗位标记0/1 |
 
@@ -198,14 +202,14 @@ CREATE TABLE positions (id INTEGER PRIMARY KEY, name TEXT NOT NULL, family_id IN
 
 ### `schools`
 
-院校名称、别名与历史211/985标签；每校一行，不含员工数据。数据库：business。
+院校名称、别名与历史211/985标签；每校一行，不含员工数据。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：11。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 院校名称、别名与历史211/985标签的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 院校名称、别名与历史211/985标签的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `aliases` | TEXT | NOT NULL | 院校简称JSON数组，精确归一到院校ID |
 | `is_985` | INTEGER | NOT NULL | 历史985项目院校标签0/1；为1时is_211必须为1 |
 | `is_211` | INTEGER | NOT NULL | 历史211项目院校标签0/1，包含985院校 |
@@ -222,15 +226,15 @@ CREATE TABLE schools (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE, aliases
 
 ### `employees`
 
-人员基础档案；每名员工一行。数据库：business。
+人员基础档案；每名员工一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：480。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 人员基础档案的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_no` | TEXT | NOT NULL | 稳定工号（CC前缀） |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `name` | TEXT | NOT NULL | 人员基础档案的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `gender` | TEXT | NOT NULL | 模拟性别，未开放查询条件 |
 | `birth_date` | TEXT | NOT NULL | 模拟出生日期，未开放查询条件 |
 | `hire_date` | TEXT | NOT NULL | 最近入职日期 |
@@ -257,13 +261,13 @@ CREATE TABLE employees (id INTEGER PRIMARY KEY, employee_no TEXT NOT NULL UNIQUE
 
 ### `employee_education`
 
-已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历。数据库：business。
+已完成教育经历；每人每段经历一行，历史分析按事件日取已完成最高学历。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：619。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 已完成教育经历的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `school_id` | INTEGER | NOT NULL; → schools.id | 该段教育经历的毕业院校标识 |
 | `education_level` | TEXT | NOT NULL | 学历层级名称，与education_rank对应 |
@@ -291,7 +295,7 @@ CREATE INDEX idx_education_employee_date ON employee_education(employee_id,gradu
 
 ### `employee_private`
 
-私人信息；每名员工一行，全部SIM标记且不开放查询。数据库：business。
+私人信息；每名员工一行，全部SIM标记且不开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：480。
 
@@ -308,13 +312,13 @@ CREATE TABLE employee_private (employee_id INTEGER PRIMARY KEY REFERENCES employ
 
 ### `assignments`
 
-任职历史；每个人每段连续任职一行，左闭右开。数据库：business。
+任职历史；每个人每段连续任职一行，左闭右开。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：511。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 任职历史的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `department_id` | INTEGER | NOT NULL; → departments.id | 任职或需求所属组织 |
 | `manager_id` | INTEGER | → employees.id | 直属上级员工标识 |
@@ -342,7 +346,7 @@ CREATE UNIQUE INDEX uq_current_assignment ON assignments(employee_id) WHERE vali
 
 ### `reporting_closure`
 
-当前管理关系闭包；每个祖先/后代对一行。数据库：business。
+当前管理关系闭包；每个祖先/后代对一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：2,321。
 
@@ -367,7 +371,7 @@ CREATE INDEX idx_closure_desc ON reporting_closure(descendant_id);
 
 ### `work_calendar`
 
-演示工作日历；每天一行，未接正式节假日调休。数据库：business。
+演示工作日历；每天一行，未接正式节假日调休。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：254。
 
@@ -387,14 +391,14 @@ CREATE TABLE work_calendar (day TEXT PRIMARY KEY, is_workday INTEGER NOT NULL CH
 
 ### `shift_policies`
 
-班次政策；每个政策版本一行。数据库：business。
+班次政策；每个政策版本一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：1。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 班次政策的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 班次政策的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `earliest_in` | INTEGER | NOT NULL | 弹性到岗起点；距午夜分钟 |
 | `latest_in` | INTEGER | NOT NULL | 迟到阈值；距午夜分钟 |
 | `earliest_out` | INTEGER | NOT NULL | 最早应离岗；距午夜分钟 |
@@ -408,20 +412,20 @@ CREATE TABLE shift_policies (id INTEGER PRIMARY KEY, name TEXT NOT NULL, earlies
 
 ### `attendance_daily`
 
-每日考勤事实；每人每个应工作日一行。数据库：business。
+每日考勤事实；每人每个应工作日一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：79,735。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 每日考勤事实的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `day` | TEXT | NOT NULL; → work_calendar.day | 业务日期YYYY-MM-DD |
 | `shift_id` | INTEGER | NOT NULL; → shift_policies.id | 班次政策标识 |
-| `status` | TEXT | NOT NULL | 业务状态；取值由对应表约束与生成器定义 |
+| `status` | TEXT | NOT NULL | 应出勤日考勤结果：正常/远程/请假/缺勤/缺卡。正常或远程用于完成出勤；缺勤、缺卡属于异常。 |
 | `check_in` | INTEGER | — | 到岗时刻；距午夜分钟，缺卡可空 |
 | `check_out` | INTEGER | — | 离岗时刻；距午夜分钟，缺卡可空 |
-| `work_minutes` | INTEGER | NOT NULL | 扣除午休后的净在岗分钟 |
+| `work_minutes` | INTEGER | NOT NULL | 工作日完整打卡间隔减午休60分钟后的净在岗分钟；缺卡不产生完整工时样本。 |
 | `late_minutes` | INTEGER | NOT NULL | 超过09:30的分钟数 |
 | `early_minutes` | INTEGER | NOT NULL | 早于个人应离岗的分钟数 |
 | `late_departure_minutes` | INTEGER | NOT NULL | 超过个人应离岗的分钟数，不等于批准加班 |
@@ -441,13 +445,13 @@ CREATE INDEX idx_attendance_day_employee ON attendance_daily(day,employee_id);
 
 ### `leave_requests`
 
-整日请假申请；每人每日最多一行。数据库：business。
+整日请假申请；每人每日最多一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：2,793。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 整日请假申请的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `day` | TEXT | NOT NULL | 业务日期YYYY-MM-DD |
 | `leave_type` | TEXT | NOT NULL | 模拟假别 |
@@ -465,13 +469,13 @@ CREATE TABLE leave_requests (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NUL
 
 ### `overtime_requests`
 
-加班申请；每人每日最多一行，与晚离岗分开。数据库：business。
+加班申请；每人每日最多一行，与晚离岗分开。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：12,042。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 加班申请的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `day` | TEXT | NOT NULL | 业务日期YYYY-MM-DD |
 | `minutes` | INTEGER | NOT NULL | 申请加班分钟 |
@@ -494,13 +498,13 @@ CREATE INDEX idx_overtime_day_type ON overtime_requests(day_type,day,employee_id
 
 ### `compensation`
 
-基本月薪有效期记录；受限汇总来源。数据库：business。
+基本月薪有效期记录；受限汇总来源。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：480。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 基本月薪有效期记录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `valid_from` | TEXT | NOT NULL | 生效日期，包含当天 |
 | `valid_to` | TEXT | — | 结束日期，不包含当天；空表示当前 |
@@ -517,13 +521,13 @@ CREATE TABLE compensation (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL 
 
 ### `performance_reviews`
 
-绩效评价；每人每周期一行，尚未开放查询。数据库：business。
+绩效评价；每人每周期一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：459。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 绩效评价的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `period` | TEXT | NOT NULL | 评价周期 |
 | `rating` | TEXT | NOT NULL | 卓越/优秀/达标/待提升 |
@@ -539,14 +543,14 @@ CREATE TABLE performance_reviews (id INTEGER PRIMARY KEY, employee_id INTEGER NO
 
 ### `training_courses`
 
-培训课程；每门课一行，尚未开放查询。数据库：business。
+培训课程；每门课一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：3。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
-| `name` | TEXT | NOT NULL | 业务名称 |
+| `id` | INTEGER | PK(1) | 培训课程的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
+| `name` | TEXT | NOT NULL | 培训课程的业务名称；用于人类可读展示和明确名称匹配，内部连接仍以ID为准。 |
 | `hours` | REAL | NOT NULL | 课程时长，小时 |
 
 ```sql
@@ -555,7 +559,7 @@ CREATE TABLE training_courses (id INTEGER PRIMARY KEY, name TEXT NOT NULL, hours
 
 ### `training_enrollments`
 
-培训参加记录；每人每课程一行，尚未开放查询。数据库：business。
+培训参加记录；每人每课程一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：960。
 
@@ -576,13 +580,13 @@ CREATE TABLE training_enrollments (employee_id INTEGER NOT NULL REFERENCES emplo
 
 ### `recruitment_requisitions`
 
-招聘需求；每个需求一行，尚未开放查询。数据库：business。
+招聘需求；每个需求一行，尚未开放查询。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：15。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 招聘需求的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `department_id` | INTEGER | NOT NULL; → departments.id | 任职或需求所属组织 |
 | `position_id` | INTEGER | NOT NULL; → positions.id | 岗位标识 |
 | `openings` | INTEGER | NOT NULL | 招聘名额 |
@@ -595,19 +599,19 @@ CREATE TABLE recruitment_requisitions (id INTEGER PRIMARY KEY, department_id INT
 
 ### `overtime_attendance`
 
-独立周末打卡事实；每人每周末出勤日一行，核验申请时长。数据库：business。
+独立周末打卡事实；每人每周末出勤日一行，核验申请时长。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：business。
 
 当前合成行数：965。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | INTEGER | PK(1) | 记录标识 |
+| `id` | INTEGER | PK(1) | 独立周末打卡事实的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL; → employees.id | 员工标识 |
 | `day` | TEXT | NOT NULL; → work_calendar.day | 业务日期YYYY-MM-DD |
 | `check_in` | INTEGER | NOT NULL | 到岗时刻；距午夜分钟，缺卡可空 |
 | `check_out` | INTEGER | NOT NULL | 离岗时刻；距午夜分钟，缺卡可空 |
 | `break_minutes` | INTEGER | NOT NULL | 周末打卡区间内扣除的休息分钟 |
-| `work_minutes` | INTEGER | NOT NULL | 扣除午休后的净在岗分钟 |
+| `work_minutes` | INTEGER | NOT NULL | 周末打卡净在岗分钟=check_out-check_in-break_minutes；独立于工作日午休政策，用于核对周末加班申请上限。 |
 
 ```sql
 CREATE TABLE overtime_attendance (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), day TEXT NOT NULL REFERENCES work_calendar(day), check_in INTEGER NOT NULL, check_out INTEGER NOT NULL, break_minutes INTEGER NOT NULL CHECK(break_minutes>=0), work_minutes INTEGER NOT NULL CHECK(work_minutes>0), CHECK(check_in>=0 AND check_out<=1320 AND check_out>check_in AND work_minutes=check_out-check_in-break_minutes), UNIQUE(employee_id,day));
@@ -619,11 +623,11 @@ CREATE TABLE overtime_attendance (id INTEGER PRIMARY KEY, employee_id INTEGER NO
 
 ### `principals`
 
-演示主体及授权；每个演示身份一行。数据库：application。
+演示主体及授权；每个演示身份一行。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | TEXT | PK(1) | 记录标识 |
+| `id` | TEXT | PK(1) | 演示主体及授权的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `employee_id` | INTEGER | NOT NULL | 员工标识 |
 | `role` | TEXT | NOT NULL | 角色类型 |
 | `label` | TEXT | NOT NULL | 身份显示名称 |
@@ -645,7 +649,7 @@ CREATE TABLE principals(id TEXT PRIMARY KEY, employee_id INTEGER NOT NULL, role 
 
 ### `sessions`
 
-会话；仅保存令牌摘要，不保存原令牌。数据库：application。
+会话；仅保存令牌摘要，不保存原令牌。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
@@ -664,11 +668,11 @@ CREATE TABLE sessions(token_hash TEXT PRIMARY KEY, principal_id TEXT NOT NULL RE
 
 ### `metrics`
 
-已发布指标目录；每个指标一行JSON定义。数据库：application。
+已发布指标目录；每个指标一行JSON定义。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | TEXT | PK(1) | 记录标识 |
+| `id` | TEXT | PK(1) | 已发布指标目录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `definition` | TEXT | NOT NULL | 指标JSON定义 |
 | `version` | TEXT | NOT NULL | 定义版本 |
 
@@ -682,11 +686,11 @@ CREATE TABLE metrics(id TEXT PRIMARY KEY, definition TEXT NOT NULL, version TEXT
 
 ### `metric_search`
 
-由指标目录派生的FTS5 trigram检索索引，可重建。数据库：application。
+由指标目录派生的FTS5 trigram检索索引，可重建。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | FTS TEXT | — | 记录标识 |
+| `id` | FTS TEXT | — | 由指标目录派生的FTS5 trigram检索索引，可重建的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `content` | FTS TEXT | — | 派生检索文本 |
 
 ```sql
@@ -695,11 +699,11 @@ CREATE VIRTUAL TABLE metric_search USING fts5(id UNINDEXED, content, tokenize='t
 
 ### `dashboards`
 
-私人看板；存查询计划，不持久复制结果。数据库：application。
+私人看板；存查询计划，不持久复制结果。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | TEXT | PK(1) | 记录标识 |
+| `id` | TEXT | PK(1) | 私人看板的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `owner_id` | TEXT | NOT NULL; → principals.id | 记录所属身份 |
 | `title` | TEXT | NOT NULL | 显示标题 |
 | `plan` | TEXT | NOT NULL | 严格类型查询计划JSON |
@@ -716,11 +720,11 @@ CREATE TABLE dashboards(id TEXT PRIMARY KEY, owner_id TEXT NOT NULL REFERENCES p
 
 ### `audit_events`
 
-应用审计事件；不包含业务结果或个人证件。数据库：application。
+应用审计事件；不包含业务结果或个人证件。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | TEXT | PK(1) | 记录标识 |
+| `id` | TEXT | PK(1) | 应用审计事件的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `principal_id` | TEXT | NOT NULL | 应用身份标识 |
 | `action` | TEXT | NOT NULL | 操作名称 |
 | `outcome` | TEXT | NOT NULL | 执行或授权结果 |
@@ -745,11 +749,11 @@ CREATE INDEX idx_audit_principal ON audit_events(principal_id,created_at);
 
 ### `conversations`
 
-最小对话记录；用于同一身份的前次计划继承。数据库：application。
+最小对话记录；用于同一身份的前次计划继承。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | TEXT | PK(1) | 记录标识 |
+| `id` | TEXT | PK(1) | 最小对话记录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `principal_id` | TEXT | NOT NULL | 应用身份标识 |
 | `question` | TEXT | NOT NULL | 用户问题；生产需制定脱敏及留存策略 |
 | `plan` | TEXT | — | 严格类型查询计划JSON |
@@ -766,11 +770,11 @@ CREATE TABLE conversations(id TEXT PRIMARY KEY, principal_id TEXT NOT NULL, ques
 
 ### `debug_runs`
 
-逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次。数据库：application。
+逐节点调试记录；每次自然语言查询一行，按身份与授权快照隔离，最多保留50次。每个字段必须使用表名与列名组成的完整标识引用，查询粒度按本表定义。。数据库：application。
 
 | 字段 | 类型 | 声明约束 / 关联 | 含义 |
 |---|---|---|---|
-| `id` | TEXT | PK(1) | 记录标识 |
+| `id` | TEXT | PK(1) | 逐节点调试记录的内部记录主键；在本表内唯一，关联关系见外键，不能充当业务统计人数的独立口径。 |
 | `owner_id` | TEXT | NOT NULL; → principals.id | 记录所属身份 |
 | `grant_fingerprint` | TEXT | NOT NULL | 身份能力、授权人员集合及策略版本的SHA-256指纹；读取时重新核验 |
 | `question` | TEXT | NOT NULL | 用户问题；生产需制定脱敏及留存策略 |
@@ -797,6 +801,68 @@ CREATE TABLE debug_runs (
 ```sql
 CREATE INDEX idx_debug_owner ON debug_runs(owner_id, started_at DESC);
 ```
+
+### `semantic_documents`
+
+语义条目；独立语义库中的发布结构，由版本化JSON派生。。数据库：semantic。
+
+| 字段 | 类型 | 声明约束 / 关联 | 含义 |
+|---|---|---|---|
+| `id` | TEXT | PK(1) | field使用表ID.字段ID；metric使用metric:指标ID。不同种类不得重用标识。 |
+| `kind` | TEXT | NOT NULL | table/field/metric/question/relationship，决定详情结构与检索过滤。 |
+| `table_id` | TEXT | — | 字段与表条目的所属表标识；指标和问题不强制只有一张表。 |
+| `status` | TEXT | NOT NULL | available已支持、planned待建设、reference_only仅结构说明；不能把存在定义当作可执行授权。 |
+| `visibility` | TEXT | NOT NULL | internal通用内部描述、salary薪酬能力、governance仅治理身份；每次检索与读取都重新过滤。 |
+| `version` | TEXT | NOT NULL | 对应Git语义定义的版本；具体变更另由发布摘要校验。 |
+| `definition` | TEXT | NOT NULL | 保存经过校验的别名、正反定义、口径、示例、关系等；不是员工记录或执行结果。 |
+
+```sql
+CREATE TABLE semantic_documents (
+ id TEXT PRIMARY KEY, kind TEXT NOT NULL, table_id TEXT,
+ status TEXT NOT NULL, visibility TEXT NOT NULL, version TEXT NOT NULL,
+ definition TEXT NOT NULL CHECK(json_valid(definition))
+);
+```
+
+| 索引 | 列 | 唯一 | 部分索引 | 来源 |
+|---|---|---|---|---|
+| `idx_semantic_kind_scope` | kind, visibility, status | False | False | c |
+| `sqlite_autoindex_semantic_documents_1` | id | True | False | pk |
+
+```sql
+CREATE INDEX idx_semantic_kind_scope ON semantic_documents(kind,visibility,status);
+```
+
+### `semantic_search`
+
+语义全文索引；独立语义库中的发布结构，由版本化JSON派生。。数据库：semantic。
+
+| 字段 | 类型 | 声明约束 / 关联 | 含义 |
+|---|---|---|---|
+| `id` | FTS TEXT | — | 回指semantic_documents.id，仅用于检索定位；索引命中不赋予权限。 |
+| `title` | FTS TEXT | — | 从条目名称派生；采用FTS5 trigram分词和BM25排序。 |
+| `content` | FTS TEXT | — | 从名称、口语别名、含义派生；反例不作为正向别名，索引可从JSON重建。 |
+
+```sql
+CREATE VIRTUAL TABLE semantic_search USING fts5(id UNINDEXED,title,content,tokenize='trigram');
+```
+
+### `semantic_meta`
+
+语义发布元信息；独立语义库中的发布结构，由版本化JSON派生。。数据库：semantic。
+
+| 字段 | 类型 | 声明约束 / 关联 | 含义 |
+|---|---|---|---|
+| `key` | TEXT | PK(1) | version/revision/documents等发布状态键。 |
+| `value` | TEXT | NOT NULL | 语义版本、源文件SHA256摘要或条目数，不包含个人业务值。 |
+
+```sql
+CREATE TABLE semantic_meta (key TEXT PRIMARY KEY,value TEXT NOT NULL);
+```
+
+| 索引 | 列 | 唯一 | 部分索引 | 来源 |
+|---|---|---|---|---|
+| `sqlite_autoindex_semantic_meta_1` | key | True | False | pk |
 
 ## 已开放的17个指标
 

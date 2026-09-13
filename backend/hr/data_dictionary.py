@@ -4,7 +4,7 @@ import sqlite3
 
 from fastapi import HTTPException
 
-from . import config
+from . import config, semantics
 from .catalog import catalog
 from .db import business
 from .metadata import FIELDS, TABLES
@@ -85,7 +85,12 @@ STORAGE = [
     {
         "name": "检索索引",
         "location": "app.sqlite.metric_search",
-        "purpose": "FTS5 trigram派生全文索引，用于指标搜索；当前问数直接注入全量已授权指标，没有向量检索。",
+        "purpose": "兼容原指标搜索页面的派生索引；Agent使用独立语义库的检索与渐进式披露。",
+    },
+    {
+        "name": "语义定义与检索库",
+        "location": "semantic/*.json → data/semantic.sqlite",
+        "purpose": "Git管理表、字段、指标和问题的定义；发布为结构化文档与FTS5子串索引。LangGraph先检索再按需披露，不注入全部字段；暂不使用向量索引。",
     },
     {
         "name": "公式实现",
@@ -105,7 +110,7 @@ def structural_tables(path, database):
     try:
         tables = []
         for table in db.execute(
-            "SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'metric_search_%' ORDER BY rowid"
+            "SELECT name,sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'metric_search_%' AND name NOT LIKE 'semantic_search_%' ORDER BY rowid"
         ).fetchall():
             name, ddl = table["name"], table["sql"]
             fields = [
@@ -158,6 +163,15 @@ def inventory(principal):
     tables = structural_tables(config.BUSINESS_DB, "business") + structural_tables(
         config.APP_DB, "application"
     )
+    documents = semantics.all_documents(principal)
+    field_docs = {d["id"]: d for d in documents if d["kind"] == "field"}
+    table_docs = {d["table_id"]: d for d in documents if d["kind"] == "table"}
+    tables += structural_tables(semantics.database_path(), "semantic")
+    for table in tables:
+        table["description"] = table_docs[table["name"]]["description"]
+        for field in table["fields"]:
+            field["id"] = f"{table['name']}.{field['name']}"
+            field["description"] = field_docs[field["id"]]["meaning"]
     definitions = []
     with business() as db:
         metadata = dict(db.execute("SELECT key,value FROM dataset_meta"))
@@ -190,6 +204,7 @@ def inventory(principal):
         "summary": {
             "business_tables": sum(t["database"] == "business" for t in tables),
             "application_tables": sum(t["database"] == "application" for t in tables),
+            "semantic_tables": sum(t["database"] == "semantic" for t in tables),
             "fields": sum(len(t["fields"]) for t in tables),
             "metrics": len(definitions),
         },

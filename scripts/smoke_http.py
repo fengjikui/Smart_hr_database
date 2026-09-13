@@ -37,7 +37,8 @@ def main():
                 assert dictionary.json()["summary"] == {
                     "business_tables": 24,
                     "application_tables": 8,
-                    "fields": 188,
+                    "semantic_tables": 3,
+                    "fields": 200,
                     "metrics": 17,
                 }
                 for extra, expected_value in [

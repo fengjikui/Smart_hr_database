@@ -13,7 +13,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import config
+from . import config, semantics
 from .agent import answer, model_status
 from .catalog import catalog, publish_catalog, search
 from .data_dictionary import inventory
@@ -44,6 +44,7 @@ async def lifespan(app):
         generate()
     upgrade_demo_data()
     publish_catalog()
+    semantics.publish()
     ensure_schema()
     recover_interrupted()
     yield
@@ -154,6 +155,23 @@ def debug_runs(principal=Depends(get_principal)):
 @app.get("/api/data-dictionary")
 def data_dictionary(principal=Depends(get_principal)):
     return inventory(principal)
+
+
+@app.get("/api/semantics")
+def semantic_inventory(q: str = Query(default="", max_length=120), principal=Depends(get_principal)):
+    return semantics.inventory(principal, q)
+
+
+@app.get("/api/semantics/documents/{document_id}")
+def semantic_document(document_id: str, principal=Depends(get_principal)):
+    return semantics.read_documents(principal, [document_id])[0]
+
+
+@app.get("/api/workflow")
+def workflow(principal=Depends(get_principal)):
+    from .workflow import descriptor
+
+    return descriptor()
 
 
 @app.get("/api/debug/runs/{run_id}")

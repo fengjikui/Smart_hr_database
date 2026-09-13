@@ -1,0 +1,214 @@
+{
+  "model": "hr-qwen / Qwen3.8-27B-MLX",
+  "cases": 5,
+  "passed": 5,
+  "note": "完整Agent链路场景通过率，包含确定性约束校正与权限拦截，不代表模型原始计划准确率。数值正确性另由独立数据对账测试覆盖。",
+  "results": [
+    {
+      "persona": "ceo",
+      "question": "我的直属和间接下属分别有多少人？",
+      "expected": {
+        "kind": "metric",
+        "metric": "headcount",
+        "dimension": "relation",
+        "relation": "subordinates"
+      },
+      "actual": {
+        "status": "success",
+        "plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "relation",
+          "period": "this_month",
+          "relation": "subordinates",
+          "department": null,
+          "employee_name": null,
+          "education_level": null,
+          "minimum_education": null,
+          "degree": null,
+          "schools": [],
+          "school_tier": null,
+          "cohort": "active",
+          "education_scope": "highest",
+          "start_date": null,
+          "end_date": null,
+          "limit": 20,
+          "message": null
+        },
+        "row_count": 2,
+        "grounded_changes": [],
+        "model_plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "relation",
+          "relation": "subordinates"
+        }
+      },
+      "passed": true,
+      "seconds": 16.24
+    },
+    {
+      "persona": "rd",
+      "question": "我有多少直属下属？",
+      "expected": {
+        "metric": "headcount",
+        "relation": "direct"
+      },
+      "actual": {
+        "status": "success",
+        "plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "none",
+          "period": "this_month",
+          "relation": "direct",
+          "department": null,
+          "employee_name": null,
+          "education_level": null,
+          "minimum_education": null,
+          "degree": null,
+          "schools": [],
+          "school_tier": null,
+          "cohort": "active",
+          "education_scope": "highest",
+          "start_date": null,
+          "end_date": null,
+          "limit": 20,
+          "message": null
+        },
+        "row_count": 1,
+        "grounded_changes": [],
+        "model_plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "none",
+          "relation": "direct"
+        }
+      },
+      "passed": true,
+      "seconds": 14.32
+    },
+    {
+      "persona": "rd",
+      "question": "列出我的直属下属",
+      "expected": {
+        "kind": "people",
+        "relation": "direct"
+      },
+      "actual": {
+        "status": "success",
+        "plan": {
+          "kind": "people",
+          "metric": "headcount",
+          "dimension": "none",
+          "period": "this_month",
+          "relation": "direct",
+          "department": null,
+          "employee_name": null,
+          "education_level": null,
+          "minimum_education": null,
+          "degree": null,
+          "schools": [],
+          "school_tier": null,
+          "cohort": "active",
+          "education_scope": "highest",
+          "start_date": null,
+          "end_date": null,
+          "limit": 20,
+          "message": null
+        },
+        "row_count": 3,
+        "grounded_changes": [],
+        "model_plan": {
+          "kind": "people",
+          "metric": "headcount",
+          "relation": "direct"
+        }
+      },
+      "passed": true,
+      "seconds": 1.48
+    },
+    {
+      "persona": "ceo",
+      "question": "近半年每月在职人数趋势",
+      "expected": {
+        "metric": "headcount",
+        "dimension": "month",
+        "period": "last_6_months"
+      },
+      "actual": {
+        "status": "success",
+        "plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "month",
+          "period": "last_6_months",
+          "relation": "all",
+          "department": null,
+          "employee_name": null,
+          "education_level": null,
+          "minimum_education": null,
+          "degree": null,
+          "schools": [],
+          "school_tier": null,
+          "cohort": "active",
+          "education_scope": "highest",
+          "start_date": null,
+          "end_date": null,
+          "limit": 20,
+          "message": null
+        },
+        "row_count": 6,
+        "grounded_changes": [],
+        "model_plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "month",
+          "period": "last_6_months"
+        }
+      },
+      "passed": true,
+      "seconds": 15.82
+    },
+    {
+      "persona": "ceo",
+      "question": "按事业部统计当前在职人数",
+      "expected": {
+        "metric": "headcount",
+        "dimension": "division"
+      },
+      "actual": {
+        "status": "success",
+        "plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "division",
+          "period": "this_month",
+          "relation": "all",
+          "department": null,
+          "employee_name": null,
+          "education_level": null,
+          "minimum_education": null,
+          "degree": null,
+          "schools": [],
+          "school_tier": null,
+          "cohort": "active",
+          "education_scope": "highest",
+          "start_date": null,
+          "end_date": null,
+          "limit": 20,
+          "message": null
+        },
+        "row_count": 6,
+        "grounded_changes": [],
+        "model_plan": {
+          "kind": "metric",
+          "metric": "headcount",
+          "dimension": "division"
+        }
+      },
+      "passed": true,
+      "seconds": 15.49
+    }
+  ]
+}

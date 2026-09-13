@@ -27,7 +27,9 @@ function TableDetail({ table }: { table: SchemaTable }) {
         <p>
           {table.database === 'business'
             ? '业务库 hr.sqlite'
-            : '应用库 app.sqlite'}
+            : table.database === 'semantic'
+              ? '语义库 semantic.sqlite'
+              : '应用库 app.sqlite'}
         </p>
         <h2>{table.name}</h2>
         <p>{table.description}</p>
@@ -129,6 +131,9 @@ export function DataDictionary({ boot }: { boot: Bootstrap }) {
           <strong>{data.summary.application_tables}</strong> 应用表与索引
         </span>
         <span>
+          <strong>{data.summary.semantic_tables}</strong> 语义表与索引
+        </span>
+        <span>
           <strong>{data.summary.fields}</strong> 字段
         </span>
         <span>
@@ -155,11 +160,15 @@ export function DataDictionary({ boot }: { boot: Bootstrap }) {
           </div>
           <div className="schema-layout">
             <nav className="schema-table-list" aria-label="数据库表">
-              {['business', 'application'].map((db) => (
+              {['business', 'application', 'semantic'].map((db) => (
                 <div key={db}>
                   <h3>
                     <Database size={14} />
-                    {db === 'business' ? '业务库' : '应用库'}
+                    {db === 'business'
+                      ? '业务库'
+                      : db === 'semantic'
+                        ? '语义库'
+                        : '应用库'}
                   </h3>
                   {tables
                     .filter((t) => t.database === db)
