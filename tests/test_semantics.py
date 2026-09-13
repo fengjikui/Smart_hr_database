@@ -231,3 +231,13 @@ def test_average_daily_work_is_not_a_second_grouping_dimension(client):
 
     constraints, _ = explicit_constraints("各部门平均每天净工时")
     assert constraints["dimension"] == "department"
+
+
+@pytest.mark.parametrize("phrase", ["至少是硕士研究生", "不低于硕士", "至少为本科"])
+def test_minimum_education_phrasing_preserves_range(client, phrase):
+    from backend.hr.intent import explicit_constraints
+
+    constraints, _ = explicit_constraints(f"按部门看看现在学历{phrase}的员工占比")
+    assert constraints["minimum_education"] == ("本科" if "本科" in phrase else "硕士研究生")
+    assert constraints["degree"] is None
+    assert constraints["metric"] == "education_ratio"

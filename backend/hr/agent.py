@@ -39,6 +39,10 @@ async def model_status():
 
 def instructions(principal, as_of, previous=None, context=None):
     context = context or {}
+    has_metric_definition = any(
+        doc.get("kind") == "metric" and doc.get("status") == "available"
+        for doc in context.get("documents", [])
+    )
     return f"""你是企业HR查询计划器。只输出JSON，禁止生成SQL。/no_think
 数据截止日 {as_of}，时区Asia/Shanghai，合成数据。角色{principal["role"]}；权限只能由服务端决定。
 轻量指标索引（只有已披露定义的available指标可以直接生成查询）：{json.dumps(context.get("index", []), ensure_ascii=False)}
@@ -57,6 +61,7 @@ def instructions(principal, as_of, previous=None, context=None):
 9. 某校毕业用schools数组、education_scope=any_completed；多校OR按员工去重。明确最高学历院校或背景占比默认highest。学校与学位等条件匹配同一教育经历。985/211用school_tier，合并用985或211，211非985可独立筛选，双一流不是这些标签。
 10. 学历/学位/学校背景比例用education_ratio，必须包含教育条件。默认cohort=active，分母为同权限同组织全部在职人员（含未知）；入职/离职背景占比用cohort=hires/departures，事件日判断教育。
 11. 追问继承前次未改变条件；没有前次的“再按部门”需clarify。limit默认20最多100，message仅澄清/拒绝。执行前服务端重新校验身份、白名单、口径和范围。
+本轮阶段：{"已披露相关口径，可生成查询或按需inspect其他定义。" if has_metric_definition else '只读索引阶段，尚未披露任何可执行指标定义。你的下一步必须先输出kind=inspect与相关指标ids，从上方索引选择ID；不要先输出metric查询计划。读取定义后系统会再次请你生成查询。'}
 """
 
 

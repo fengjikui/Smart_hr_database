@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ArrowRight, Bug, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useResource } from './client';
 import { Failure, LoadingBlock } from './results';
 import { JsonView } from './debug-panel';
@@ -142,7 +142,12 @@ function EntryDetail({
           <dd>{data.not_meaning}</dd>
         </div>
         {Object.entries(LABELS)
-          .filter(([key]) => data[key] !== undefined && data[key] !== null)
+          .filter(
+            ([key]) =>
+              data[key] !== undefined &&
+              data[key] !== null &&
+              !(key === 'description' && data.description === data.meaning),
+          )
           .map(([key, label]) => (
             <div key={key}>
               <dt>{label}</dt>
@@ -350,87 +355,89 @@ export function SemanticCenter({
             </TabsTrigger>
           ))}
         </TabsList>
-      </Tabs>
-      {kind === 'workflow' ? (
-        <QueryWorkflow identity={boot.principal.id} onDebug={onDebug} />
-      ) : (
-        <>
-          <form
-            className="schema-search"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setQuery(draft.trim());
-            }}
-          >
-            <Search size={16} />
-            <Input
-              aria-label="搜索语义定义"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              maxLength={120}
-              placeholder="搜索名称、口语别名、含义或完整 ID，如“硕士”“晚离岗”"
-            />
-            <Button type="submit" variant="outline" size="sm">
-              搜索
-            </Button>
-            {query ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setDraft('');
-                  setQuery('');
+        <TabsContent value={kind}>
+          {kind === 'workflow' ? (
+            <QueryWorkflow identity={boot.principal.id} onDebug={onDebug} />
+          ) : (
+            <>
+              <form
+                className="schema-search"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  setQuery(draft.trim());
                 }}
               >
-                清除
-              </Button>
-            ) : null}
-            <span>{docs.length} 项</span>
-          </form>
-          {error ? (
-            <Failure message={error} retry={reload} />
-          ) : loading || !data ? (
-            <LoadingBlock />
-          ) : docs.length ? (
-            <div className="schema-layout semantic-layout">
-              <nav
-                className="schema-table-list semantic-list"
-                aria-label="语义条目"
-              >
-                {docs.map((doc) => (
-                  <button
-                    key={doc.id}
-                    onClick={() => setSelected(doc.id)}
-                    className={current === doc.id ? 'selected' : ''}
-                    aria-current={current === doc.id ? 'true' : undefined}
-                  >
-                    <span>{doc.name}</span>
-                    <code>{doc.id}</code>
-                    <small>{STATUS[doc.status] ?? doc.status}</small>
-                  </button>
-                ))}
-              </nav>
-              {current ? (
-                <EntryDetail
-                  key={current}
-                  id={current}
-                  identity={boot.principal.id}
-                  onSelect={select}
-                  onAsk={onAsk}
+                <Search size={16} />
+                <Input
+                  aria-label="搜索语义定义"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  maxLength={120}
+                  placeholder="搜索名称、口语别名、含义或完整 ID，如“硕士”“晚离岗”"
                 />
-              ) : null}
-            </div>
-          ) : (
-            <div className="debug-empty">
-              <h2>没有匹配的定义</h2>
-              <p>
-                试试更短的业务词，或切换字段与指标分类。这里只显示当前身份可查看的内容。
-              </p>
-            </div>
+                <Button type="submit" variant="outline" size="sm">
+                  搜索
+                </Button>
+                {query ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDraft('');
+                      setQuery('');
+                    }}
+                  >
+                    清除
+                  </Button>
+                ) : null}
+                <span>{docs.length} 项</span>
+              </form>
+              {error ? (
+                <Failure message={error} retry={reload} />
+              ) : loading || !data ? (
+                <LoadingBlock />
+              ) : docs.length ? (
+                <div className="schema-layout semantic-layout">
+                  <nav
+                    className="schema-table-list semantic-list"
+                    aria-label="语义条目"
+                  >
+                    {docs.map((doc) => (
+                      <button
+                        key={doc.id}
+                        onClick={() => setSelected(doc.id)}
+                        className={current === doc.id ? 'selected' : ''}
+                        aria-current={current === doc.id ? 'true' : undefined}
+                      >
+                        <span>{doc.name}</span>
+                        <code>{doc.id}</code>
+                        <small>{STATUS[doc.status] ?? doc.status}</small>
+                      </button>
+                    ))}
+                  </nav>
+                  {current ? (
+                    <EntryDetail
+                      key={current}
+                      id={current}
+                      identity={boot.principal.id}
+                      onSelect={select}
+                      onAsk={onAsk}
+                    />
+                  ) : null}
+                </div>
+              ) : (
+                <div className="debug-empty">
+                  <h2>没有匹配的定义</h2>
+                  <p>
+                    试试更短的业务词，或切换字段与指标分类。这里只显示当前身份可查看的内容。
+                  </p>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </TabsContent>
+      </Tabs>
       {data ? (
         <details className="semantic-storage">
           <summary>定义存在哪里，模型怎样读取</summary>

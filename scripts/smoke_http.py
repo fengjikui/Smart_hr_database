@@ -11,9 +11,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:3000")
     parser.add_argument("--model", action="store_true")
+    parser.add_argument("--output")
     args = parser.parse_args()
     checks = []
-    with httpx.Client(base_url=args.url, timeout=100, trust_env=False) as client:
+    # LangGraph brings optional zstandard into the environment. HTTPX 0.28's
+    # decoder fails on some streamed multi-frame SSR responses; negotiate gzip.
+    with httpx.Client(
+        base_url=args.url, timeout=100, trust_env=False, headers={"Accept-Encoding": "gzip, deflate"}
+    ) as client:
         page = client.get("/")
         assert page.status_code == 200
         for header in ["x-content-type-options", "x-frame-options", "content-security-policy"]:
@@ -33,7 +38,29 @@ def main():
             checks.append(f"{persona}: {expected} authorized active employees; CSRF enforced")
             dictionary = client.get("/api/data-dictionary")
             assert dictionary.status_code == (200 if persona == "ceo" else 403)
+            semantic = client.get("/api/semantics").json()
+            workflow = client.get("/api/workflow").json()
+            assert workflow["framework"] == "LangGraph"
+            assert workflow["limits"]["metadata_expansions"] == 2
+            assert workflow["external_tracing"] is False
+            degree = client.get("/api/semantics/documents/employee_education.degree").json()
+            assert degree["id"] == "employee_education.degree"
+            assert degree["aliases"] and degree["meaning"] and degree["not_meaning"]
+            assert client.get("/api/semantics/documents/sessions.token_hash").status_code == (
+                200 if persona == "ceo" else 404
+            )
+            checks.append(
+                f"{persona}: semantic definitions and compiled LangGraph available; metadata permissions enforced"
+            )
             if persona == "ceo":
+                assert semantic["counts"] == {
+                    "table": 35,
+                    "field": 200,
+                    "metric": 32,
+                    "question": 160,
+                    "relationship": 35,
+                }
+                assert semantic["metric_status"] == {"available": 17, "planned": 15}
                 assert dictionary.json()["summary"] == {
                     "business_tables": 24,
                     "application_tables": 8,
@@ -144,7 +171,7 @@ def main():
             )
     report = {"passed": True, "mode": "production-http", "live_model": args.model, "checks": checks}
     filename = "http-smoke.json" if args.model else "http-smoke-ci.json"
-    output = Path(__file__).resolve().parents[1] / "reports" / filename
+    output = Path(args.output) if args.output else Path(__file__).resolve().parents[1] / "reports" / filename
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(output.read_text())

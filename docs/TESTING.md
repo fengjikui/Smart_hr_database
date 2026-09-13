@@ -59,3 +59,28 @@
 生产HTTP通过真实前端代理核验24/8/188/17字典、教育数值、博士4人/季度入职3人、多校120人、硕士14.75%、周末124小时、21组部门入离职69/21合计、三种角色范围和教育越权拒绝。真实模型经代理返回多校人数和匹配毕业经历，调试节点结果与客户端一致。数值计划基线见education-baseline.json。
 
 最终生产浏览器实操通过：1360×960桌面入离职双系列、390×844学历比例与内部表格滚动、院校字典来源、真实硕士条件校正节点、院校分组11组共459人、调试问题同步及编辑内容不被刷新覆盖；控制台无错误或警告。记录见 [education-ui-smoke.json](../reports/education-ui-smoke.json)。相关院校分组歧义也已添加自动化回归，最终为123项通过。
+
+## 2026-09-14：LangGraph与完整语义库
+
+本轮最终完整pytest为 **157项通过**，另有第三方Starlette/AnyIO弃用提示，无测试失败。32项合成数据不变量继续通过。Ruff、TypeScript、Oxlint和生产构建通过；语义文档由源文件生成，CI增加同步检查与召回报告。未配置Git远程，未声称GitHub Actions已运行。
+
+新增覆盖：200字段与实际35个逻辑表逐列对齐、462个语义文档ID与引用完整、隐私/薪酬元数据权限、发布幂等与版本固定、真正的LangGraph条件边、主动inspect和自动补读、两轮读取上限、一次结构修复、模型期间撤权、模型最多4次调用、禁止外部LangSmith追踪、最低学历口语条件、平均每天净工时不是第二分组维度。
+
+模型与检索证据分开解释：
+
+| 验证 | 结果与边界 | 证据 |
+|---|---|---|
+| 既有真实模型场景 | 40/40完整链路通过；包含条件校正与权限拦截，不等于模型原始准确率 | [LangGraph模型回归](../reports/langgraph-model-evaluation.json) |
+| 新增20个口语场景首轮 | 19/20；“至少是硕士研究生”被缩窄成精确硕士学位 | [保留首轮结果](../reports/langgraph-paraphrase-evaluation.json) |
+| 最低学历修复复测 | 失败用例和相邻用例2/2通过；新增3个最低学历表达回归。没有将首轮19/20改写成一次性全通过 | [修复复测](../reports/langgraph-paraphrase-recheck.json) |
+| 自动补读的真实场景 | “今年各部门进来和离开的员工数量一起看”触发补充披露，第二次生成同一workforce_changes计划后执行 | 同口语报告中的orchestration/model_attempts |
+| 模型主动inspect | 有意省略首次详细口径的故障注入；最终模型先输出inspect读取metric:avg_tenure，再输出查询；真实模型、鉴权和SQL，不伪造模型输出 | [主动读取探针](../reports/langgraph-progressive-probe.json) |
+| 探针首次结果 | 模型跳过主动inspect，服务端自动补读后安全完成；添加更明确的“只读索引阶段”提示后探针通过 | [首次探针](../reports/langgraph-progressive-probe-first.json) |
+| 题库召回 | 102个已支持题库问题首次候选召回102/102；这是已知题库验证，不是留出集。添加问题→指标关联前为95/102 | [最终召回](../reports/semantic-retrieval.json)、[首次召回](../reports/semantic-retrieval-first.json) |
+| 生产HTTP | 公司负责人、研发主管、员工范围分别459/168/1；字段权限、编译图、语义计数、业务数值、CSRF与错误调试链接通过 | [HTTP冒烟](../reports/langgraph-http-smoke.json) |
+
+首次40场景中位15.46秒、最长21.18秒、最多3452个prompt token；新增口语中位14.07秒、补读场景最长29.97秒，修复复测的两个场景为2.31/3.07秒。不同定义会影响模型前缀缓存，不能用复测缓存速度代表所有新问题。元数据召回中位9.64毫秒、P95 10.66毫秒；这里不是完整Agent时延。6500字符仅限制披露定义，固定提示、索引和JSON Schema另占上下文。
+
+生产SSR HTTP测试显式协商gzip/deflate。LangGraph的依赖带入zstandard后，HTTPX0.28会自动请求Zstd；在本环境对SSR多帧响应出现解码异常，测试脚本避免该可选解码路径。实际浏览器走自身的压缩协商。当前测试不证明HTTPX的Zstd多帧路径已经修复。
+
+浏览器验证记录见 [语义知识库UI验证](../reports/semantic-ui-smoke.json)。本次模型脚本及探针使用临时应用库，不污染现场看板和评测调试记录；浏览器实操只保留少量真实演示查询。

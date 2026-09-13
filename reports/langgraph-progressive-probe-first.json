@@ -1,0 +1,162 @@
+{
+  "passed": false,
+  "mode": "real-LM-Studio-with-retrieval-fault-injection",
+  "injected_fault": "首次披露无详细指标，轻量索引保留；不修改模型消息、模型返回或SQL结果",
+  "question": "当前全公司平均司龄是多少？请依据司龄的定义回答。",
+  "model_attempts": [
+    {
+      "kind": "metric",
+      "metric": "avg_tenure",
+      "dimension": "none",
+      "department": null,
+      "cohort": "active",
+      "start_date": null,
+      "end_date": null,
+      "limit": 20
+    },
+    {
+      "kind": "metric",
+      "metric": "avg_tenure",
+      "dimension": "none",
+      "period": "as_of"
+    }
+  ],
+  "orchestration": {
+    "framework": "LangGraph",
+    "version": "1.2.11",
+    "workflow_version": "hr-graph-1.0",
+    "model_calls": 2,
+    "repairs": 0,
+    "metadata_expansions": 1,
+    "semantic_revision": "351f466b41facfaec0047b2cdf65ce5cf041bd3a333bb7a3f35077c1f5457d87",
+    "disclosed_ids": [
+      "metric:avg_tenure",
+      "employees.hire_date",
+      "employees.termination_date"
+    ]
+  },
+  "nodes": [
+    {
+      "key": "request",
+      "status": "success",
+      "duration_ms": 1.63
+    },
+    {
+      "key": "authorization",
+      "status": "success",
+      "duration_ms": 3.17
+    },
+    {
+      "key": "capability",
+      "status": "success",
+      "duration_ms": 2.7
+    },
+    {
+      "key": "context",
+      "status": "success",
+      "duration_ms": 1.07
+    },
+    {
+      "key": "discovery",
+      "status": "success",
+      "duration_ms": 25.88
+    },
+    {
+      "key": "disclosure",
+      "status": "success",
+      "duration_ms": 6.59
+    },
+    {
+      "key": "capacity",
+      "status": "success",
+      "duration_ms": 0.83
+    },
+    {
+      "key": "model",
+      "status": "success",
+      "duration_ms": 11062.54
+    },
+    {
+      "key": "schema",
+      "status": "success",
+      "duration_ms": 1.85
+    },
+    {
+      "key": "intent",
+      "status": "success",
+      "duration_ms": 1.28
+    },
+    {
+      "key": "inspection",
+      "status": "success",
+      "duration_ms": 6.74
+    },
+    {
+      "key": "disclosure",
+      "status": "success",
+      "duration_ms": 10.77
+    },
+    {
+      "key": "capacity",
+      "status": "success",
+      "duration_ms": 1.28
+    },
+    {
+      "key": "model",
+      "status": "success",
+      "duration_ms": 12479.72
+    },
+    {
+      "key": "schema",
+      "status": "success",
+      "duration_ms": 1.99
+    },
+    {
+      "key": "intent",
+      "status": "success",
+      "duration_ms": 1.39
+    },
+    {
+      "key": "reauthorize",
+      "status": "success",
+      "duration_ms": 8.27
+    },
+    {
+      "key": "compile",
+      "status": "success",
+      "duration_ms": 4.23
+    },
+    {
+      "key": "database",
+      "status": "success",
+      "duration_ms": 4.38
+    },
+    {
+      "key": "protection",
+      "status": "success",
+      "duration_ms": 2.87
+    },
+    {
+      "key": "format",
+      "status": "success",
+      "duration_ms": 1.98
+    },
+    {
+      "key": "audit",
+      "status": "success",
+      "duration_ms": 2.73
+    },
+    {
+      "key": "conversation",
+      "status": "success",
+      "duration_ms": 2.96
+    }
+  ],
+  "rows": [
+    {
+      "label": "合计",
+      "value": 3.37,
+      "sample_size": 459
+    }
+  ]
+}

@@ -2553,6 +2553,7 @@ button:disabled {
 .semantic-tabs {
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 .semantic-layout {
   grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);

@@ -80,11 +80,11 @@ def explicit_constraints(question):
         raise HTTPException(
             422, detail="请分别查询硕士或博士；合并人群可提问‘硕士及以上’，避免混淆精确学位与学历范围。"
         )
-    if re.search(r"硕士(?:研究生)?(?:学历)?(?:及以上|以上)", q) or (
+    if re.search(r"硕士(?:研究生)?(?:学历)?(?:及以上|以上)|至少(?:是|为|有)?硕士|不低于硕士", q) or (
         "研究生" in q and not re.search("硕士|博士", q)
     ):
         values.update(minimum_education="硕士研究生", education_level=None, degree=None)
-    elif re.search(r"本科(?:学历)?(?:及以上|以上)", q):
+    elif re.search(r"本科(?:学历)?(?:及以上|以上)|至少(?:是|为|有)?本科|不低于本科", q):
         values.update(minimum_education="本科", education_level=None, degree=None)
     elif "博士" in q:
         values.update(degree="博士", education_level=None, minimum_education=None)
