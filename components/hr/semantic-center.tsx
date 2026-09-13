@@ -19,7 +19,7 @@ type Entry = {
   meaning?: string;
   not_meaning?: string;
   question?: string;
-  examples?: (string | number | { question: string; note?: string })[];
+  examples?: (string | number | null | { question?: string; note?: string })[];
   field_ids?: string[];
   metric_ids?: string[];
   [key: string]: unknown;
@@ -112,8 +112,14 @@ function EntryDetail({
   const questions = data.question
     ? [data.question]
     : (data.examples ?? []).flatMap((value) =>
-        typeof value === 'object' ? [value.question] : [],
+        value !== null && typeof value === 'object' && value.question
+          ? [value.question]
+          : [],
       );
+  const exampleValues = (data.examples ?? []).filter(
+    (value) =>
+      data.kind === 'field' || value === null || typeof value !== 'object',
+  );
   return (
     <article
       className="schema-detail semantic-detail"
@@ -146,6 +152,7 @@ function EntryDetail({
             ([key]) =>
               data[key] !== undefined &&
               data[key] !== null &&
+              !(Array.isArray(data[key]) && data[key].length === 0) &&
               !(key === 'description' && data.description === data.meaning),
           )
           .map(([key, label]) => (
@@ -154,11 +161,15 @@ function EntryDetail({
               <dd>{textValue(data[key])}</dd>
             </div>
           ))}
-        {data.examples?.some((v) => typeof v !== 'object') ? (
+        {exampleValues.length ? (
           <div>
             <dt>示例值</dt>
             <dd>
-              {data.examples.filter((v) => typeof v !== 'object').join('、')}
+              {exampleValues
+                .map((value) =>
+                  value === null ? 'NULL（空值）' : textValue(value),
+                )
+                .join('、')}
             </dd>
           </div>
         ) : null}
@@ -308,6 +319,12 @@ export function SemanticCenter({
     boot.principal.id,
   );
   const docs = data?.documents.filter((d) => d.kind === kind) ?? [];
+  if (kind === 'question' && !query) {
+    docs.sort(
+      (a, b) =>
+        Number(b.status === 'available') - Number(a.status === 'available'),
+    );
+  }
   const current = docs.find((d) => d.id === selected)?.id ?? docs[0]?.id;
   function select(id: string) {
     setSelected(id);
