@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "mode": "production-browser-submitted-query",
+  "question": "今年各部门进来和离开的员工数量一起看",
+  "debug_run_id": "0d35193254284ce0b3dfdebcaf9b9230",
+  "plan": {
+    "kind": "metric",
+    "metric": "workforce_changes",
+    "dimension": "department",
+    "period": "this_year",
+    "relation": "all",
+    "department": null,
+    "employee_name": null,
+    "education_level": null,
+    "minimum_education": null,
+    "degree": null,
+    "schools": [],
+    "school_tier": null,
+    "cohort": "active",
+    "education_scope": "highest",
+    "start_date": null,
+    "end_date": null,
+    "limit": 20,
+    "message": null
+  },
+  "orchestration": {
+    "framework": "LangGraph",
+    "version": "1.2.11",
+    "workflow_version": "hr-graph-1.0",
+    "model_calls": 2,
+    "repairs": 0,
+    "metadata_expansions": 1,
+    "semantic_revision": "351f466b41facfaec0047b2cdf65ce5cf041bd3a333bb7a3f35077c1f5457d87",
+    "disclosed_ids": [
+      "metric:workforce_changes",
+      "employees.hire_date",
+      "employees.termination_date",
+      "assignments.department_id",
+      "assignments.valid_from",
+      "assignments.valid_to"
+    ]
+  },
+  "totals": {
+    "hires": 69,
+    "departures": 21
+  },
+  "node_keys": [
+    "request",
+    "authorization",
+    "capability",
+    "context",
+    "discovery",
+    "disclosure",
+    "capacity",
+    "model",
+    "schema",
+    "intent",
+    "inspection",
+    "disclosure",
+    "capacity",
+    "model",
+    "schema",
+    "intent",
+    "reauthorize",
+    "compile",
+    "database",
+    "protection",
+    "format",
+    "audit",
+    "conversation"
+  ]
+}
