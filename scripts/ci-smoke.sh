@@ -9,3 +9,5 @@ task_frontend_pid=$!
 trap 'kill "$task_frontend_pid" "$task_api_pid" 2>/dev/null || true' EXIT
 curl --noproxy '*' --fail --silent --retry 30 --retry-connrefused --retry-delay 1 http://127.0.0.1:3000/api/health > /dev/null
 uv run python scripts/smoke_http.py
+
+uv run python scripts/smoke_v2.py

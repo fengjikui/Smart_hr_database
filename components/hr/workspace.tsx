@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
@@ -73,6 +74,23 @@ function Navigation({
   const { setOpenMobile } = useSidebar();
   return (
     <SidebarMenu>
+      <SidebarMenuItem>
+        <Link
+          href="/demo"
+          className="hr-nav-item"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '9px 12px',
+            color: '#a32b36',
+            fontWeight: 600,
+          }}
+        >
+          <Database size={18} />
+          HR 演示 V2 · 表格核验
+        </Link>
+      </SidebarMenuItem>
       {NAV.map(({ id, label, icon: Icon }, i) => (
         <SidebarMenuItem
           key={id}
