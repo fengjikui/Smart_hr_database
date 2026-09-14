@@ -4,14 +4,14 @@
 
 按两段原始清单的出现顺序逐项配对，仅移除空行和首尾空白。中文 263 项、英文 263 项，英文标识符唯一数为 263；未删除重复中文名称，未按名称重新排序。机械对齐不等于已确认所有字段的业务含义。
 
-当前接入约定：PostgreSQL；暂按一人一行的人员当前宽表；`person_id` 为主键；`employee_no` 为保留前导零的工号；直接主管、部门主管和部门 HRBP 的 ID 暂关联本表 `person_id`；`employee_id` 本阶段忽略；不保留历史任职和汇报线。
+当前演示假设（尚未经业务方正式确认）：PostgreSQL；暂按一人一行的人员当前宽表；`person_id` 为主键；`employee_no` 为保留前导零的工号；直接主管、部门主管和部门 HRBP 的 ID 暂关联本表 `person_id`；`employee_id` 本阶段忽略；不保留历史任职和汇报线。
 
 本表只整理源字段，不代表已经接入演示系统或开放全部字段查询。物理表名、数据类型和加工公式尚未提供。权限及历史查询边界见 [真实数据接入约定](REAL_SOURCE_CONTRACT.md)。
 
 | 序号 | 中文字段名 | 英文字段名 | 已确认约定或待核对事项 |
 | --- | --- | --- | --- |
-| 1 | 人员id | `person_id` | 已确认：人员主键；暂按一名员工一行。物理类型待确认。 |
-| 2 | 工号 | `employee_no` | 已确认：工号；按标识符处理并保留前导零，例如 00031266。 |
+| 1 | 人员id | `person_id` | 暂定：人员主键；暂按一名员工一行。物理类型待确认。 |
+| 2 | 工号 | `employee_no` | 暂定：工号；按标识符处理并保留前导零，例如 00031266。 |
 | 3 | 姓名 | `name` |  |
 | 4 | 拼音名 | `employee_pinyin_name` |  |
 | 5 | 英文名 | `employee_en_name` |  |
@@ -86,7 +86,7 @@
 | 74 | 调入最小部门生效时间 | `dept_join_date` |  |
 | 75 | 部门主管id | `dept_master_id` | 按本次约定关联本表 person_id；是否独立形成部门授权尚未确认。 |
 | 76 | 部门主管 | `dept_master_name` | 部门主管展示名称；真实案例中的不同取值仍待解释。 |
-| 77 | 部门HRBPid | `dept_hrbp_id` | 已确认：部门 HRBP，暂关联本表 person_id；HRBP 服务范围依据。 |
+| 77 | 部门HRBPid | `dept_hrbp_id` | 暂定：部门 HRBP，暂关联本表 person_id；HRBP 服务范围依据。 |
 | 78 | 部门HRBP | `dept_hrbp_name` | 部门 HRBP 展示名称；关联使用 dept_hrbp_id。 |
 | 79 | 岗位编码 | `position_code` |  |
 | 80 | 岗位 | `position_code_desc` |  |
@@ -97,7 +97,7 @@
 | 85 | 职级 | `joblevel_code_desc` |  |
 | 86 | 职等编码 | `joblevel_type_code` |  |
 | 87 | 职等 | `joblevel_type_code_desc` |  |
-| 88 | 直接主管id | `head_person_id` | 已确认：直接主管，暂关联本表 person_id；管理线递归依据。 |
+| 88 | 直接主管id | `head_person_id` | 暂定：直接主管，暂关联本表 person_id；管理线递归依据。 |
 | 89 | 直接主管 | `head_person_name` | 直接主管展示名称；关联使用 head_person_id。 |
 | 90 | 任命族 | `appointed_clan` |  |
 | 91 | 任命类 | `appointed_class` |  |
