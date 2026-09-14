@@ -80,6 +80,9 @@ def grants(p, config=None, rows=None):
     config = config or store.policy()
     rows = rows if rows is not None else store.people()
     lookup = {r["person_id"]: r for r in rows}
+    for row in rows:
+        if row.get("dept_hrbp_id") and row["dept_hrbp_id"] not in lookup:
+            raise HTTPException(409, "HRBP关系引用了不存在的人员")
     root = p["person_id"]
     if root not in lookup:
         raise HTTPException(403, "身份未映射到人员主键")
@@ -173,10 +176,10 @@ def fingerprint(p):
 def public(p):
     grant = grants(p)
     rules = store.policy()["roles"][p["role"]]
+
     def active(r):
-        return (
-            r["onboard_date"] <= store.AS_OF and (not r["termin_date"] or r["termin_date"] > store.AS_OF)
-        )
+        return r["onboard_date"] <= store.AS_OF and (not r["termin_date"] or r["termin_date"] > store.AS_OF)
+
     rows = [r for r in store.people() if r["person_id"] in grant["ids"]]
     return {
         **{k: p[k] for k in ["id", "person_id", "name", "role", "label"]},

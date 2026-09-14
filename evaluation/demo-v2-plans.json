@@ -1,0 +1,363 @@
+{
+  "version": "v2-reference-1",
+  "notes": "人工定义的验收查询计划，只供测试使用；运行时不导入。",
+  "plans": {
+    "HR-01": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name",
+        "relation"
+      ],
+      "scope": "reports"
+    },
+    "HR-02": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "scope": "hrbp",
+      "metrics": [
+        "count",
+        "masters_count",
+        "masters_ratio"
+      ]
+    },
+    "HR-03": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "scope": "inherited_hrbp"
+    },
+    "HR-04": {
+      "kind": "people",
+      "columns": [
+        "employee_no",
+        "name",
+        "school_name",
+        "first_major",
+        "age",
+        "education_expired_date"
+      ],
+      "population": "all",
+      "date_field": "onboard_date",
+      "start_date": "2026-08-31",
+      "end_date": "2026-09-06",
+      "order_by": [
+        {
+          "field": "onboard_date",
+          "direction": "desc"
+        }
+      ]
+    },
+    "HR-05": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "departments": [
+        "平台研发部",
+        "智能产品部"
+      ],
+      "population": "all",
+      "date_field": "employment_events",
+      "start_date": "2026-08-28",
+      "end_date": "2026-09-11",
+      "metrics": [
+        "hires",
+        "departures",
+        "net_change"
+      ]
+    },
+    "HR-06": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name",
+        "termin_month"
+      ],
+      "population": "all",
+      "date_field": "termin_date",
+      "start_date": "2026-04-01",
+      "end_date": "2026-07-31",
+      "metrics": [
+        "departures"
+      ]
+    },
+    "HR-07": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name",
+        "event_month"
+      ],
+      "departments": [
+        "平台研发部",
+        "智能产品部"
+      ],
+      "population": "all",
+      "date_field": "employment_events",
+      "start_date": "2026-04-01",
+      "end_date": "2026-07-31",
+      "metrics": [
+        "hires",
+        "departures",
+        "net_change"
+      ]
+    },
+    "HR-08": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "population": "all",
+      "date_field": "onboard_date",
+      "start_date": "2026-04-01",
+      "end_date": "2026-06-30",
+      "metrics": [
+        "doctors_count"
+      ]
+    },
+    "HR-09": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "departments": [
+        "平台研发部",
+        "智能产品部"
+      ],
+      "metrics": [
+        "school_985_count",
+        "school_211_count",
+        "school_985_ratio",
+        "school_211_ratio"
+      ]
+    },
+    "HR-10": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "filters": [
+        {
+          "field": "school_name",
+          "op": "in",
+          "values": [
+            "清华大学",
+            "北京大学"
+          ]
+        }
+      ]
+    },
+    "HR-11": {
+      "group_by": [
+        "diploma_code_desc",
+        "full_time_flag"
+      ]
+    },
+    "HR-12": {
+      "kind": "people",
+      "columns": [
+        "name",
+        "first_major",
+        "diploma_code_desc",
+        "age"
+      ],
+      "departments": [
+        "平台研发部"
+      ],
+      "filters": [
+        {
+          "field": "age",
+          "op": "gte",
+          "values": [
+            "30"
+          ]
+        },
+        {
+          "field": "age",
+          "op": "lte",
+          "values": [
+            "40"
+          ]
+        },
+        {
+          "field": "first_major",
+          "op": "in",
+          "values": [
+            "计算机科学与技术",
+            "软件工程"
+          ]
+        }
+      ]
+    },
+    "HR-13": {
+      "kind": "people",
+      "columns": [
+        "name",
+        "dept_cn_name",
+        "school_name",
+        "onboard_date"
+      ],
+      "population": "all",
+      "date_field": "onboard_date",
+      "start_date": "2026-01-01",
+      "end_date": "2026-09-11",
+      "filters": [
+        {
+          "field": "hire_type_code_desc",
+          "op": "eq",
+          "values": [
+            "校园招聘"
+          ]
+        },
+        {
+          "field": "diploma_code_desc",
+          "op": "gte",
+          "values": [
+            "硕士研究生"
+          ]
+        },
+        {
+          "field": "full_time_flag",
+          "op": "eq",
+          "values": [
+            "是"
+          ]
+        }
+      ]
+    },
+    "HR-14": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "metrics": [
+        "count",
+        "outsource_count",
+        "outsource_ratio"
+      ]
+    },
+    "HR-15": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "departments": [
+        "平台研发部",
+        "智能产品部"
+      ],
+      "metrics": [
+        "count",
+        "avg_age",
+        "masters_ratio"
+      ]
+    },
+    "HR-16": {
+      "kind": "people",
+      "columns": [
+        "name",
+        "dept_cn_name",
+        "contract_type_code_desc",
+        "contract_end_date"
+      ],
+      "date_field": "contract_end_date",
+      "start_date": "2026-09-12",
+      "end_date": "2026-12-10",
+      "order_by": [
+        {
+          "field": "contract_end_date",
+          "direction": "asc"
+        }
+      ]
+    },
+    "HR-17": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "population": "confirmed",
+      "date_field": "confirmation_date",
+      "start_date": "2026-01-01",
+      "end_date": "2026-09-11",
+      "metrics": [
+        "count",
+        "avg_confirmation_days"
+      ]
+    },
+    "HR-18": {
+      "kind": "people",
+      "columns": [
+        "name",
+        "dept_cn_name",
+        "position_code_desc",
+        "current_employment_start_date"
+      ],
+      "date_field": "current_employment_start_date",
+      "start_date": "2026-08-13",
+      "end_date": "2026-09-11"
+    },
+    "HR-19": {
+      "kind": "aggregate",
+      "group_by": [
+        "dept_cn_name"
+      ],
+      "filters": [
+        {
+          "field": "school_name",
+          "op": "in",
+          "values": [
+            "清华大学",
+            "北京大学"
+          ]
+        },
+        {
+          "field": "diploma_code_desc",
+          "op": "gte",
+          "values": [
+            "硕士研究生"
+          ]
+        },
+        {
+          "field": "full_time_flag",
+          "op": "eq",
+          "values": [
+            "是"
+          ]
+        }
+      ]
+    },
+    "HR-20": {
+      "kind": "people",
+      "columns": [
+        "name",
+        "dept_cn_name",
+        "school_name",
+        "diploma_code_desc",
+        "first_major"
+      ],
+      "filters": [
+        {
+          "field": "school_name",
+          "op": "eq",
+          "values": [
+            "浙江大学"
+          ]
+        },
+        {
+          "field": "diploma_code_desc",
+          "op": "gte",
+          "values": [
+            "硕士研究生"
+          ]
+        },
+        {
+          "field": "full_time_flag",
+          "op": "eq",
+          "values": [
+            "是"
+          ]
+        }
+      ]
+    }
+  }
+}

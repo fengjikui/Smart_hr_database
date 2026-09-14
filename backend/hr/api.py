@@ -33,6 +33,7 @@ from .security import (
     scope_ids,
 )
 from .seed import PERSONAS, generate, upgrade_demo_data
+from .v2.api import router as v2_router
 from .validate import validate
 
 
@@ -58,6 +59,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
+app.include_router(v2_router)
 _limits = defaultdict(deque)
 ALLOWED_ORIGINS = {
     "http://127.0.0.1:3000",
@@ -80,7 +82,8 @@ async def boundaries(request: Request, call_next):
             return JSONResponse({"detail": "请求体超过大小限制。"}, status_code=413)
     except ValueError:
         return JSONResponse({"detail": "无效请求。"}, status_code=400)
-    key = (request.cookies.get(COOKIE_NAME, "anonymous"), request.url.path == "/api/chat")
+    cookie_name = "hr_v2_session" if request.url.path.startswith("/api/v2/") else COOKIE_NAME
+    key = (request.cookies.get(cookie_name, "anonymous"), request.url.path in ("/api/chat", "/api/v2/chat"))
     now = time.monotonic()
     queue = _limits[key]
     while queue and queue[0] < now - 60:
