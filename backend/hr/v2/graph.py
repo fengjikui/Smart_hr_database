@@ -275,7 +275,7 @@ def validate_node(s):
             hints = date_hints(s["question"])
             if hints and any(getattr(plan, k) != v for k, v in hints.items()):
                 raise ValueError("日期条件必须保留：" + json.dumps(hints))
-            if not s["previous"] and re.search(r"刚才|这些人|其他条件不变", s["question"]):
+            if not s["previous"] and grounding.needs_previous(s["question"]):
                 raise ValueError("当前缺少前次成功查询上下文，请先完成查询或从历史恢复")
             s["plan"] = plan
             s["next"] = "execute"

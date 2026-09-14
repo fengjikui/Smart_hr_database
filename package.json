@@ -20,7 +20,11 @@
     "demo:production": "node scripts/dev.mjs --production",
     "test:model": "uv run python scripts/evaluate_model.py",
     "test:performance": "uv run python scripts/benchmark.py",
-    "release": "bash scripts/release.sh"
+    "release": "bash scripts/release.sh",
+    "test:v2": "uv run pytest tests/test_v2_auth.py tests/test_v2_queries.py tests/test_v2_api.py tests/test_v2_graph.py -q",
+    "test:model:v2": "uv run python scripts/evaluate_v2.py",
+    "test:paraphrases:v2": "uv run python scripts/evaluate_v2.py --variants --output reports/demo-v2-paraphrases.json",
+    "test:performance:v2": "uv run python scripts/benchmark_v2.py"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

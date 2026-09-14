@@ -1,0 +1,1835 @@
+{
+  "version": "v2-golden-1",
+  "as_of": "2026-09-11",
+  "data_version": "v2-minimal-1",
+  "data_fingerprint": "275ac36cf0526ec6fd37c6dc6ea2d5ea9dba7333e4493f52f27dcbd444b4d228",
+  "method": "Frozen independent Python reference; query compiler is not imported.",
+  "cases": {
+    "HR-01": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "relation": "直属下属",
+          "count": 56
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "relation": "直属下属",
+          "count": 1
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "relation": "间接下属",
+          "count": 55
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "relation": "直属下属",
+          "count": 1
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "relation": "间接下属",
+          "count": 55
+        }
+      ],
+      "totals": {
+        "count": 168
+      }
+    },
+    "HR-02": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "count": 57,
+          "masters_count": 29,
+          "masters_ratio": 50.88,
+          "masters_ratio_numerator": 29,
+          "masters_ratio_denominator": 57
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 56,
+          "masters_count": 22,
+          "masters_ratio": 39.29,
+          "masters_ratio_numerator": 22,
+          "masters_ratio_denominator": 56
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 56,
+          "masters_count": 30,
+          "masters_ratio": 53.57,
+          "masters_ratio_numerator": 30,
+          "masters_ratio_denominator": 56
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "count": 57,
+          "masters_count": 34,
+          "masters_ratio": 59.65,
+          "masters_ratio_numerator": 34,
+          "masters_ratio_denominator": 57
+        }
+      ],
+      "totals": {
+        "count": 226,
+        "masters_count": 115,
+        "masters_ratio": 50.88,
+        "masters_ratio_numerator": 115,
+        "masters_ratio_denominator": 226
+      }
+    },
+    "HR-03": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "count": 57
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 56
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 56
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "count": 57
+        }
+      ],
+      "totals": {
+        "count": 226
+      }
+    },
+    "HR-04": {
+      "rows": [
+        {
+          "employee_no": "SIM00029",
+          "name": "模拟员工029",
+          "school_name": "清华大学",
+          "first_major": "应用统计",
+          "age": 39,
+          "education_expired_date": "2011-06-30"
+        },
+        {
+          "employee_no": "SIM00028",
+          "name": "模拟员工028",
+          "school_name": "西安电子科技大学",
+          "first_major": "工商管理",
+          "age": 40,
+          "education_expired_date": "2008-06-30"
+        },
+        {
+          "employee_no": "SIM00273",
+          "name": "模拟员工273",
+          "school_name": "北京大学",
+          "first_major": "软件工程",
+          "age": 45,
+          "education_expired_date": "2003-06-30"
+        },
+        {
+          "employee_no": "SIM00027",
+          "name": "模拟员工027",
+          "school_name": "深圳大学",
+          "first_major": "软件工程",
+          "age": 38,
+          "education_expired_date": "2009-06-30"
+        }
+      ],
+      "totals": {
+        "count": 4
+      }
+    },
+    "HR-05": {
+      "rows": [
+        {
+          "dept_cn_name": "平台研发部",
+          "hires": 1,
+          "departures": 0,
+          "net_change": 1
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "hires": 2,
+          "departures": 0,
+          "net_change": 2
+        }
+      ],
+      "totals": {
+        "hires": 3,
+        "departures": 0,
+        "net_change": 3
+      }
+    },
+    "HR-06": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "termin_month": "2026-04",
+          "departures": 1
+        },
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "termin_month": "2026-05",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "termin_month": "2026-06",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "termin_month": "2026-07",
+          "departures": 1
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "termin_month": "2026-04",
+          "departures": 1
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "termin_month": "2026-05",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "termin_month": "2026-06",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "termin_month": "2026-07",
+          "departures": 1
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "termin_month": "2026-04",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "termin_month": "2026-05",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "termin_month": "2026-06",
+          "departures": 1
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "termin_month": "2026-07",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "termin_month": "2026-04",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "termin_month": "2026-05",
+          "departures": 0
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "termin_month": "2026-06",
+          "departures": 1
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "termin_month": "2026-07",
+          "departures": 0
+        }
+      ],
+      "totals": {
+        "departures": 6
+      }
+    },
+    "HR-07": {
+      "rows": [
+        {
+          "dept_cn_name": "平台研发部",
+          "event_month": "2026-04",
+          "hires": 3,
+          "departures": 1,
+          "net_change": 2
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "event_month": "2026-05",
+          "hires": 2,
+          "departures": 0,
+          "net_change": 2
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "event_month": "2026-06",
+          "hires": 0,
+          "departures": 0,
+          "net_change": 0
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "event_month": "2026-07",
+          "hires": 4,
+          "departures": 1,
+          "net_change": 3
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "event_month": "2026-04",
+          "hires": 3,
+          "departures": 0,
+          "net_change": 3
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "event_month": "2026-05",
+          "hires": 2,
+          "departures": 0,
+          "net_change": 2
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "event_month": "2026-06",
+          "hires": 0,
+          "departures": 1,
+          "net_change": -1
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "event_month": "2026-07",
+          "hires": 4,
+          "departures": 0,
+          "net_change": 4
+        }
+      ],
+      "totals": {
+        "hires": 18,
+        "departures": 3,
+        "net_change": 15
+      }
+    },
+    "HR-08": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "doctors_count": 1
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "doctors_count": 2
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "doctors_count": 3
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "doctors_count": 3
+        }
+      ],
+      "totals": {
+        "doctors_count": 9
+      }
+    },
+    "HR-09": {
+      "rows": [
+        {
+          "dept_cn_name": "平台研发部",
+          "school_985_count": 33,
+          "school_211_count": 37,
+          "school_985_ratio": 58.93,
+          "school_985_ratio_numerator": 33,
+          "school_985_ratio_denominator": 56,
+          "school_211_ratio": 66.07,
+          "school_211_ratio_numerator": 37,
+          "school_211_ratio_denominator": 56
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "school_985_count": 29,
+          "school_211_count": 38,
+          "school_985_ratio": 51.79,
+          "school_985_ratio_numerator": 29,
+          "school_985_ratio_denominator": 56,
+          "school_211_ratio": 67.86,
+          "school_211_ratio_numerator": 38,
+          "school_211_ratio_denominator": 56
+        }
+      ],
+      "totals": {
+        "school_985_count": 62,
+        "school_211_count": 75,
+        "school_985_ratio": 55.36,
+        "school_985_ratio_numerator": 62,
+        "school_985_ratio_denominator": 112,
+        "school_211_ratio": 66.96,
+        "school_211_ratio_numerator": 75,
+        "school_211_ratio_denominator": 112
+      }
+    },
+    "HR-10": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "count": 15
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 14
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 15
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "count": 20
+        }
+      ],
+      "totals": {
+        "count": 64
+      }
+    },
+    "HR-11": {
+      "rows": [
+        {
+          "diploma_code_desc": "专科",
+          "full_time_flag": "否",
+          "count": 4
+        },
+        {
+          "diploma_code_desc": "专科",
+          "full_time_flag": "是",
+          "count": 8
+        },
+        {
+          "diploma_code_desc": "博士研究生",
+          "full_time_flag": "否",
+          "count": 9
+        },
+        {
+          "diploma_code_desc": "博士研究生",
+          "full_time_flag": "是",
+          "count": 34
+        },
+        {
+          "diploma_code_desc": "未知",
+          "full_time_flag": "否",
+          "count": 1
+        },
+        {
+          "diploma_code_desc": "未知",
+          "full_time_flag": "是",
+          "count": 4
+        },
+        {
+          "diploma_code_desc": "本科",
+          "full_time_flag": "否",
+          "count": 19
+        },
+        {
+          "diploma_code_desc": "本科",
+          "full_time_flag": "是",
+          "count": 68
+        },
+        {
+          "diploma_code_desc": "硕士研究生",
+          "full_time_flag": "否",
+          "count": 14
+        },
+        {
+          "diploma_code_desc": "硕士研究生",
+          "full_time_flag": "是",
+          "count": 58
+        },
+        {
+          "diploma_code_desc": "高中及以下",
+          "full_time_flag": "否",
+          "count": 1
+        },
+        {
+          "diploma_code_desc": "高中及以下",
+          "full_time_flag": "是",
+          "count": 6
+        }
+      ],
+      "totals": {
+        "count": 226
+      }
+    },
+    "HR-12": {
+      "rows": [
+        {
+          "name": "平台主管（模拟）",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "硕士研究生",
+          "age": 38
+        },
+        {
+          "name": "模拟员工027",
+          "first_major": "软件工程",
+          "diploma_code_desc": "本科",
+          "age": 38
+        },
+        {
+          "name": "模拟员工067",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "本科",
+          "age": 35
+        },
+        {
+          "name": "模拟员工077",
+          "first_major": "软件工程",
+          "diploma_code_desc": "硕士研究生",
+          "age": 38
+        },
+        {
+          "name": "模拟员工082",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": null,
+          "age": 35
+        },
+        {
+          "name": "模拟员工092",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "博士研究生",
+          "age": 32
+        },
+        {
+          "name": "模拟员工097",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "硕士研究生",
+          "age": 37
+        },
+        {
+          "name": "模拟员工112",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "本科",
+          "age": 38
+        },
+        {
+          "name": "模拟员工177",
+          "first_major": "软件工程",
+          "diploma_code_desc": "本科",
+          "age": 34
+        },
+        {
+          "name": "模拟员工197",
+          "first_major": "软件工程",
+          "diploma_code_desc": "高中及以下",
+          "age": 37
+        },
+        {
+          "name": "模拟员工217",
+          "first_major": "软件工程",
+          "diploma_code_desc": "本科",
+          "age": 35
+        },
+        {
+          "name": "模拟员工222",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "硕士研究生",
+          "age": 30
+        },
+        {
+          "name": "模拟员工252",
+          "first_major": "软件工程",
+          "diploma_code_desc": "高中及以下",
+          "age": 31
+        },
+        {
+          "name": "模拟员工277",
+          "first_major": "计算机科学与技术",
+          "diploma_code_desc": "本科",
+          "age": 30
+        }
+      ],
+      "totals": {
+        "count": 14
+      }
+    },
+    "HR-13": {
+      "rows": [
+        {
+          "name": "模拟员工042",
+          "dept_cn_name": "平台研发部",
+          "school_name": "复旦大学",
+          "onboard_date": "2026-04-15"
+        },
+        {
+          "name": "模拟员工045",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "西安电子科技大学",
+          "onboard_date": "2026-05-06"
+        },
+        {
+          "name": "模拟员工048",
+          "dept_cn_name": "智能产品部",
+          "school_name": "南京工业大学",
+          "onboard_date": "2026-05-27"
+        },
+        {
+          "name": "模拟员工070",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "北京大学",
+          "onboard_date": "2026-07-01"
+        },
+        {
+          "name": "模拟员工072",
+          "dept_cn_name": "平台研发部",
+          "school_name": "深圳大学",
+          "onboard_date": "2026-07-03"
+        },
+        {
+          "name": "模拟员工073",
+          "dept_cn_name": "智能产品部",
+          "school_name": "深圳大学",
+          "onboard_date": "2026-07-04"
+        },
+        {
+          "name": "模拟员工074",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "南京工业大学",
+          "onboard_date": "2026-07-05"
+        },
+        {
+          "name": "模拟员工075",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "清华大学",
+          "onboard_date": "2026-07-06"
+        },
+        {
+          "name": "模拟员工077",
+          "dept_cn_name": "平台研发部",
+          "school_name": "深圳大学",
+          "onboard_date": "2026-07-08"
+        },
+        {
+          "name": "模拟员工078",
+          "dept_cn_name": "智能产品部",
+          "school_name": "西安电子科技大学",
+          "onboard_date": "2026-07-09"
+        },
+        {
+          "name": "模拟员工079",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "浙江大学",
+          "onboard_date": "2026-07-10"
+        },
+        {
+          "name": "模拟员工080",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "北京大学",
+          "onboard_date": "2026-07-11"
+        },
+        {
+          "name": "模拟员工083",
+          "dept_cn_name": "智能产品部",
+          "school_name": "南京工业大学",
+          "onboard_date": "2026-07-14"
+        },
+        {
+          "name": "模拟员工084",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "清华大学",
+          "onboard_date": "2026-07-15"
+        },
+        {
+          "name": "模拟员工105",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "浙江大学",
+          "onboard_date": "2026-06-20"
+        },
+        {
+          "name": "模拟员工135",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "西安电子科技大学",
+          "onboard_date": "2026-07-27"
+        },
+        {
+          "name": "模拟员工165",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "北京大学",
+          "onboard_date": "2026-04-02"
+        },
+        {
+          "name": "模拟员工225",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "深圳大学",
+          "onboard_date": "2026-01-02"
+        },
+        {
+          "name": "模拟员工267",
+          "dept_cn_name": "平台研发部",
+          "school_name": "复旦大学",
+          "onboard_date": "2026-02-26"
+        }
+      ],
+      "totals": {
+        "count": 19
+      }
+    },
+    "HR-14": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "count": 57,
+          "outsource_count": 7,
+          "outsource_ratio": 12.28,
+          "outsource_ratio_numerator": 7,
+          "outsource_ratio_denominator": 57
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 56,
+          "outsource_count": 9,
+          "outsource_ratio": 16.07,
+          "outsource_ratio_numerator": 9,
+          "outsource_ratio_denominator": 56
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 56,
+          "outsource_count": 8,
+          "outsource_ratio": 14.29,
+          "outsource_ratio_numerator": 8,
+          "outsource_ratio_denominator": 56
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "count": 57,
+          "outsource_count": 8,
+          "outsource_ratio": 14.04,
+          "outsource_ratio_numerator": 8,
+          "outsource_ratio_denominator": 57
+        }
+      ],
+      "totals": {
+        "count": 226,
+        "outsource_count": 32,
+        "outsource_ratio": 14.16,
+        "outsource_ratio_numerator": 32,
+        "outsource_ratio_denominator": 226
+      }
+    },
+    "HR-15": {
+      "rows": [
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 56,
+          "avg_age": 38.85,
+          "avg_age_sample_size": 54,
+          "masters_ratio": 39.29,
+          "masters_ratio_numerator": 22,
+          "masters_ratio_denominator": 56
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 56,
+          "avg_age": 38.47,
+          "avg_age_sample_size": 55,
+          "masters_ratio": 53.57,
+          "masters_ratio_numerator": 30,
+          "masters_ratio_denominator": 56
+        }
+      ],
+      "totals": {
+        "count": 112,
+        "avg_age": 38.66,
+        "avg_age_sample_size": 109,
+        "masters_ratio": 46.43,
+        "masters_ratio_numerator": 52,
+        "masters_ratio_denominator": 112
+      }
+    },
+    "HR-16": {
+      "rows": [
+        {
+          "name": "模拟员工213",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-12"
+        },
+        {
+          "name": "模拟员工179",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-14"
+        },
+        {
+          "name": "模拟员工042",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-15"
+        },
+        {
+          "name": "模拟员工282",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-15"
+        },
+        {
+          "name": "模拟员工145",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-16"
+        },
+        {
+          "name": "平台主管（模拟）",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-17"
+        },
+        {
+          "name": "模拟员工248",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-17"
+        },
+        {
+          "name": "模拟员工214",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-19"
+        },
+        {
+          "name": "模拟员工077",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-20"
+        },
+        {
+          "name": "模拟员工180",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-21"
+        },
+        {
+          "name": "模拟员工043",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-22"
+        },
+        {
+          "name": "模拟员工283",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-22"
+        },
+        {
+          "name": "产品主管（模拟）",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-24"
+        },
+        {
+          "name": "模拟员工249",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-24"
+        },
+        {
+          "name": "模拟员工112",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-25"
+        },
+        {
+          "name": "模拟员工215",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-26"
+        },
+        {
+          "name": "模拟员工078",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-27"
+        },
+        {
+          "name": "模拟员工044",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-29"
+        },
+        {
+          "name": "模拟员工284",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-29"
+        },
+        {
+          "name": "模拟员工147",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-09-30"
+        },
+        {
+          "name": "模拟员工250",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-01"
+        },
+        {
+          "name": "模拟员工113",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-02"
+        },
+        {
+          "name": "模拟员工079",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-04"
+        },
+        {
+          "name": "模拟员工182",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-05"
+        },
+        {
+          "name": "模拟员工045",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-06"
+        },
+        {
+          "name": "模拟员工148",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-07"
+        },
+        {
+          "name": "模拟员工217",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-10"
+        },
+        {
+          "name": "模拟员工080",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-11"
+        },
+        {
+          "name": "模拟员工183",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-12"
+        },
+        {
+          "name": "模拟员工149",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-14"
+        },
+        {
+          "name": "模拟员工012",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-15"
+        },
+        {
+          "name": "模拟员工252",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-15"
+        },
+        {
+          "name": "模拟员工115",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-16"
+        },
+        {
+          "name": "模拟员工218",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-17"
+        },
+        {
+          "name": "模拟员工184",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-19"
+        },
+        {
+          "name": "模拟员工047",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-20"
+        },
+        {
+          "name": "模拟员工287",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-20"
+        },
+        {
+          "name": "模拟员工150",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-21"
+        },
+        {
+          "name": "模拟员工013",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-22"
+        },
+        {
+          "name": "模拟员工253",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-22"
+        },
+        {
+          "name": "模拟员工219",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-24"
+        },
+        {
+          "name": "模拟员工082",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-25"
+        },
+        {
+          "name": "模拟员工185",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-26"
+        },
+        {
+          "name": "模拟员工048",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-27"
+        },
+        {
+          "name": "模拟员工288",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-27"
+        },
+        {
+          "name": "模拟员工014",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-29"
+        },
+        {
+          "name": "模拟员工254",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-29"
+        },
+        {
+          "name": "模拟员工117",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-30"
+        },
+        {
+          "name": "模拟员工220",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-10-31"
+        },
+        {
+          "name": "模拟员工083",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-01"
+        },
+        {
+          "name": "模拟员工049",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-03"
+        },
+        {
+          "name": "模拟员工015",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-05"
+        },
+        {
+          "name": "模拟员工118",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-06"
+        },
+        {
+          "name": "模拟员工084",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-08"
+        },
+        {
+          "name": "模拟员工050",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-10"
+        },
+        {
+          "name": "模拟员工290",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-10"
+        },
+        {
+          "name": "模拟员工222",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-14"
+        },
+        {
+          "name": "模拟员工188",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-16"
+        },
+        {
+          "name": "模拟员工154",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-18"
+        },
+        {
+          "name": "模拟员工017",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-19"
+        },
+        {
+          "name": "模拟员工257",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-19"
+        },
+        {
+          "name": "模拟员工120",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-20"
+        },
+        {
+          "name": "模拟员工223",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-21"
+        },
+        {
+          "name": "模拟员工189",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-23"
+        },
+        {
+          "name": "模拟员工052",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-24"
+        },
+        {
+          "name": "模拟员工292",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-24"
+        },
+        {
+          "name": "模拟员工155",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-25"
+        },
+        {
+          "name": "模拟员工018",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-26"
+        },
+        {
+          "name": "模拟员工258",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-26"
+        },
+        {
+          "name": "模拟员工224",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-28"
+        },
+        {
+          "name": "模拟员工087",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-11-29"
+        },
+        {
+          "name": "模拟员工053",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-01"
+        },
+        {
+          "name": "模拟员工293",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-01"
+        },
+        {
+          "name": "模拟员工259",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-03"
+        },
+        {
+          "name": "模拟员工122",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-04"
+        },
+        {
+          "name": "模拟员工225",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-05"
+        },
+        {
+          "name": "模拟员工088",
+          "dept_cn_name": "智能产品部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-06"
+        },
+        {
+          "name": "模拟员工054",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-08"
+        },
+        {
+          "name": "模拟员工294",
+          "dept_cn_name": "可信与AI实验室",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-08"
+        },
+        {
+          "name": "模拟员工157",
+          "dept_cn_name": "平台研发部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-09"
+        },
+        {
+          "name": "模拟员工020",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-10"
+        },
+        {
+          "name": "模拟员工260",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "contract_type_code_desc": "固定期限",
+          "contract_end_date": "2026-12-10"
+        }
+      ],
+      "totals": {
+        "count": 82
+      }
+    },
+    "HR-17": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "count": 11,
+          "avg_confirmation_days": 90.0,
+          "avg_confirmation_days_sample_size": 11
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 9,
+          "avg_confirmation_days": 90.0,
+          "avg_confirmation_days_sample_size": 9
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 12,
+          "avg_confirmation_days": 90.0,
+          "avg_confirmation_days_sample_size": 12
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "count": 10,
+          "avg_confirmation_days": 90.0,
+          "avg_confirmation_days_sample_size": 10
+        }
+      ],
+      "totals": {
+        "count": 42,
+        "avg_confirmation_days": 90.0,
+        "avg_confirmation_days_sample_size": 42
+      }
+    },
+    "HR-18": {
+      "rows": [
+        {
+          "name": "产品主管（模拟）",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-02"
+        },
+        {
+          "name": "模拟员工012",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工014",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工018",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-24"
+        },
+        {
+          "name": "模拟员工027",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-01"
+        },
+        {
+          "name": "模拟员工028",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工029",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工032",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工040",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-29"
+        },
+        {
+          "name": "模拟员工042",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工043",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工044",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工045",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-27"
+        },
+        {
+          "name": "模拟员工047",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工048",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工054",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-18"
+        },
+        {
+          "name": "模拟员工055",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工063",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-08"
+        },
+        {
+          "name": "模拟员工064",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工065",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工070",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工072",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-30"
+        },
+        {
+          "name": "模拟员工073",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工074",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工075",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工077",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工078",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工079",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工080",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工082",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工083",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工084",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工088",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工090",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工099",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-02"
+        },
+        {
+          "name": "模拟员工100",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工105",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工107",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工108",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-24"
+        },
+        {
+          "name": "模拟员工109",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工110",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工117",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-15"
+        },
+        {
+          "name": "模拟员工125",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工135",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-27"
+        },
+        {
+          "name": "模拟员工144",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-18"
+        },
+        {
+          "name": "模拟员工150",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工159",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工162",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-30"
+        },
+        {
+          "name": "模拟员工163",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工164",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-19"
+        },
+        {
+          "name": "模拟员工165",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-30"
+        },
+        {
+          "name": "模拟员工178",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-05"
+        },
+        {
+          "name": "模拟员工180",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工189",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-02"
+        },
+        {
+          "name": "模拟员工197",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-31"
+        },
+        {
+          "name": "模拟员工198",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-24"
+        },
+        {
+          "name": "模拟员工199",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工200",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工202",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工207",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-15"
+        },
+        {
+          "name": "模拟员工225",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-27"
+        },
+        {
+          "name": "模拟员工234",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-18"
+        },
+        {
+          "name": "模拟员工242",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-10"
+        },
+        {
+          "name": "模拟员工243",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-08"
+        },
+        {
+          "name": "模拟员工252",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-30"
+        },
+        {
+          "name": "模拟员工259",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-07"
+        },
+        {
+          "name": "模拟员工270",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工273",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工279",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-02"
+        },
+        {
+          "name": "模拟员工284",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工288",
+          "dept_cn_name": "智能产品部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-08-24"
+        },
+        {
+          "name": "模拟员工294",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工295",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "position_code_desc": "业务专员",
+          "current_employment_start_date": "2026-09-11"
+        },
+        {
+          "name": "模拟员工297",
+          "dept_cn_name": "平台研发部",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-08-15"
+        },
+        {
+          "name": "模拟员工299",
+          "dept_cn_name": "可信与AI实验室",
+          "position_code_desc": "研发工程师",
+          "current_employment_start_date": "2026-09-11"
+        }
+      ],
+      "totals": {
+        "count": 75
+      }
+    },
+    "HR-19": {
+      "rows": [
+        {
+          "dept_cn_name": "可信与AI实验室",
+          "count": 6
+        },
+        {
+          "dept_cn_name": "平台研发部",
+          "count": 4
+        },
+        {
+          "dept_cn_name": "智能产品部",
+          "count": 3
+        },
+        {
+          "dept_cn_name": "装备业务四部人力资源部",
+          "count": 11
+        }
+      ],
+      "totals": {
+        "count": 24
+      }
+    },
+    "HR-20": {
+      "rows": [
+        {
+          "name": "模拟员工019",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "硕士研究生",
+          "first_major": "软件工程"
+        },
+        {
+          "name": "模拟员工065",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "硕士研究生",
+          "first_major": "应用统计"
+        },
+        {
+          "name": "模拟员工079",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "硕士研究生",
+          "first_major": "工商管理"
+        },
+        {
+          "name": "模拟员工105",
+          "dept_cn_name": "装备业务四部人力资源部",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "博士研究生",
+          "first_major": "计算机科学与技术"
+        },
+        {
+          "name": "模拟员工174",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "硕士研究生",
+          "first_major": "工商管理"
+        },
+        {
+          "name": "模拟员工229",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "博士研究生",
+          "first_major": "工商管理"
+        },
+        {
+          "name": "模拟员工232",
+          "dept_cn_name": "平台研发部",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "硕士研究生",
+          "first_major": "软件工程"
+        },
+        {
+          "name": "模拟员工244",
+          "dept_cn_name": "可信与AI实验室",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "硕士研究生",
+          "first_major": "工商管理"
+        },
+        {
+          "name": "模拟员工288",
+          "dept_cn_name": "智能产品部",
+          "school_name": "浙江大学",
+          "diploma_code_desc": "博士研究生",
+          "first_major": "软件工程"
+        }
+      ],
+      "totals": {
+        "count": 9
+      }
+    }
+  }
+}

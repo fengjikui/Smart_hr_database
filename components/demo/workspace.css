@@ -732,3 +732,9 @@
     max-width: 260px;
   }
 }
+
+.d-app output.d-verified,
+.d-app output.d-loading,
+.d-app output.d-working {
+  display: block;
+}

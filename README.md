@@ -6,7 +6,7 @@
 
 **新演示入口：[http://127.0.0.1:3000/demo](http://127.0.0.1:3000/demo)**。面向 HR 的 300 人、26 字段最小宽表，支持多指标/多维度问数、Excel 风格筛选统计、逐人员独立对账、HRBP 向上继承、角色配置、多轮与历史恢复。
 
-实现及边界见 [V2实现记录](docs/DEMO_V2_IMPLEMENTATION.md)。下文原版入口和多表考勤能力仍保留，与 V2 使用独立演示数据。
+现场操作见 [V2演示脚本](docs/DEMO_V2_WALKTHROUGH.md)，测试证据见 [V2验收报告](docs/DEMO_V2_VALIDATION.md)，实现及边界见 [V2实现记录](docs/DEMO_V2_IMPLEMENTATION.md)。下文原版入口和多表考勤能力仍保留，与 V2 使用独立演示数据。
 
 ## 现场启动
 
@@ -71,7 +71,7 @@ npm run release                      # 干净Git版本检查、构建、打包�
 
 完整CI检查会临时启动3000/8000端口，执行前先停止已有演示。已启动生产演示时可运行 `uv run python scripts/smoke_http.py --model` 验证真实HTTP与模型链路。
 
-本轮引入LangGraph与语义库，验证证据及边界见 [语义架构](docs/SEMANTIC_ARCHITECTURE.md) 和 [测试说明](docs/TESTING.md)。`evaluate_model.py`自动隔离应用库；使用`--suite semantics`运行新增20个口语场景。GitHub CI与发布工作流已提供，尚未配置远程仓库，因此未远程执行或发布。
+原版 LangGraph 与语义库的验证证据及边界见 [语义架构](docs/SEMANTIC_ARCHITECTURE.md) 和 [测试说明](docs/TESTING.md)。`evaluate_model.py`自动隔离应用库；使用`--suite semantics`运行原版20个口语场景。远端为私有仓库 `fengjikui/Smart_hr_database`，GitHub CI 与发布工作流已提供；V2 的本次验证结果见上方专门报告。
 
 ## 文档索引
 

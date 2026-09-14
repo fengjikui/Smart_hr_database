@@ -8,10 +8,13 @@ import argparse
 import asyncio
 import json
 import subprocess
+import sys
 import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.hr import config
 from backend.hr.v2 import query, reference, service, store
@@ -20,7 +23,7 @@ from backend.hr.v2.schema import Plan, Question
 
 
 def pressure():
-    if __import__("sys").platform != "darwin":
+    if sys.platform != "darwin":
         return {"available": False}
     outputs = {}
     for command in (["uptime"], ["memory_pressure"], ["pmset", "-g", "therm"]):
@@ -38,7 +41,12 @@ def compare(actual, expected):
 
 
 async def main(args):
-    source = json.loads((config.PROJECT / "evaluation/demo-v2-cases.json").read_text())
+    source = json.loads(
+        (
+            config.PROJECT
+            / ("evaluation/demo-v2-paraphrases.json" if args.variants else "evaluation/demo-v2-cases.json")
+        ).read_text()
+    )
     plans = json.loads((config.PROJECT / "evaluation/demo-v2-plans.json").read_text())["plans"]
     selected = set(args.cases.split(",")) if args.cases else {c["id"] for c in source["cases"]}
     report = {
@@ -58,13 +66,14 @@ async def main(args):
         for case in source["cases"]:
             if case["id"] not in selected:
                 continue
+            plan_key = case.get("base_id", case["id"])
             p = next(
                 p
                 for p in store.PERSONAS
-                if p["id"] == {"HR-01": "manager", "HR-02": "hrbp"}.get(case["id"], "hr_lead")
+                if p["id"] == {"HR-01": "manager", "HR-02": "hrbp"}.get(plan_key, "hr_lead")
             )
             started = time.monotonic()
-            expected = reference.calculate(p, Plan.model_validate(plans[case["id"]]))
+            expected = reference.calculate(p, Plan.model_validate(plans[plan_key]))
             try:
                 parent = previous.get(case.get("previous_case_id"))
                 if case.get("previous_case_id") and not parent:
@@ -95,7 +104,7 @@ async def main(args):
                     "elapsed_s": round(time.monotonic() - started, 2),
                     "status": result["status"],
                     "question": case["question"],
-                    "expected_plan": plans[case["id"]],
+                    "expected_plan": plans[plan_key],
                     "actual_plan": result.get("plan"),
                     "expected": expected,
                     "actual": {"rows": actual["_all_rows"], "totals": actual["totals"]} if actual else None,
@@ -139,6 +148,7 @@ async def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--variants", action="store_true")
     parser.add_argument("--cases", default="")
     parser.add_argument("--output", default="reports/demo-v2-model.json")
     raise SystemExit(asyncio.run(main(parser.parse_args())))

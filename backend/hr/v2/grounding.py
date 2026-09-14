@@ -110,7 +110,7 @@ def check(question, plan, previous=None, departments=None):
         raise ValueError("应仅查询下属HRBP服务来源")
     if "我服务" in question and plan.scope != "hrbp":
         raise ValueError("应设置scope=hrbp；不要添加dept_hrbp_id筛选，self不是person_id，服务端会绑定本人")
-    if "直属和间接下属" in question or "直属与间接下属" in question:
+    if "直属" in question and "间接" in question and "下属" in question:
         if plan.scope != "reports" or "relation" not in plan.group_by:
             raise ValueError("直属与间接需排除本人并按relation区分")
     if "在职" in question and plan.population != "active":
@@ -166,12 +166,28 @@ def normalize(question, candidate, previous, date_range):
         raw["scope"] = "inherited_hrbp"
     elif "我服务" in question:
         raw["scope"] = "hrbp"
+    elif "直属" in question and "间接" in question and "下属" in question:
+        raw["scope"] = "reports"
+        if "relation" not in raw.get("group_by", []):
+            raw["group_by"] = list(dict.fromkeys(raw.get("group_by", []) + ["relation"]))
     if raw.get("scope") in ("hrbp", "inherited_hrbp"):
         raw["filters"] = [
             f
             for f in raw.get("filters", [])
             if not (f.get("field") == "dept_hrbp_id" and f.get("values") == ["self"])
         ]
+    if (
+        raw.get("kind") == "aggregate"
+        and raw.get("metrics") == ["count"]
+        and re.search(r"博士学位|(?:取得|拿到).*博士", question)
+    ):
+        if any(
+            f.get("field") == "degree_code_desc" and f.get("op") == "eq" and f.get("values") == ["博士"]
+            for f in raw.get("filters", [])
+        ):
+            # Canonical degree metric also checks graduation, unlike a raw degree equality count.
+            raw["metrics"] = ["doctors_count"]
+            raw["filters"] = [f for f in raw.get("filters", []) if f.get("field") != "degree_code_desc"]
     metrics = raw.get("metrics", [])
     if raw.get("kind") == "aggregate" and "count" in metrics and "总人数" not in question:
         # Conditional metrics already compute the requested cohort. Avoid duplicating
@@ -195,3 +211,15 @@ def normalize(question, candidate, previous, date_range):
         {"field": k, "model": candidate.get(k), "bound": v} for k, v in raw.items() if candidate.get(k) != v
     ]
     return raw, changes
+
+
+def needs_previous(question):
+    if any(word in question for word in ("刚才", "上次", "上一条", "其他条件不变")):
+        return True
+    # An anaphor after an explicit cohort in the same utterance is self-contained:
+    # "今年已转正多少人？这些人平均..." must not require a previous chat turn.
+    return bool(
+        re.match(
+            r"^(?:请)?(?:在|对|给|把|继续查看|继续统计|统计)?(?:这些人|这批人|他们|她们)", question.strip()
+        )
+    )

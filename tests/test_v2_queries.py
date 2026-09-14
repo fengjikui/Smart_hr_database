@@ -8,6 +8,7 @@ from backend.hr.v2 import auth, query, reference, service, store
 from backend.hr.v2.schema import Plan
 
 PLANS = json.loads((config.PROJECT / "evaluation/demo-v2-plans.json").read_text())["plans"]
+GOLDEN = json.loads((config.PROJECT / "evaluation/demo-v2-golden.json").read_text())
 
 
 @pytest.fixture(autouse=True)
@@ -28,6 +29,8 @@ def test_twenty_queries_against_independent_person_reference(case):
     p = persona(case)
     result = query.execute(p, plan)
     ref = reference.calculate(p, plan)
+    assert store.data_fingerprint() == GOLDEN["data_fingerprint"]
+    assert ref == GOLDEN["cases"][case]
     assert result["_all_rows"] == ref["rows"]
     assert result["totals"] == ref["totals"]
     assert service.reconcile(p, plan)["passed"]
@@ -146,3 +149,51 @@ def test_sql_values_do_not_become_sql():
     assert result["totals"]["count"] == 0
     assert "' OR 1=1 --" not in result["sql"]
     assert len(store.people()) == 300
+
+
+@pytest.mark.parametrize(
+    "change", ["inheritance", "education_fields", "details", "export", "manager_edge", "hrbp_edge"]
+)
+def test_history_invalidates_for_access_and_relationship_changes(change):
+    p = persona("HR-10")
+    saved = service.save_run(p, "保留当前条件", service.run_query(p, Plan.model_validate(PLANS["HR-10"])))
+    if change in ("manager_edge", "hrbp_edge"):
+        field = "head_person_id" if change == "manager_edge" else "dept_hrbp_id"
+        with store.connection("people") as db:
+            db.execute(f"UPDATE people SET {field}=? WHERE person_id=?", ("P0011", "P0005"))
+    else:
+        policy = store.policy()
+        if change == "education_fields":
+            policy["roles"]["hr_lead"]["field_groups"].remove("education")
+        else:
+            policy["roles"]["hr_lead"][{"inheritance": "inherit_hrbp"}.get(change, change)] = False
+        auth.apply_policy(store.PERSONAS[-1], auth.PolicyChange(expected_version=1, roles=policy["roles"]))
+    with pytest.raises(HTTPException):
+        service.read_run(p, saved["id"])
+    assert service.history(p) == []
+
+
+def test_rounding_half_up_and_null_age_sample():
+    p = next(p for p in store.PERSONAS if p["id"] == "manager")
+    with store.connection("people") as db:
+        db.execute("UPDATE people SET birth_date=NULL")
+        for i in range(12, 20):
+            # All eight employees become visible management descendants for this boundary test.
+            db.execute(
+                "UPDATE people SET head_person_id='P0004',onboard_date='2020-01-01',termin_date=NULL,birth_date=? WHERE person_id=?",
+                ("1996-09-11" if i < 19 else "1995-09-11", f"P{i:04}"),
+            )
+    result = service.reconcile(p, Plan(metrics=["avg_age"]))
+    assert result["passed"] and result["totals"]["avg_age"] == 30.13
+    assert result["totals"]["avg_age_sample_size"] == 8
+
+
+def test_hidden_population_dependency_and_invalid_number_filter():
+    p = persona("HR-10")
+    policy = store.policy()
+    policy["roles"]["hr_lead"]["field_groups"] = ["basic"]
+    auth.apply_policy(store.PERSONAS[-1], auth.PolicyChange(expected_version=1, roles=policy["roles"]))
+    with pytest.raises(HTTPException):
+        query.execute(p, Plan(population="confirmed"))
+    with pytest.raises(HTTPException):
+        query.execute(p, Plan(filters=[{"field": "age", "op": "contains", "values": ["3"]}]))
