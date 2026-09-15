@@ -174,6 +174,9 @@ def main():
                 }
             ],
         )
+        assert "application/json" in probe.headers.get("content-type", ""), (
+            f"Subquery probe returned HTTP {probe.status_code}, content-type={probe.headers.get('content-type')}; inspect Superset service diagnostics."
+        )
         probe_message = json.dumps(probe.json(), ensure_ascii=False).lower()
         assert "sub-quer" in probe_message or "subquer" in probe_message or "子查询" in probe_message, (
             probe_message
