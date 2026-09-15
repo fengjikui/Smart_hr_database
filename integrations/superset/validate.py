@@ -20,7 +20,9 @@ CHECKS = []
 
 @contextmanager
 def client_for(username):
-    with httpx.Client(base_url="http://127.0.0.1:8088", trust_env=False, timeout=60) as c:
+    with httpx.Client(
+        base_url="http://127.0.0.1:8088", trust_env=False, timeout=60, headers={"Accept": "application/json"}
+    ) as c:
         response = c.post(
             "/api/v1/security/login",
             json={
