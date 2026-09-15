@@ -25,3 +25,4 @@ TALISMAN_ENABLED = False  # localhost HTTP only; do not reuse in production
 FAB_ADD_SECURITY_API = True
 ENABLE_PROXY_FIX = False
 LOAD_EXAMPLES = False
+BABEL_DEFAULT_LOCALE = "zh"

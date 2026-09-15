@@ -23,6 +23,8 @@ with app.app_context():
     from superset import security_manager as sm
     from superset.connectors.sqla.models import RowLevelSecurityFilter, SqlaTable
     from superset.models.core import Database
+    from superset.models.dashboard import Dashboard
+    from superset.models.slice import Slice
     from superset.utils.core import RowLevelSecurityFilterType
 
     admin = sm.find_user(username="lab_admin") or sm.add_user(
@@ -143,5 +145,86 @@ with app.app_context():
                   person_id=EXCLUDED.person_id,role_key=EXCLUDED.role_key""",
                     (user.id, u["username"], u["person_id"], u["role"]),
                 )
+    # Stock Superset charts make role switching visible without writing a custom UI.
+    for level, title, slug in [
+        ("public", "HR 权限实验 · 人员范围", "hr-permission-lab"),
+        ("private", "HR 权限实验 · 敏感字段", "hr-private-lab"),
+    ]:
+        table = datasets[level]
+        columns = ["person_id", "name", "department", "education", "school"]
+        if level == "private":
+            columns.append("salary")
+        chart = db.session.query(Slice).filter_by(slice_name=title).first()
+        if chart is None:
+            chart = Slice(slice_name=title)
+            db.session.add(chart)
+        chart.datasource_id, chart.datasource_type = table.id, "table"
+        chart.datasource_name, chart.viz_type = table.table_name, "table"
+        chart.owners = [admin]
+        chart.params = json.dumps(
+            {
+                "datasource": f"{table.id}__table",
+                "viz_type": "table",
+                "query_mode": "raw",
+                "all_columns": columns,
+                "metrics": [],
+                "groupby": [],
+                "adhoc_filters": [],
+                "row_limit": 100,
+                "time_range": "No filter",
+                "include_search": True,
+                "page_length": 20,
+                "table_timestamp_format": "smart_date",
+            }
+        )
+        chart.query_context = json.dumps(
+            {
+                "datasource": {"id": table.id, "type": "table"},
+                "force": True,
+                "result_format": "json",
+                "result_type": "full",
+                "queries": [
+                    {
+                        "columns": columns,
+                        "metrics": [],
+                        "filters": [],
+                        "row_limit": 100,
+                        "orderby": [],
+                        "extras": {},
+                    }
+                ],
+            }
+        )
+        db.session.flush()
+        dashboard = db.session.query(Dashboard).filter_by(slug=slug).first()
+        if dashboard is None:
+            dashboard = Dashboard(slug=slug)
+            db.session.add(dashboard)
+        dashboard.dashboard_title, dashboard.published = title, True
+        dashboard.owners, dashboard.slices = [admin], [chart]
+        dashboard.json_metadata = "{}"
+        dashboard.position_json = json.dumps(
+            {
+                "DASHBOARD_VERSION_KEY": "v2",
+                "ROOT_ID": {"id": "ROOT_ID", "type": "ROOT", "children": ["GRID_ID"]},
+                "GRID_ID": {"id": "GRID_ID", "type": "GRID", "children": ["ROW-lab"], "parents": ["ROOT_ID"]},
+                "HEADER_ID": {"id": "HEADER_ID", "type": "HEADER", "meta": {"text": title}},
+                "ROW-lab": {
+                    "id": "ROW-lab",
+                    "type": "ROW",
+                    "children": ["CHART-lab"],
+                    "parents": ["ROOT_ID", "GRID_ID"],
+                    "meta": {"background": "BACKGROUND_TRANSPARENT"},
+                },
+                "CHART-lab": {
+                    "id": "CHART-lab",
+                    "type": "CHART",
+                    "children": [],
+                    "parents": ["ROOT_ID", "GRID_ID", "ROW-lab"],
+                    "meta": {"chartId": chart.id, "width": 12, "height": 60, "sliceName": title},
+                },
+            }
+        )
+        db.session.commit()
     connection.close()
     print("HR Superset permission lab configured. No business credentials printed.")

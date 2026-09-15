@@ -17,6 +17,8 @@ bash integrations/superset/lab.sh validate
 ```
 
 - Superset：`http://127.0.0.1:8088`。
+- 人员看板：`http://127.0.0.1:8088/superset/dashboard/hr-permission-lab/`；分别用员工和HR主管账号打开同一地址，观察人员集合变化。
+- 敏感字段看板：`http://127.0.0.1:8088/superset/dashboard/hr-private-lab/`；普通员工没有对应数据集权限。
 - PostgreSQL：`127.0.0.1:55432`；业务库`hr_lab`、Superset元数据库`superset_meta`。
 - 本地生成的登录信息：`.local/credentials.json`；操作系统文件权限600，未提交Git。
 - 管理账号`lab_admin`用于查看/维护配置；它没有业务人员映射，不作为Agent查询账号。
@@ -52,6 +54,8 @@ bash integrations/superset/lab.sh validate
 | 真正接口验证 | `validate.py`，结果保存`.local/validation.json` |
 
 Superset管理页面里，检查Security下的角色和Row Level Security；在Datasets里查看两个数据集。业务角色应保留Gamma作为功能基础，只添加对应的数据集访问权，不能直接改Superset内置角色。
+
+配置生效方式有区别：`authz.role_policy`的管理线、HRBP和继承开关在查询时读取，修改后对下一次查询生效。`private_fields`是初始化时给Superset用户分配敏感数据集角色的依据，修改该字段本身不会即时撤销Superset中的既有角色；必须同步发布角色变更。生产系统应由一条受审计的发布流程统一维护这两处，不能让它们各自成为独立的权限事实来源。新增一种关系继承算法仍需要评审并修改SQL视图，不能理解为所有新规则都无须开发。
 
 ## 验证范围与限制
 

@@ -1,10 +1,13 @@
 """Exercise real Superset REST endpoints against isolated PostgreSQL fixtures."""
 
+import csv
+import io
 import json
 import os
 import shutil
 import subprocess
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -67,6 +70,7 @@ def rows(response):
 def check(name, actual, expected):
     assert actual == expected, f"{name}: actual={actual!r}; expected={expected!r}"
     CHECKS.append({"name": name, "passed": True, "actual": actual})
+    print("PASS: " + name, flush=True)
 
 
 def sql(c, database_id, statement):
@@ -121,14 +125,30 @@ def main():
         response = admin.get("/api/v1/dataset/")
         response.raise_for_status()
         datasets = {d["table_name"]: d for d in response.json()["result"]}
+        response = admin.get("/api/v1/chart/")
+        response.raise_for_status()
+        charts = {c["slice_name"]: c["id"] for c in response.json()["result"]}
     public_id = datasets["people_public"]["id"]
     private_id = datasets["people_private"]["id"]
     database_id = datasets["people_public"]["database"]["id"]
+    public_chart = charts["HR 权限实验 · 人员范围"]
+    private_chart = charts["HR 权限实验 · 敏感字段"]
     for username, expected in FIXTURE["expected"].items():
         with client_for(username) as c:
             actual = sorted(r["person_id"] for r in rows(chart(c, public_id)))
             check(username + " 动态行权限", actual, expected)
     with client_for("lab_employee") as c:
+        saved = rows(c.get(f"/api/v1/chart/{public_chart}/data/"))
+        check("已保存图表按当前调用者过滤", sorted(r["person_id"] for r in saved), ["E"])
+        exported = c.get(f"/api/v1/chart/{public_chart}/data/?format=csv")
+        exported.raise_for_status()
+        exported_rows = list(csv.DictReader(io.StringIO(exported.text.lstrip("\ufeff"))))
+        check("员工CSV导出仍然只有本人", sorted(r["person_id"] for r in exported_rows), ["E"])
+        check(
+            "员工不能读取敏感图表",
+            c.get(f"/api/v1/chart/{private_chart}/data/").status_code in (401, 403, 404),
+            True,
+        )
         attempted = [p["person_id"] for p in FIXTURE["people"]]
         data = rows(chart(c, public_id, filters=[{"col": "person_id", "op": "IN", "val": attempted}]))
         check("扩大业务筛选不能扩大授权", sorted(r["person_id"] for r in data), ["E"])
@@ -140,6 +160,23 @@ def main():
             hidden.status_code >= 400
             or bool(hidden.json().get("errors"))
             or any(r.get("error") for r in hidden.json().get("result", [])),
+            True,
+        )
+        probe = chart(
+            c,
+            public_id,
+            columns=[],
+            metrics=[
+                {
+                    "expressionType": "SQL",
+                    "sqlExpression": "(SELECT count(*) FROM analytics.unregistered_probe)",
+                    "label": "probe",
+                }
+            ],
+        )
+        check(
+            "图表自定义指标不能使用子查询旁路",
+            "sub-quer" in probe.text.lower() or "子查询" in probe.text,
             True,
         )
         denied = sql(c, database_id, "SELECT person_id FROM analytics.people_public")
@@ -207,6 +244,8 @@ def main():
         check("边界证据：未注册视图不会自动获得数据集RLS", len(unregistered.json()["data"]), 12)
     report = {
         "superset_version": "6.1.0",
+        "tested_at": datetime.now(UTC).isoformat(),
+        "environment": "GitHub CI" if os.environ.get("GITHUB_ACTIONS") else "local",
         "passed": True,
         "checks": CHECKS,
         "scope": "真实REST + PostgreSQL；不宣称已测试MCP传输、OA或生产并发",

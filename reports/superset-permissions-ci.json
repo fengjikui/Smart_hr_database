@@ -1,0 +1,183 @@
+{
+  "superset_version": "6.1.0",
+  "passed": true,
+  "checks": [
+    {
+      "name": "lab_ceo 动态行权限",
+      "passed": true,
+      "actual": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "X"
+      ]
+    },
+    {
+      "name": "lab_hr_lead 动态行权限",
+      "passed": true,
+      "actual": [
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "J"
+      ]
+    },
+    {
+      "name": "lab_hrbp 动态行权限",
+      "passed": true,
+      "actual": [
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "J"
+      ]
+    },
+    {
+      "name": "lab_manager 动态行权限",
+      "passed": true,
+      "actual": [
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I"
+      ]
+    },
+    {
+      "name": "lab_employee 动态行权限",
+      "passed": true,
+      "actual": [
+        "E"
+      ]
+    },
+    {
+      "name": "lab_unmapped 动态行权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "lab_sql_tester 动态行权限",
+      "passed": true,
+      "actual": [
+        "E"
+      ]
+    },
+    {
+      "name": "扩大业务筛选不能扩大授权",
+      "passed": true,
+      "actual": [
+        "E"
+      ]
+    },
+    {
+      "name": "员工禁止访问薪资数据集",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "公共数据集不能通过指定列名读取薪资",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "普通问数用户无SQL Lab执行权限",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "员工不能修改RLS规则",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "HR薪资数据集同时保留行限制",
+      "passed": true,
+      "actual": [
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "J"
+      ]
+    },
+    {
+      "name": "HR可读取被授权薪资列",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "部门聚合总数与授权人员一致",
+      "passed": true,
+      "actual": 7
+    },
+    {
+      "name": "关闭继承配置即时撤销服务范围",
+      "passed": true,
+      "actual": [
+        "B",
+        "C"
+      ]
+    },
+    {
+      "name": "恢复继承配置",
+      "passed": true,
+      "actual": [
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "J"
+      ]
+    },
+    {
+      "name": "管理环导致授权失败关闭",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "公共连接不能直接读取薪资视图",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "公共连接不能直接读取原始人员表",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "专用探针：已注册数据集的SQL Lab行过滤",
+      "passed": true,
+      "actual": [
+        "E"
+      ]
+    },
+    {
+      "name": "边界证据：未注册视图不会自动获得数据集RLS",
+      "passed": true,
+      "actual": 12
+    }
+  ],
+  "scope": "真实REST + PostgreSQL；不宣称已测试MCP传输、OA或生产并发",
+  "warning": "未注册视图的12行结果是有意设置的反例，证明不能将Superset当作任意SQL防火墙；普通业务角色未授予SQL Lab。",
+  "environment": "GitHub CI (Linux amd64)",
+  "git_commit": "1559a59",
+  "ci_run_url": "https://github.com/fengjikui/Smart_hr_database/actions/runs/34983290539"
+}
