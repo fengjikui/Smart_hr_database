@@ -86,6 +86,8 @@ npm run release                      # 干净Git版本检查、构建、打包�
 | [字段字典](docs/DATA_DICTIONARY.md) | 业务及应用表、字段、约束、指标目录 |
 | [节点调试](docs/DEBUGGING.md) | 每步输入输出、错误定位、留存与调试权限 |
 | [权限与安全](docs/SECURITY.md) | 权限矩阵、执行边界、撤权、审计 |
+| [Superset集成调研](docs/SUPERSET_INTEGRATION_RESEARCH.md) | 角色与行列权限、REST/MCP边界、OA身份映射 |
+| [Superset权限实验](integrations/superset/README.md) | 独立PostgreSQL与Superset启动、演示账号、真实接口验收 |
 | [上线接入清单](docs/PRODUCTION_ROADMAP.md) | 应沟通的人、待获取材料、企业上线工作 |
 | [运行与维护](docs/OPERATIONS.md) | 端口、模型故障、备份、发布与回滚 |
 | [现场演示脚本](docs/DEMO_SCRIPT.md) | 10分钟演示与讨论顺序 |

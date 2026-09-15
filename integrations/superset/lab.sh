@@ -13,7 +13,10 @@ compose() {
 case "${1:-status}" in
   up)
     python3 "$lab_root/prepare.py"
-    compose up -d --build
+    if ! compose up -d --build; then
+      compose logs --tail 80 init
+      exit 1
+    fi
     ;;
   status) compose ps -a ;;
   logs) compose logs --tail 60 ;;
