@@ -174,9 +174,15 @@ def main():
                 }
             ],
         )
+        probe_message = json.dumps(probe.json(), ensure_ascii=False).lower()
+        assert "sub-quer" in probe_message or "subquer" in probe_message or "子查询" in probe_message, (
+            probe_message
+        )
         check(
             "图表自定义指标不能使用子查询旁路",
-            "sub-quer" in probe.text.lower() or "子查询" in probe.text,
+            probe.status_code >= 400
+            or bool(probe.json().get("errors"))
+            or any(r.get("error") for r in probe.json().get("result", [])),
             True,
         )
         denied = sql(c, database_id, "SELECT person_id FROM analytics.people_public")
@@ -211,6 +217,14 @@ def main():
             FIXTURE["expected"]["lab_hr_lead"],
         )
     with client_for("lab_manager") as c:
+        department_rows = rows(
+            chart(c, public_id, filters=[{"col": "department", "op": "==", "val": "可信与AI实验室"}])
+        )
+        check(
+            "本部门业务筛选与跨部门授权范围取交集",
+            sorted(r["person_id"] for r in department_rows),
+            ["D", "E", "F", "G"],
+        )
         pg("UPDATE hr.people SET head_person_id='G' WHERE person_id='D'")
         try:
             check("管理环导致授权失败关闭", rows(chart(c, public_id)), [])
