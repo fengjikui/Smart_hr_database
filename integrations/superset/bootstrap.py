@@ -157,7 +157,6 @@ with app.app_context():
         chart = db.session.query(Slice).filter_by(slice_name=title).first()
         if chart is None:
             chart = Slice(slice_name=title)
-            db.session.add(chart)
         chart.datasource_id, chart.datasource_type = table.id, "table"
         chart.datasource_name, chart.viz_type = table.table_name, "table"
         chart.owners = [admin]
@@ -195,6 +194,7 @@ with app.app_context():
                 ],
             }
         )
+        db.session.add(chart)
         db.session.flush()
         dashboard = db.session.query(Dashboard).filter_by(slug=slug).first()
         if dashboard is None:
