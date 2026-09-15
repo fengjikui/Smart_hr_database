@@ -429,7 +429,7 @@
   margin: 0 0 28px auto;
   padding: 12px 18px;
   background: var(--d-chat-tint);
-  border-radius: 16px 16px 4px 16px;
+  border-radius: 16px;
   overflow-wrap: anywhere;
 }
 .d-user-question p {
