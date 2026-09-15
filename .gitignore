@@ -57,3 +57,6 @@ playwright-report/
 /reports/junit.xml
 
 /data/backups/
+
+# Isolated Superset lab credentials and runtime outputs
+/integrations/superset/.local/

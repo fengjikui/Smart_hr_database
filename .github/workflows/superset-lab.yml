@@ -1,0 +1,45 @@
+name: Validate Superset permission lab
+on:
+  push:
+    paths: ['integrations/superset/**', '.github/workflows/superset-lab.yml']
+  pull_request:
+    paths: ['integrations/superset/**', '.github/workflows/superset-lab.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: superset-lab-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  permissions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HR_LAB_DOCKER_HOST: unix:///var/run/docker.sock
+      COMPOSE_PARALLEL_LIMIT: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check integrations/superset
+      - run: bash integrations/superset/lab.sh up
+      - name: Wait for Superset
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8088/health; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - run: bash integrations/superset/lab.sh validate
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: superset-permission-validation
+          path: integrations/superset/.local/validation.json
+          include-hidden-files: true
+      - name: Clean up lab
+        if: always()
+        run: bash integrations/superset/lab.sh stop

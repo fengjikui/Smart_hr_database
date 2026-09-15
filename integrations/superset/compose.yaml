@@ -1,0 +1,42 @@
+name: hr-superset-lab
+x-superset: &superset
+  build: .
+  env_file: .local/lab.env
+  environment:
+    SUPERSET_CONFIG_PATH: /lab/superset_config.py
+    FLASK_APP: superset.app:create_app
+    OMP_NUM_THREADS: "1"
+    OPENBLAS_NUM_THREADS: "1"
+  volumes:
+    - ./:/lab:ro
+  cpus: 1.5
+  mem_limit: 2g
+services:
+  postgres:
+    image: postgres:17.11
+    env_file: .local/lab.env
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-postgres.sh:/docker-entrypoint-initdb.d/10-lab.sh:ro
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "max_connections=40"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    cpus: 0.75
+    mem_limit: 640m
+  init:
+    <<: *superset
+    command: ["sh", "-c", "superset db upgrade && superset init && python /lab/bootstrap.py"]
+    depends_on:
+      postgres: {condition: service_healthy}
+  superset:
+    <<: *superset
+    ports: ["127.0.0.1:8088:8088"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8088", "--workers", "1", "--threads", "2", "--timeout", "90", "superset.app:create_app()"]
+    depends_on:
+      init: {condition: service_completed_successfully}
+volumes:
+  postgres-data:
