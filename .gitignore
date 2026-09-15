@@ -60,3 +60,6 @@ playwright-report/
 
 # Isolated Superset lab credentials and runtime outputs
 /integrations/superset/.local/
+
+# Internal communication material is not part of the public demo repository
+/infomations/

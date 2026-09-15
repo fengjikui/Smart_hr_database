@@ -23,6 +23,7 @@ bash integrations/superset/lab.sh validate
 - 本地生成的登录信息：`.local/credentials.json`；操作系统文件权限600，未提交Git。
 - 管理账号`lab_admin`用于查看/维护配置；它没有业务人员映射，不作为Agent查询账号。
 - 如使用自己的Docker环境，给脚本设置`HR_LAB_DOCKER_HOST`。脚本不切换全局Docker context。
+- 构建时若需要使用已有代理，可显式设置`HR_LAB_BUILD_PROXY`。本机首次构建使用`HR_LAB_BUILD_NETWORK=host HR_LAB_BUILD_PROXY=http://host.lima.internal:7890 bash integrations/superset/lab.sh up`，其中host网络仅用于虚拟机内的镜像构建，运行中的Superset/PostgreSQL仍使用Compose隔离网络与本机端口绑定。不修改系统代理。没有该代理时不要照抄地址。
 - 停止容器：`bash integrations/superset/lab.sh stop`。再按需执行`colima stop --profile hr-superset`。不要用删除卷作为常规停止方式。
 
 ## 演示账号与人工预期
@@ -37,7 +38,7 @@ bash integrations/superset/lab.sh validate
 | lab_unmapped | 未映射用户 | 无 | 缺少身份映射时默认拒绝数据 |
 | lab_sql_tester | 专门的边界探针 | 正常数据集仅E | 多授予SQL Lab和公共连接权限，专用于暴露未登记视图的边界 |
 
-前两个HR账号可读敏感数据集，其余普通业务角色只可读公共数据集。`lab_sql_tester`是刻意增加权限的测试身份，不能照搬到生产。J由C服务，但J的下属K由X服务，所以K不因J的关系进入C或B的服务范围。
+前两个HR账号可读敏感数据集，其余普通业务角色只可读公共数据集。薪资授权仅是实验假设，不代表公司的正式薪酬权限政策。`lab_sql_tester`是刻意增加权限的测试身份，不能照搬到生产。J由C服务，但J的下属K由X服务，所以K不因J的关系进入C或B的服务范围。
 
 ## 配置在哪里
 
@@ -67,4 +68,8 @@ Superset管理页面里，检查Security下的角色和Row Level Security；在D
 
 该实验不修改Superset源码，也不把Superset包装成数据库原生RLS。数据库本身在这里实施列/表访问边界；用户人员范围在Superset的数据集RLS中执行。拥有公共连接自由SQL权限的人，可能从未登记视图读到12人，这是测试需要证明的边界，不是验收后应该忽略的风险。
 
-本实验不宣称完成OA真实登录、MCP传输鉴权、与现有LangGraph执行器切换或生产性能测试。本文启动步骤需以本机实际执行报告为准。
+2026-09-15已完成本机ARM64部署及27项接口验收，Superset/PostgreSQL均健康；同一套测试也在GitHub CI通过。浏览器已实际登录员工和HR主管，确认分别显示1条和7条记录。[本机记录](../../reports/superset-permissions-local.json)、[CI记录](../../reports/superset-permissions-ci.json)、[页面记录](../../reports/superset-ui-smoke.json)。
+
+已知接入行为：被禁止的自定义指标子查询在6.1.0返回HTTP 500，而不是统一的4xx业务错误。验证脚本同时检查拒绝原因和无结果，不能将任意500算作权限检查通过。REST客户端声明`Accept: application/json`，上层需要统一错误处理。界面使用官方菜单，显式登记en/zh以避免locale不在语言表中引起空白页；没有中文翻译资源时回退英文。
+
+本实验不宣称完成OA真实登录、MCP传输鉴权、与现有LangGraph执行器切换或生产性能测试。

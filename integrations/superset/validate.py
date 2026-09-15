@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parent
 FIXTURE = json.loads((ROOT / "fixtures.json").read_text())
 CREDENTIALS = json.loads((ROOT / ".local/credentials.json").read_text())
 CHECKS = []
+OBSERVATIONS = {}
 
 
 @contextmanager
@@ -180,6 +181,10 @@ def main():
             f"Subquery probe returned HTTP {probe.status_code}, content-type={probe.headers.get('content-type')}; inspect Superset service diagnostics."
         )
         probe_message = json.dumps(probe.json(), ensure_ascii=False).lower()
+        OBSERVATIONS["adhoc_subquery_rejection"] = {
+            "status_code": probe.status_code,
+            "content_type": probe.headers.get("content-type"),
+        }
         assert "sub-quer" in probe_message or "subquer" in probe_message or "子查询" in probe_message, (
             probe_message
         )
@@ -267,6 +272,7 @@ def main():
         "environment": "GitHub CI" if os.environ.get("GITHUB_ACTIONS") else "local",
         "passed": True,
         "checks": CHECKS,
+        "observations": OBSERVATIONS,
         "scope": "真实REST + PostgreSQL；不宣称已测试MCP传输、OA或生产并发",
         "warning": "未注册视图的12行结果是有意设置的反例，证明不能将Superset当作任意SQL防火墙；普通业务角色未授予SQL Lab。",
     }

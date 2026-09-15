@@ -1,6 +1,8 @@
 # Superset 集成：权限可行性、查询路径与 OA 身份
 
-研究日期：2026-09-15。代码核对固定到 Apache Superset `6.1.0`，不是滚动更新的 `master`。截至研究时，GitHub 官方发布列表和 PyPI 的最新正式版本均为6.1.0。内网实际版本尚待确认。本文讨论方案；本机实测结果另见实验目录，不能把方案描述当成已完成生产接入。
+研究日期：2026-09-15。代码核对固定到 Apache Superset `6.1.0`，不是滚动更新的 `master`。截至研究时，GitHub 官方发布列表和 PyPI 的最新正式版本均为6.1.0。内网实际版本尚待确认。已完成独立实验；现有Agent执行器与OA的生产接入仍属于后续方案。
+
+本机ARM64和GitHub CI均通过27项真实REST/PostgreSQL检查；浏览器另验证员工可见1人、HR主管可见7人。[本机接口记录](../reports/superset-permissions-local.json)、[CI记录](../reports/superset-permissions-ci.json)、[页面检查记录](../reports/superset-ui-smoke.json)、[启动与演示说明](../integrations/superset/README.md)。
 
 ## 判断
 
@@ -116,6 +118,8 @@ OA解决“你是谁以及登录是否仍有效”；它不自动完成HR数据�
 ## 本机实验与后续沟通
 
 实验配置、合成关系样例、SQL对象及真实接口验证脚本放在`integrations/superset/`。Superset元数据库与HR业务库分开，公共/敏感数据使用不同数据库只读账号；本地密码在忽略目录生成，不提交Git。查询缓存关闭，先验证撤权效果。当前HR演示的端口和数据不改变。
+
+实测还记录了两个接入细节：第一，自定义指标中的子查询确实被安全检查拒绝，但6.1.0在该路径返回HTTP 500；发送`Accept: application/json`后得到包含拒绝原因的JSON。后续适配器必须规范化错误，不能因为失败而改走不受限SQL重试。第二，设置中文locale时需要在`LANGUAGES`中登记对应语言，否则可能出现页面初始化错误。本实验显式登记en/zh，缺失的中文资源允许回退英文，业务数据和文档仍为中文。
 
 需要向主管、OA负责人、HR业务与DBA确认：
 

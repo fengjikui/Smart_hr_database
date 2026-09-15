@@ -1,6 +1,11 @@
 name: hr-superset-lab
 x-superset: &superset
-  build: .
+  build:
+    context: .
+    network: ${HR_LAB_BUILD_NETWORK:-default}
+    args:
+      HTTP_PROXY: ${HR_LAB_BUILD_PROXY:-}
+      HTTPS_PROXY: ${HR_LAB_BUILD_PROXY:-}
   env_file: .local/lab.env
   environment:
     SUPERSET_CONFIG_PATH: /lab/superset_config.py
