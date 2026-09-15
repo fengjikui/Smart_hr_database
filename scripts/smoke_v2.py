@@ -53,7 +53,7 @@ def main(base_url):
         checks.append("员工仅本人且无合同/导出权限")
         page = client.get("/demo")
         page.raise_for_status()
-        assert "HR 数据工作台" in page.text
+        assert "正在加载身份、权限和数据目录" in page.text
         checks.append("生产构建页面可访问")
     report = {"passed": True, "checks": checks, "base_url": base_url, "model_inference": False}
     Path("reports").mkdir(exist_ok=True)

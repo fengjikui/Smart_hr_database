@@ -1,14 +1,22 @@
 'use client';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   BookOpen,
   Database,
   History,
   MessageSquare,
+  Menu,
+  X,
   Network,
   Plus,
-  Send,
+  ArrowUp,
   Table2,
 } from 'lucide-react';
 import { PlanBuilder } from './builder';
@@ -120,37 +128,29 @@ export default function DemoWorkspace() {
   }, [boot]);
   return (
     <div className="d-app">
-      <header className="d-header">
-        <Link href="/demo" className="d-brand">
-          <span>澄观</span>
-          <span>HR 数据工作台</span>
-          <small>演示 V2</small>
-        </Link>
-        <div className="d-header-right">
-          <span className="d-synthetic">合成数据 · 2026-09-11</span>
-          <label>
-            演示身份
-            <select
-              aria-label="切换演示身份"
-              disabled={loading}
-              value={boot?.principal.id || 'hr_lead'}
-              onChange={(e) => void refresh(e.target.value)}
-            >
-              {(boot?.personas || fallbackPersonas).map((p) => (
-                <option value={p.id} key={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </header>
       {loading ? (
         <output className="d-loading">正在加载身份、权限和数据目录…</output>
       ) : error ? (
         <div className="d-error" role="alert">
           {error}
           <button onClick={() => void refresh()}>重新连接</button>
+          <label>
+            演示身份
+            <select
+              aria-label="切换演示身份"
+              defaultValue=""
+              onChange={(e) => void refresh(e.target.value)}
+            >
+              <option value="" disabled>
+                选择身份重新连接
+              </option>
+              {fallbackPersonas.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       ) : (
         boot && (
@@ -158,6 +158,7 @@ export default function DemoWorkspace() {
             key={`${boot.principal.id}-${boot.principal.policy_version}-${boot.fingerprint}`}
             boot={boot}
             onChanged={() => void refresh()}
+            onPersonaChanged={(id) => void refresh(id)}
           />
         )
       )}
@@ -168,13 +169,24 @@ export default function DemoWorkspace() {
 function Workspace({
   boot,
   onChanged,
+  onPersonaChanged,
 }: {
   boot: Bootstrap;
   onChanged: () => void;
+  onPersonaChanged: (id: string) => void;
 }) {
   const [tab, setTab] = useState<Tab>('chat');
   const [question, setQuestion] = useState('');
-  const [reply, setReply] = useState<Result | null>(null);
+  const [replies, setReplies] = useState<Result[]>([]);
+  const [pendingQuestion, setPendingQuestion] = useState('');
+  const chatEpoch = useRef(0);
+  const composing = useRef(false);
+  const compositionEndedAt = useRef(0);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const sidebar = useRef<HTMLElement | null>(null);
+  const menuButton = useRef<HTMLButtonElement | null>(null);
+  const latestTurn = useRef<HTMLDivElement | null>(null);
+  const composerInput = useRef<HTMLTextAreaElement | null>(null);
   const [previous, setPrevious] = useState<Result | null>(null);
   const [draft, setDraft] = useState<Plan>(defaultPlan);
   const [seed, setSeed] = useState<Result | null>(null);
@@ -244,21 +256,32 @@ function Workspace({
     setTab('explore');
     setError('');
   }, []);
-  const ask = () =>
-    void perform(
+  const ask = async () => {
+    const text = question.trim();
+    if (busy || text.length < 2) return;
+    const requestVersion = ++chatEpoch.current;
+    setPendingQuestion(text);
+    await perform(
       (signal) =>
         request<Result>(
           '/chat',
           boot.principal.csrf,
-          { question, previous_id: previous?.id || null },
+          {
+            question: text,
+            previous_id: previous?.id || null,
+          },
           signal,
         ),
       (r) => {
-        setReply(r);
+        setReplies((items) => [...items, r]);
         if (r.status === 'success') setPrevious(r);
         setQuestion('');
       },
     );
+    if (requestVersion === chatEpoch.current) {
+      setPendingQuestion('');
+    }
+  };
   const run = () =>
     void perform(
       (signal) => request<Result>('/query', boot.principal.csrf, draft, signal),
@@ -277,23 +300,128 @@ function Workspace({
           signal,
         ),
       (r) => {
-        setReply(r);
+        setReplies([r]);
         setPrevious(r.status === 'success' ? r : null);
         setTab('chat');
       },
     );
   function newConversation() {
+    chatEpoch.current += 1;
     aborter.current?.abort();
     setBusy(false);
     setPrevious(null);
-    setReply(null);
+    setReplies([]);
+    setPendingQuestion('');
+    setMobileOpen(false);
     setQuestion('');
     setError('');
     setTab('chat');
   }
+  useLayoutEffect(() => {
+    const input = composerInput.current;
+    if (!input) return;
+    input.style.height = '0px';
+    input.style.height = `${Math.min(Math.max(input.scrollHeight, 48), 104)}px`;
+  }, [question, tab]);
+  useEffect(() => {
+    if (tab === 'chat') latestTurn.current?.scrollIntoView({ block: 'start' });
+  }, [tab, replies.length, pendingQuestion]);
+  useEffect(() => {
+    if (tab === 'chat' && !pendingQuestion && replies.length)
+      composerInput.current?.focus({ preventScroll: true });
+  }, [tab, replies.length, pendingQuestion]);
+  useEffect(() => {
+    if (mobileOpen)
+      sidebar.current
+        ?.querySelector<HTMLButtonElement>('.d-mobile-close')
+        ?.focus();
+  }, [mobileOpen]);
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 701px)');
+    const close = () => {
+      if (desktop.matches) setMobileOpen(false);
+    };
+    desktop.addEventListener('change', close);
+    return () => desktop.removeEventListener('change', close);
+  }, []);
+  const closeMenu = useCallback(() => {
+    setMobileOpen(false);
+    menuButton.current?.focus();
+  }, []);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const keyboard = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const controls = Array.from(
+        sidebar.current?.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),select,summary',
+        ) || [],
+      ).filter((node) => {
+        const closedDetails = node.closest('details:not([open])');
+        return (
+          node.getClientRects().length > 0 &&
+          (!closedDetails ||
+            (node.tagName === 'SUMMARY' &&
+              node.parentElement === closedDetails))
+        );
+      });
+      if (!controls.length) return;
+      const first = controls[0],
+        last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', keyboard);
+    return () => document.removeEventListener('keydown', keyboard);
+  }, [mobileOpen, closeMenu]);
   return (
     <div className="d-shell">
-      <aside className="d-sidebar">
+      <button
+        ref={menuButton}
+        className="d-mobile-menu"
+        aria-label="打开导航和身份设置"
+        aria-expanded={mobileOpen}
+        aria-controls="demo-sidebar"
+        onClick={() => setMobileOpen(true)}
+      >
+        <Menu size={20} />
+      </button>
+      {mobileOpen && (
+        <button
+          className="d-sidebar-backdrop"
+          aria-label="关闭导航"
+          onClick={closeMenu}
+        />
+      )}
+      <aside
+        id="demo-sidebar"
+        ref={sidebar}
+        className={`d-sidebar${mobileOpen ? ' is-open' : ''}`}
+        aria-label="工作台导航与身份"
+      >
+        <div className="d-sidebar-brand">
+          <Link href="/demo" className="d-brand">
+            <span>澄观</span>
+            <small>HR 智能问数</small>
+          </Link>
+          <button
+            className="d-mobile-close"
+            aria-label="收起导航"
+            onClick={closeMenu}
+          >
+            <X size={18} />
+          </button>
+        </div>
         <button className="d-new" onClick={newConversation}>
           <Plus size={17} />
           新建查询
@@ -306,6 +434,7 @@ function Workspace({
               aria-current={tab === t.key ? 'page' : undefined}
               onClick={() => {
                 setTab(t.key);
+                setMobileOpen(false);
                 setError('');
               }}
             >
@@ -314,150 +443,222 @@ function Workspace({
             </button>
           ))}
         </nav>
-        <div className="d-scope-note">
-          <strong>{boot.principal.count} 位可见在职员工</strong>
-          <span>候选人员 {boot.principal.candidate_count} 位（含离职）</span>
-          <span>权限版本 {boot.principal.policy_version}</span>
-          <span className={boot.model.connected ? 'd-model-ok' : ''}>
-            ● {boot.model.connected ? boot.model.display_name : '模型未连接'}
-          </span>
-          <Link href="/">打开原版工作台</Link>
+        <div className="d-account">
+          <label htmlFor="demo-persona">演示身份</label>
+          <select
+            id="demo-persona"
+            aria-label="切换演示身份"
+            value={boot.principal.id}
+            onChange={(e) => onPersonaChanged(e.target.value)}
+          >
+            {boot.personas.map((p) => (
+              <option value={p.id} key={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          <div className="d-scope-note">
+            <span>{boot.principal.count} 位可见在职员工</span>
+            <span className="d-synthetic">合成数据 · {boot.catalog.as_of}</span>
+            <details>
+              <summary>权限与模型状态</summary>
+              <div className="d-account-details">
+                <span>
+                  候选人员 {boot.principal.candidate_count} 位（含离职）
+                </span>
+                <span>权限版本 {boot.principal.policy_version}</span>
+                <span className={boot.model.connected ? 'd-model-ok' : ''}>
+                  ●{' '}
+                  {boot.model.connected
+                    ? boot.model.display_name
+                    : '模型未连接'}
+                </span>
+                <Link href="/">打开原版工作台</Link>
+              </div>
+            </details>
+          </div>
         </div>
       </aside>
-      <main className="d-main">
-        <div className="d-page-title">
-          <div>
-            <p className="d-eyebrow">
-              HR ANALYTICS / {tabs.find((t) => t.key === tab)?.label}
-            </p>
+      <main
+        className={`d-main${tab === 'chat' ? ' d-main-chat' : ''}`}
+        inert={mobileOpen}
+      >
+        {tab === 'chat' ? (
+          <h1 className="d-sr-only">智能问数</h1>
+        ) : (
+          <div className="d-page-title">
             <h1>
-              {tab === 'chat'
-                ? '从业务问题，到可核验的答案'
-                : tab === 'explore'
-                  ? '像操作表格一样，核对每一个结果'
-                  : tabs.find((t) => t.key === tab)?.label}
+              {tab === 'explore'
+                ? '自助核验'
+                : tabs.find((t) => t.key === tab)?.label}
             </h1>
           </div>
-          <span className="d-muted">{boot.principal.label}</span>
-        </div>
+        )}
         {error && (
           <div className="d-error" role="alert">
             {error}
             <button onClick={() => setError('')}>关闭</button>
           </div>
         )}
-        {busy && (
-          <output className="d-working">
-            正在处理
-            {tab === 'chat' ? ' · 本地模型生成计划、校验条件并查询' : ''}…
-          </output>
+        {busy && tab !== 'chat' && (
+          <output className="d-working">正在处理…</output>
         )}
         {tab === 'chat' && (
           <>
-            {!reply && (
-              <div className="d-empty-chat">
-                <h2>输入问题，也可以从演示题单开始</h2>
-                <p>
-                  查询当前授权内的人员、教育背景及入离职信息。答案会附上筛选条件、统计口径和计算依据。
-                </p>
-                <div className="d-suggestions">
-                  {cases
-                    .filter((c) =>
-                      (boot.principal.role === 'employee'
-                        ? []
-                        : boot.principal.role === 'hrbp'
-                          ? ['HR-02', 'HR-10']
-                          : boot.principal.role === 'manager'
-                            ? ['HR-01', 'HR-15']
-                            : ['HR-05', 'HR-09', 'HR-10', 'HR-15']
-                      ).includes(c.id),
-                    )
-                    .map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => setQuestion(c.question)}
-                      >
-                        {c.question}
-                        <span>↗</span>
-                      </button>
-                    ))}
+            <div className="d-chat-scroll" aria-label="问数对话">
+              {replies.length === 0 && !pendingQuestion && (
+                <div className="d-empty-chat">
+                  <h2>今天想了解哪些人员信息？</h2>
+                  <p>
+                    直接提问，或从下面的示例开始。每个结果都可以查看条件、明细与计算依据。
+                  </p>
+                  <div className="d-suggestions">
+                    {cases
+                      .filter((c) =>
+                        (boot.principal.role === 'employee'
+                          ? []
+                          : boot.principal.role === 'hrbp'
+                            ? ['HR-02', 'HR-10']
+                            : boot.principal.role === 'manager'
+                              ? ['HR-01', 'HR-15']
+                              : ['HR-05', 'HR-09', 'HR-10', 'HR-15']
+                        ).includes(c.id),
+                      )
+                      .map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => setQuestion(c.question)}
+                        >
+                          {c.question}
+                          <span>↗</span>
+                        </button>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            )}
-            {reply && (
-              <>
-                <div className="d-user-question">
-                  <span>你的问题</span>
-                  <p>{reply.question}</p>
-                </div>
-                {reply.status === 'success' ? (
-                  <ResultView
-                    key={reply.id}
-                    seed={reply}
+              )}
+              {replies.map((r, index) => (
+                <div
+                  key={r.id || index}
+                  ref={
+                    index === replies.length - 1 && !pendingQuestion
+                      ? latestTurn
+                      : undefined
+                  }
+                >
+                  <ChatExchange
+                    reply={r}
+                    latest={index === replies.length - 1 && !pendingQuestion}
                     boot={boot}
                     onExplore={explore}
                     onError={onError}
                   />
-                ) : (
-                  <div className="d-clarify">
-                    <strong>
-                      {reply.status === 'blocked'
-                        ? '权限限制'
-                        : '需要进一步说明'}
-                    </strong>
-                    <p>{reply.message}</p>
-                    {reply.trace && (
-                      <details>
-                        <summary>查看节点记录</summary>
-                        <pre>{JSON.stringify(reply.trace, null, 2)}</pre>
-                      </details>
-                    )}
+                </div>
+              ))}
+              {pendingQuestion && (
+                <div ref={latestTurn} className="d-chat-exchange">
+                  <div className="d-user-question">
+                    <span className="d-sr-only">你的问题</span>
+                    <p>{pendingQuestion}</p>
                   </div>
-                )}
-              </>
-            )}
-            <form
-              className="d-composer"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (question.trim().length >= 2 && !busy) ask();
-              }}
-            >
-              {previous && (
-                <div className="d-context">
-                  继续追问：{previous.question}
-                  <button type="button" onClick={() => setPrevious(null)}>
-                    清除上下文
-                  </button>
+                  <output className="d-working">
+                    澄观正在理解问题、核对条件并查询…
+                  </output>
                 </div>
               )}
-              <label className="d-sr-only" htmlFor="hr-question">
-                输入HR业务问题
-              </label>
-              <textarea
-                id="hr-question"
-                rows={2}
-                maxLength={800}
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder={
-                  previous
-                    ? '例如：把学校改成浙江大学，其他条件不变…'
-                    : '例如：平台研发部和智能产品部目前硕士及以上占比各是多少？'
-                }
-              />
-              <div>
-                <span>本地模型 · 回答受当前权限与字段范围约束</span>
-                <button
-                  className="d-primary"
-                  disabled={busy || question.trim().length < 2}
-                  type="submit"
-                >
-                  <Send size={16} />
-                  发送
-                </button>
-              </div>
-            </form>
+            </div>
+            <div className="d-composer-dock">
+              <form
+                className="d-composer"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (question.trim().length >= 2 && !busy) void ask();
+                }}
+              >
+                {previous && (
+                  <div className="d-context">
+                    <span title={previous.question}>
+                      继续追问：{previous.question}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="清除上下文"
+                      title="清除上下文"
+                      onClick={() => setPrevious(null)}
+                    >
+                      <X size={14} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
+                <label className="d-sr-only" htmlFor="hr-question">
+                  输入HR业务问题
+                </label>
+                <div className="d-input-surface">
+                  <textarea
+                    id="hr-question"
+                    ref={composerInput}
+                    aria-describedby="hr-input-help"
+                    disabled={!!pendingQuestion}
+                    onCompositionStart={() => {
+                      composing.current = true;
+                    }}
+                    onCompositionEnd={(e) => {
+                      composing.current = false;
+                      compositionEndedAt.current = e.timeStamp;
+                    }}
+                    onKeyDown={(e) => {
+                      if (
+                        e.key !== 'Enter' ||
+                        e.nativeEvent.isComposing ||
+                        composing.current ||
+                        e.timeStamp - compositionEndedAt.current < 50
+                      )
+                        return;
+                      e.preventDefault();
+                      if (e.ctrlKey) {
+                        const input = e.currentTarget;
+                        const start = input.selectionStart,
+                          end = input.selectionEnd;
+                        if (question.length - (end - start) >= 800) return;
+                        const nextText =
+                          question.slice(0, start) + '\n' + question.slice(end);
+                        setQuestion(nextText);
+                        requestAnimationFrame(() => {
+                          if (input.value === nextText)
+                            input.setSelectionRange(start + 1, start + 1);
+                        });
+                      } else if (!busy) void ask();
+                    }}
+                    rows={1}
+                    maxLength={800}
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    placeholder={previous ? '继续追问…' : '输入 HR 问题…'}
+                  />
+                  {!question && (
+                    <span className="d-composer-hint" aria-hidden="true">
+                      <span className="d-local-hint">本地模型 · </span>
+                      当前授权范围
+                      <span className="d-shortcut-hint">
+                        {' '}
+                        · Enter 发送 / Ctrl+Enter 换行
+                      </span>
+                    </span>
+                  )}
+                  <span id="hr-input-help" className="d-sr-only">
+                    Enter 发送，Ctrl 加 Enter 换行。仅查询当前授权范围。
+                  </span>
+                  <button
+                    className="d-primary d-send"
+                    aria-label="发送"
+                    title="发送（Enter）"
+                    disabled={busy || question.trim().length < 2}
+                    type="submit"
+                  >
+                    <ArrowUp size={20} aria-hidden="true" />
+                  </button>
+                </div>
+              </form>
+            </div>
           </>
         )}
         {tab === 'explore' && (
@@ -642,5 +843,76 @@ function Workspace({
         )}
       </main>
     </div>
+  );
+}
+
+function ChatExchange({
+  reply,
+  latest,
+  boot,
+  onExplore,
+  onError,
+}: {
+  reply: Result;
+  latest: boolean;
+  boot: Bootstrap;
+  onExplore: (r: Result) => void;
+  onError: (message: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <article
+      className="d-chat-exchange"
+      aria-label={reply.question || '查询回答'}
+    >
+      <div className="d-user-question">
+        <span className="d-sr-only">你的问题</span>
+        <p>{reply.question}</p>
+      </div>
+      <div className="d-assistant-label">
+        <MessageSquare size={16} />
+        <span>澄观</span>
+      </div>
+      {reply.status === 'success' ? (
+        latest || expanded ? (
+          <>
+            {!latest && (
+              <button
+                className="d-collapse-result"
+                onClick={() => setExpanded(false)}
+              >
+                收起这次结果
+              </button>
+            )}
+            <ResultView
+              seed={reply}
+              boot={boot}
+              onExplore={onExplore}
+              onError={onError}
+            />
+          </>
+        ) : (
+          <div className="d-previous-answer">
+            <p className="d-answer">{reply.summary}</p>
+            <button onClick={() => setExpanded(true)}>
+              查看这次的表格与调试记录
+            </button>
+          </div>
+        )
+      ) : (
+        <div className="d-clarify">
+          <strong>
+            {reply.status === 'blocked' ? '权限限制' : '需要进一步说明'}
+          </strong>
+          <p>{reply.message}</p>
+          {reply.trace && (
+            <details>
+              <summary>查看节点记录</summary>
+              <pre>{JSON.stringify(reply.trace, null, 2)}</pre>
+            </details>
+          )}
+        </div>
+      )}
+    </article>
   );
 }
