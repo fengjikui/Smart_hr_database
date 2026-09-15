@@ -22,6 +22,8 @@ import {
 import { PlanBuilder } from './builder';
 import { Permissions } from './permissions';
 import { ResultView } from './result';
+import { DebugWorkspace } from './debug-workspace';
+import { RunDebugLink } from './debug-link';
 import {
   defaultPlan,
   request,
@@ -49,7 +51,7 @@ const fallbackPersonas = [
   { id: 'admin', label: '配置管理员 · 集团管理线' },
 ];
 
-export default function DemoWorkspace() {
+export default function DemoWorkspace({ debug = false }: { debug?: boolean }) {
   const [boot, setBoot] = useState<Bootstrap | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -153,14 +155,21 @@ export default function DemoWorkspace() {
           </label>
         </div>
       ) : (
-        boot && (
+        boot &&
+        (debug ? (
+          <DebugWorkspace
+            key={`${boot.principal.id}-${boot.principal.policy_version}-${boot.fingerprint}`}
+            boot={boot}
+            onPersonaChanged={(id) => void refresh(id)}
+          />
+        ) : (
           <Workspace
             key={`${boot.principal.id}-${boot.principal.policy_version}-${boot.fingerprint}`}
             boot={boot}
             onChanged={() => void refresh()}
             onPersonaChanged={(id) => void refresh(id)}
           />
-        )
+        ))
       )}
     </div>
   );
@@ -442,6 +451,7 @@ function Workspace({
               {t.label}
             </button>
           ))}
+          <RunDebugLink navigation />
         </nav>
         <div className="d-account">
           <label htmlFor="demo-persona">演示身份</label>
@@ -894,9 +904,8 @@ function ChatExchange({
         ) : (
           <div className="d-previous-answer">
             <p className="d-answer">{reply.summary}</p>
-            <button onClick={() => setExpanded(true)}>
-              查看这次的表格与调试记录
-            </button>
+            <button onClick={() => setExpanded(true)}>查看这次的表格</button>
+            <RunDebugLink runId={reply.id} />
           </div>
         )
       ) : (
@@ -905,12 +914,7 @@ function ChatExchange({
             {reply.status === 'blocked' ? '权限限制' : '需要进一步说明'}
           </strong>
           <p>{reply.message}</p>
-          {reply.trace && (
-            <details>
-              <summary>查看节点记录</summary>
-              <pre>{JSON.stringify(reply.trace, null, 2)}</pre>
-            </details>
-          )}
+          {reply.id && <RunDebugLink runId={reply.id} />}
         </div>
       )}
     </article>

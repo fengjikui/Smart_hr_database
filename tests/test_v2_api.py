@@ -74,6 +74,31 @@ def test_revoked_session_cannot_continue(client):
     old.close()
 
 
+@pytest.mark.parametrize("status", ["success", "clarify", "blocked"])
+def test_debug_history_payload_is_owner_scoped(client, status):
+    login(client)
+    principal = store.PERSONAS[0]
+    trace = [{"name": "测试节点", "input": {"question": "示例"}, "output": None, "duration_ms": 0}]
+    result = (
+        service.run_query(principal, Plan())
+        if status == "success"
+        else {"status": status, "message": "示例说明"}
+    )
+    saved = service.save_run(principal, "调试历史示例", result, trace=trace)
+    path = "/api/v2/history/" + saved["id"]
+    response = client.get(path)
+    assert response.status_code == 200
+    assert response.json()["trace"] == trace
+    assert response.json()["status"] == status
+    assert any(r["id"] == saved["id"] for r in client.get("/api/v2/history").json())
+    login(client, "employee")
+    assert client.get(path).status_code == 404
+    assert saved["id"] not in [r["id"] for r in client.get("/api/v2/history").json()]
+    assert "测试节点" not in client.get(path).text
+    client.cookies.clear()
+    assert client.get(path).status_code == 401
+
+
 def test_details_toggle_and_history_revocation(client):
     login(client)
     p = store.PERSONAS[0]

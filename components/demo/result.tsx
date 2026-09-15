@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts';
 import { QueryGrid } from './grid';
+import { RunDebugLink } from './debug-link';
 import {
   request,
   type Bootstrap,
@@ -251,22 +252,7 @@ export function ResultView({
           )}
         </pre>
       </details>
-      {seed.trace && (
-        <details className="d-debug">
-          <summary>Agent 节点调试 · {seed.trace.length} 步</summary>
-          {seed.trace.map((step, i) => (
-            <details key={i}>
-              <summary>
-                {i + 1}. {step.name} · {step.duration_ms} ms
-              </summary>
-              <h4>输入</h4>
-              <pre>{JSON.stringify(step.input, null, 2)}</pre>
-              <h4>输出</h4>
-              <pre>{JSON.stringify(step.output, null, 2)}</pre>
-            </details>
-          ))}
-        </details>
-      )}
+      {seed.id && <RunDebugLink runId={seed.id} />}
       <p className="d-footnote">{result.notes.join(' ')}</p>
     </section>
   );

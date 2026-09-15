@@ -55,6 +55,11 @@ def main(base_url):
         page.raise_for_status()
         assert "正在加载身份、权限和数据目录" in page.text
         checks.append("生产构建页面可访问")
+        debug_page = client.get("/demo/debug?run=missing-record")
+        debug_page.raise_for_status()
+        assert "节点调试 · 澄观 HR" in debug_page.text
+        assert client.get("/api/v2/history/missing-record").status_code == 404
+        checks.append("独立节点调试路由可访问且无效记录不泄露数据")
     report = {"passed": True, "checks": checks, "base_url": base_url, "model_inference": False}
     Path("reports").mkdir(exist_ok=True)
     Path("reports/demo-v2-http.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")

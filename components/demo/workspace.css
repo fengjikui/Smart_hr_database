@@ -157,6 +157,30 @@
   padding: 11px 15px;
   color: #586675;
 }
+.d-debug-nav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 15px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #586675;
+  text-decoration: none;
+}
+.d-debug-nav:hover {
+  background: var(--d-soft);
+}
+.d-run-debug-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--d-red);
+  margin: 14px 12px 14px 0;
+  text-decoration: none;
+}
+.d-run-debug-link:hover {
+  text-decoration: underline;
+}
 .d-sidebar nav button.active {
   color: var(--d-red);
   background: #f7e9eb;
