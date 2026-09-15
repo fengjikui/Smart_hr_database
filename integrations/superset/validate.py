@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+from contextlib import contextmanager
 from pathlib import Path
 
 import httpx
@@ -14,18 +15,24 @@ CREDENTIALS = json.loads((ROOT / ".local/credentials.json").read_text())
 CHECKS = []
 
 
+@contextmanager
 def client_for(username):
-    c = httpx.Client(base_url="http://127.0.0.1:8088", trust_env=False, timeout=60)
-    response = c.post(
-        "/api/v1/security/login",
-        json={"username": username, "password": CREDENTIALS[username], "provider": "db", "refresh": False},
-    )
-    response.raise_for_status()
-    c.headers["Authorization"] = "Bearer " + response.json()["access_token"]
-    response = c.get("/api/v1/security/csrf_token/")
-    response.raise_for_status()
-    c.headers["X-CSRFToken"] = response.json()["result"]
-    return c
+    with httpx.Client(base_url="http://127.0.0.1:8088", trust_env=False, timeout=60) as c:
+        response = c.post(
+            "/api/v1/security/login",
+            json={
+                "username": username,
+                "password": CREDENTIALS[username],
+                "provider": "db",
+                "refresh": False,
+            },
+        )
+        response.raise_for_status()
+        c.headers["Authorization"] = "Bearer " + response.json()["access_token"]
+        response = c.get("/api/v1/security/csrf_token/")
+        response.raise_for_status()
+        c.headers["X-CSRFToken"] = response.json()["result"]
+        yield c
 
 
 def chart(c, dataset_id, columns=None, filters=None, metrics=None):
