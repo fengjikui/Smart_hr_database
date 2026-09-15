@@ -1,6 +1,6 @@
 {
   "superset_version": "6.1.0",
-  "tested_at": "2026-09-15T15:00:03.233283+00:00",
+  "tested_at": "2026-09-15T15:18:29.188073+00:00",
   "environment": "GitHub CI",
   "passed": true,
   "checks": [
@@ -211,8 +211,14 @@
       "actual": 12
     }
   ],
+  "observations": {
+    "adhoc_subquery_rejection": {
+      "status_code": 500,
+      "content_type": "application/json; charset=utf-8"
+    }
+  },
   "scope": "真实REST + PostgreSQL；不宣称已测试MCP传输、OA或生产并发",
   "warning": "未注册视图的12行结果是有意设置的反例，证明不能将Superset当作任意SQL防火墙；普通业务角色未授予SQL Lab。",
-  "git_commit": "aa9a37d",
-  "ci_run_url": "https://github.com/fengjikui/Smart_hr_database/actions/runs/34985253664"
+  "git_commit": "b1cae7f",
+  "ci_run_url": "https://github.com/fengjikui/Smart_hr_database/actions/runs/34987388807"
 }
