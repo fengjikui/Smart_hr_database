@@ -10,6 +10,8 @@
 
 ## 现场启动
 
+独立的 **OpenFGA 花名册权限演示**：[http://127.0.0.1:8091](http://127.0.0.1:8091)。用 12 名合成员工演示成熟引擎的汇报线递归、HRBP 继承、角色配置、调岗撤权和真实请求响应。运行 `uv run python integrations/openfga/runtime.py up`。详见 [启动、5分钟讲解与权限模型](integrations/openfga/README.md)。该实验与下方 HR 问数主系统分开运行。
+
 本机已安装依赖、生成数据并加载模型。双击根目录的 **`启动演示.command`**，或在终端执行：
 
 ```bash
@@ -88,6 +90,7 @@ npm run release                      # 干净Git版本检查、构建、打包�
 | [权限与安全](docs/SECURITY.md) | 权限矩阵、执行边界、撤权、审计 |
 | [Superset集成调研](docs/SUPERSET_INTEGRATION_RESEARCH.md) | 角色与行列权限、REST/MCP边界、OA身份映射 |
 | [Superset权限实验](integrations/superset/README.md) | 独立PostgreSQL与Superset启动、演示账号、真实接口验收 |
+| [OpenFGA权限演示](integrations/openfga/README.md) | 12人样本、可配置关系权限、官方引擎调用、调岗撤权及现场脚本 |
 | [上线接入清单](docs/PRODUCTION_ROADMAP.md) | 应沟通的人、待获取材料、企业上线工作 |
 | [运行与维护](docs/OPERATIONS.md) | 端口、模型故障、备份、发布与回滚 |
 | [现场演示脚本](docs/DEMO_SCRIPT.md) | 10分钟演示与讨论顺序 |

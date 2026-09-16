@@ -1,0 +1,38 @@
+name: Validate OpenFGA permission lab
+on:
+  push:
+    paths: ['integrations/openfga/**', '.github/workflows/openfga-lab.yml']
+  pull_request:
+    paths: ['integrations/openfga/**', '.github/workflows/openfga-lab.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: openfga-lab-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  permission-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check integrations/openfga
+      - run: node --check integrations/openfga/static/app.js
+      - run: uv run python integrations/openfga/runtime.py up
+      - run: uv run pytest integrations/openfga/test_lab.py -q --junitxml=integrations/openfga/.local/junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openfga-permission-validation
+          path: |
+            integrations/openfga/.local/junit.xml
+            integrations/openfga/.local/logs/
+          include-hidden-files: true
+      - name: Stop only lab processes
+        if: always()
+        run: uv run python integrations/openfga/runtime.py stop

@@ -1,0 +1,41 @@
+model
+  schema 1.1
+
+type user
+
+type company
+  relations
+    define active: [user]
+    define reports_enabled: [user]
+    define hrbp_enabled: [user]
+    define inherit_hrbp_enabled: [user]
+    define private_enabled: [user]
+    define export_enabled: [user]
+
+type employee
+  relations
+    define owner: [user]
+    define company: [company]
+    define manager: [employee]
+    define hrbp: [employee]
+
+    # 只有管理关系参与递归，HRBP 服务边不参与管理链递归。
+    define direct_manager: owner from manager
+    define management_chain: direct_manager or management_chain from manager
+    define direct_hrbp: owner from hrbp
+    define inherited_hrbp: management_chain from hrbp
+
+    define active_user: active from company
+    define reports_capability: reports_enabled from company
+    define hrbp_capability: hrbp_enabled from company
+    define inherit_capability: inherit_hrbp_enabled from company
+    define private_capability: private_enabled from company
+    define export_capability: export_enabled from company
+
+    define report_grant: management_chain and reports_capability
+    define hrbp_grant: direct_hrbp and hrbp_capability
+    define inherited_hrbp_grant: inherited_hrbp and inherit_capability
+    define candidate: owner or report_grant or hrbp_grant or inherited_hrbp_grant
+    define view_basic: candidate and active_user
+    define view_private: view_basic and private_capability
+    define can_export: view_basic and export_capability
