@@ -25,6 +25,7 @@ jobs:
           enable-cache: true
       - run: uv sync --frozen
       - run: uv run ruff check integrations/superset
+      - run: uv run pytest integrations/superset/classroom/test_data.py -q
       - run: bash integrations/superset/lab.sh up
       - name: Wait for Superset
         run: |
@@ -34,6 +35,10 @@ jobs:
           done
           exit 1
       - run: bash integrations/superset/lab.sh validate
+      - name: Prepare manual learning classroom
+        run: python3 integrations/superset/classroom/run.py setup
+      - name: Verify classroom and restore empty permissions
+        run: python3 integrations/superset/classroom/run.py verify-preparation
       - name: Show service diagnostics on failure
         if: failure()
         run: bash integrations/superset/lab.sh logs
@@ -41,7 +46,9 @@ jobs:
         if: success()
         with:
           name: superset-permission-validation
-          path: integrations/superset/.local/validation.json
+          path: |
+            integrations/superset/.local/validation.json
+            integrations/superset/.local/classroom/verification.json
           include-hidden-files: true
       - name: Clean up lab
         if: always()

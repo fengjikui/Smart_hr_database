@@ -1,5 +1,7 @@
 # Superset 权限验证实验
 
+希望亲手填写配置，请从 [Superset 权限实操课](../../docs/SUPERSET_HANDS_ON_CLASSROOM.md) 开始。课堂代码在 `classroom/`，使用独立 `LEARN_*` 对象，准备后业务角色为空，规则留给学习者填写。
+
 固定 Apache Superset 6.1.0、PostgreSQL 17.11。独立于现有3000/8000端口的HR演示。只使用12名明确标记的合成人员，不读取`infomations/`或真实业务数据库。
 
 研究结论和OA接入设计见[集成调研](../../docs/SUPERSET_INTEGRATION_RESEARCH.md)。

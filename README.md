@@ -79,6 +79,7 @@ npm run release                      # 干净Git版本检查、构建、打包�
 
 | 文档 | 内容 |
 |---|---|
+| [Superset 权限实操课](docs/SUPERSET_HANDS_ON_CLASSROOM.md) | 从12笔订单开始，手填角色、区域、本人、AND/OR、敏感字段与汇报线规则；含可复现数据和验收 |
 | [Superset与OpenFGA学习指南](docs/SUPERSET_OPENFGA_STUDY_GUIDE.md) | 约105分钟学习路线、能力对照、配置与接入、同步和性能、官方出处、自测与讲解稿 |
 | [产品需求](docs/PRODUCT_REQUIREMENTS.md) | 用户、功能边界、验收标准 |
 | [语义层与LangGraph](docs/SEMANTIC_ARCHITECTURE.md) | 查询图、渐进式披露、JSON/关系库/向量方案取舍 |
