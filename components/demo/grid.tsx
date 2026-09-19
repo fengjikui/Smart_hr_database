@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V2 表格：QueryGrid 把筛选/排序/页码转换成 Plan，向后端重新查询。
+ * 使用 AG Grid Community 的 infinite 行模型，不使用 Enterprise 的 serverSide 模型；
+ * “服务端筛选”指本组件主动请求 /query，并非在浏览器已下载的数据上裁剪权限。
+ */
 import { useMemo, useRef, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
@@ -64,10 +69,12 @@ type GridFilter = {
   operator?: string;
 };
 function gridPlan(base: Plan, params: IGetRowsParams): Plan {
+  // 保留条件编辑器的基础筛选，再叠加列头筛选；更窄的条件不会扩大后端授权范围。
   const filters: Filter[] = [...base.filters];
   for (const [field, f] of Object.entries(
     params.filterModel as Record<string, GridFilter>,
   )) {
+    // 只翻译后端明确支持的操作，遇到未知组合就报错，不能悄悄丢掉用户条件。
     if (f.operator && f.operator !== 'AND')
       throw new Error('列头暂仅支持“并且”，多值“或者”请在条件区使用“属于”。');
     for (const item of f.conditions || [f]) {
@@ -90,6 +97,7 @@ function gridPlan(base: Plan, params: IGetRowsParams): Plan {
     order_by: params.sortModel.length
       ? params.sortModel.map((s) => ({ field: s.colId, direction: s.sort }))
       : base.order_by.filter((o) => !base.columns.includes(o.field)),
+    // 表格块大小与接口 page_size 统一为 50；后端返回完整匹配总数用于页数计算。
     page: Math.floor(params.startRow / 50) + 1,
     page_size: 50,
   };
@@ -110,10 +118,12 @@ export function QueryGrid({
   onError: (message: string) => void;
   onDrill?: (row: Row, metric: string) => void;
 }) {
+  // 用 ref 保持最新回调，避免仅因父组件回调引用变化就销毁数据源和重新拉取页面。
   const handlers = useRef({ onResult, onError, onDrill });
   useEffect(() => {
     handlers.current = { onResult, onError, onDrill };
   }, [onResult, onError, onDrill]);
+  // 切换条件、身份或卸载表格时取消旧请求，防止旧结果落进新状态。
   const controllers = useRef(new Set<AbortController>());
   useEffect(
     () => () => {
@@ -134,6 +144,7 @@ export function QueryGrid({
           params.failCallback();
           return;
         }
+        // 每次都由后端按当前会话重新鉴权并计算 totals；缓存块只用于前端浏览体验。
         request<Result>('/query', csrf, effective, controller.signal)
           .then((result) => {
             if (controller.signal.aborted) return;
@@ -156,6 +167,7 @@ export function QueryGrid({
     [plan, csrf],
   );
   const canDrill = !!onDrill;
+  // 指标列与辅助分子/分母列只按允许的方式交互，避免把聚合值当成员工字段筛选。
   const defs = useMemo<ColDef<Row>[]>(
     () =>
       columns.map((c) => {
@@ -241,6 +253,7 @@ export function StaticGrid({
   columns: Column[];
   rows: Row[];
 }) {
+  // 静态关系解释表只展示后端已经授权返回的 rows；这里的筛选/分页在浏览器完成。
   const defs = useMemo<ColDef<Row>[]>(
     () =>
       columns.map((c) => ({

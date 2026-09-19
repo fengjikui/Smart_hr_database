@@ -1,3 +1,9 @@
+"""统一业务服务：安全返回查询、独立对账、历史存档与统计下钻。
+
+API 和 LangGraph 共用这些函数，避免聊天、核验、导出或恢复历史各写一套
+权限逻辑。历史保存的是当时结果，不会悄悄用新数据重新计算旧回答。
+"""
+
 import hashlib
 import json
 from datetime import UTC, datetime
@@ -10,6 +16,7 @@ from .schema import FIELDS, METRICS, Plan
 
 
 def summary(result):
+    """仅用结果单元格生成中文摘要，数字、比例分母和有效样本数不交给模型补写。"""
     plan = Plan.model_validate(result["plan"])
     period = f"，期间 {plan.start_date} 至 {plan.end_date}" if plan.date_field else ""
     if plan.kind == "people":
@@ -31,6 +38,7 @@ def summary(result):
 
 
 def run_query(p, plan):
+    """查询前后比较指纹，丢弃执行期间身份/授权/数据发生变化的结果。"""
     before = auth.fingerprint(p)
     result = query.execute(p, plan)
     auth.refresh(p)
@@ -43,6 +51,11 @@ def run_query(p, plan):
 
 
 def reconcile(p, plan):
+    """对比全量查询结果与独立 Python 计算，不只检查当前分页。
+
+    Superset 在线参考只能使用当前已授权快照，避免对账差异成为全量数据旁路；
+    授权名单本身是否正确由离线回归的独立 BFS 验证，而非由此接口自我证明。
+    """
     before = auth.fingerprint(p)
     actual = query.execute(p, plan)
     if superset_source.enabled():
@@ -83,6 +96,7 @@ def reconcile(p, plan):
 
 
 def save_run(p, question, result, parent_id=None, trace=None, fingerprint=None):
+    """把结果与节点轨迹绑定本人及权限指纹；保存前再验权，避免晚到结果落库。"""
     auth.refresh(p)
     fingerprint = fingerprint or auth.fingerprint(p)
     if fingerprint != auth.fingerprint(p):
@@ -107,6 +121,7 @@ def save_run(p, question, result, parent_id=None, trace=None, fingerprint=None):
 
 
 def history(p):
+    """只列出本人且仍匹配当前权限/数据指纹的记录，不暴露其他人的问题标题。"""
     auth.refresh(p)
     with store.connection(readonly=True) as db:
         return [
@@ -119,6 +134,7 @@ def history(p):
 
 
 def read_run(p, rid):
+    """聊天恢复和独立调试页共用入口；知道记录 ID 并不意味着有读取权限。"""
     auth.refresh(p)
     with store.connection(readonly=True) as db:
         row = db.execute(
@@ -131,10 +147,11 @@ def read_run(p, rid):
 
 
 def drill_plan(p, plan, group, metric):
+    """从当前真实聚合组构造更窄的人员计划，随后仍由 run_query 完整鉴权执行。"""
     query.validate(p, plan)
     if plan.kind != "aggregate" or metric not in plan.metrics or set(group) != set(plan.group_by):
         raise HTTPException(422, "请选择本次结果中的分组和指标")
-    # Validate the selected group exists under current authorization before constructing detail conditions.
+    # 重新确认组确实存在；不能信任前端传来的任意部门/月份，把它当成授权证明。
     result = query.execute(p, plan)
     if not any(all(r.get(k) == v for k, v in group.items()) for r in result["_all_rows"]):
         raise HTTPException(404, "分组不存在或已失效")
@@ -160,6 +177,7 @@ def drill_plan(p, plan, group, metric):
             raise HTTPException(422, "未知分组暂不支持下钻，请在核验表检查空值记录")
         else:
             raw["filters"].append({"field": k, "op": "eq", "values": [str(v)]})
+    # 净增是两个集合计数之差，没有一份唯一对应的人员名单，因此要分别钻取。
     if raw["date_field"] == "employment_events":
         if metric not in ("hires", "departures"):
             raise HTTPException(422, "净增是入职减离职，请分别点击入职或离职查看人员")
@@ -184,6 +202,6 @@ def drill_plan(p, plan, group, metric):
         raw["filters"].append({"field": "labour_type_code_desc", "op": "eq", "values": ["外包"]})
     needed = set(query.dependencies(plan)) | {"employee_no", "name", "dept_cn_name"}
     needed.discard("person_id")
-    # Only fields which explain the metric/conditions are projected, plus person identity for reconciliation.
+    # 只投影解释本次指标/条件所需的字段及姓名工号，避免核验表暴露无关信息。
     raw["columns"] = [k for k in FIELDS if k in needed][:12]
     return Plan.model_validate(raw)

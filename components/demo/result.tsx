@@ -1,4 +1,8 @@
 'use client';
+/**
+ * V2 查询结果容器：服务端摘要 + 生效条件 + 表格 + 图表 + SQL 解释。
+ * 不在浏览器重算指标，也不据本页人数推算总数。核验、下钻、导出各自调用后端。
+ */
 import { useMemo, useState } from 'react';
 import { CheckCircle2, Download, ShieldCheck, Table2 } from 'lucide-react';
 import {
@@ -31,6 +35,7 @@ export function ResultView({
   onExplore: (r: Result) => void;
   onError: (m: string) => void;
 }) {
+  // seed 决定表格的基础查询；列头筛选后 result 更新为实际执行计划，同时清空旧核验结论。
   const [result, setResult] = useState(seed);
   const [verification, setVerification] = useState<Verification | null>(null);
   const [busy, setBusy] = useState(false);
@@ -62,6 +67,7 @@ export function ResultView({
     ),
   ];
   async function verify() {
+    // 把最新生效 Plan 交给独立参考实现；“一致”只证明演示口径的计算，不证明需求定义正确。
     setBusy(true);
     try {
       setVerification(
@@ -78,6 +84,8 @@ export function ResultView({
     }
   }
   async function download() {
+    // 导出传 Plan 而不是当前页 rows，后端重新鉴权后导出全部匹配记录。
+    // 按钮的 export 标志只改善交互，真正禁止导出必须由 API 执行。
     try {
       const response = await fetch('/api/v2/export', {
         method: 'POST',
@@ -102,6 +110,7 @@ export function ResultView({
     }
   }
   async function drill(row: Row, m: string) {
+    // 只提交点击行的分组键和指标；如何把比率还原为分子人员等口径在后端集中定义。
     try {
       const r = await request<Result>('/drill', boot.principal.csrf, {
         plan: result.plan,
@@ -113,6 +122,7 @@ export function ResultView({
       onError((e as Error).message);
     }
   }
+  // 图表使用当前页结果，渲染分支仅在完整分组不超过 50 时展示，避免把一页当全部分布。
   const chartRows = result.rows.map((r) => ({
     ...r,
     label: result.plan.group_by.map((k) => String(r[k])).join(' / '),

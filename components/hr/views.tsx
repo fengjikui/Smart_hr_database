@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V1 各业务页面集合：Overview 概览、Chat 问数、Boards 看板、Organization 组织、
+ * Catalog 指标目录、Governance 数据治理。页面消费已授权 API 结果，不直接查数据库。
+ * 这里的组织树、指标和考勤场景属于原版多表模型，不是 V2 宽表的数据定义。
+ */
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
@@ -74,6 +79,7 @@ export function Overview({
   boot: Bootstrap;
   onAsk: (q: string) => void;
 }) {
+  // 概览由后端一次返回各指标答案，前端仅排版，不能用可见表格页推算全域 KPI。
   const { data, loading, error, reload } = useResource<OverviewData>(
     '/overview',
     boot.principal.id,
@@ -306,6 +312,7 @@ export function Chat({
   const [messages, setMessages] = useState<Exchange[]>([]);
   const [busy, setBusy] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  // 多轮上下文保存服务端 conversation_id；每轮仍由后端校验历史归属和当前权限。
   const [previous, setPrevious] = useState<string | undefined>();
   const controller = useRef<AbortController | null>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
@@ -316,6 +323,7 @@ export function Chat({
     return () => clearInterval(t);
   }, [busy]);
   async function ask(value = question) {
+    // 先展示本轮提问，再用同一个请求控制器校验响应归属；失效请求不得回写消息列表。
     if (busy || value.trim().length < 2) return;
     const clean = value.trim();
     setQuestion('');
@@ -337,6 +345,7 @@ export function Chat({
       setMessages((v) =>
         v.map((m, i) => (i === v.length - 1 ? { ...m, answer } : m)),
       );
+      // 只有成功查询可以成为下一轮上下文，澄清/拒绝不会覆盖上一轮有效条件。
       if (answer.status === 'success') setPrevious(answer.conversation_id);
     } catch (e) {
       if (!activeRequest.signal.aborted && controller.current === activeRequest)
@@ -357,6 +366,7 @@ export function Chat({
     }
   }
   function fresh() {
+    // 新对话中断在途请求，清除本地消息与上下文链接，不删除服务器历史。
     controller.current?.abort();
     setMessages([]);
     setQuestion('');
@@ -525,6 +535,7 @@ export function Boards({
   onAsk: (q: string) => void;
   onExport: (a: Answer) => Promise<void>;
 }) {
+  // 接口返回当前用户拥有的看板及重新执行结果；保存计划不意味着持续拥有原来的数据权限。
   const { data, loading, error, reload } = useResource<{
     dashboards: Dashboard[];
   }>('/dashboards', boot.principal.id);
@@ -631,6 +642,7 @@ export function Boards({
   );
 }
 
+// 这里只递归渲染后端返回的部门节点，不在浏览器递归计算人员可见范围。
 function OrgBranch({
   department,
   all,
@@ -694,6 +706,8 @@ export function Organization({ boot }: { boot: Bootstrap }) {
   const [errorPeople, setErrorPeople] = useState('');
   const seq = useRef(0);
   async function select(d: Department) {
+    // 点击部门只是增加业务筛选；实际人员列表仍由 /query 做授权交集。
+    // seq 防止快速点击多个部门时旧请求覆盖最后一次选择。
     const n = ++seq.current;
     setSelected(d);
     setLoadingPeople(true);
@@ -873,6 +887,7 @@ export function Catalog({
     }[];
   }>('/catalog', boot.principal.id);
   const [query, setQuery] = useState('');
+  // 对服务端已经返回的目录做本地文本搜索；搜索本身不会读取隐藏字段或新增授权。
   const metrics = data?.metrics.filter((m) =>
     [m.name, m.description, m.domain, ...m.aliases].join(' ').includes(query),
   );
@@ -1048,6 +1063,7 @@ const TABLE_NAMES: Record<string, string> = {
   dataset_meta: '数据集元信息',
 };
 export function Governance({ boot }: { boot: Bootstrap }) {
+  // 质量检查、计数、审计和边界说明来自后端验证报告，不从 UI 展示成功推断数据正确。
   const { data, loading, error, reload } = useResource<GovernanceData>(
     '/governance',
     boot.principal.id,

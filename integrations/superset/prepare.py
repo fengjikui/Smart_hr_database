@@ -8,6 +8,8 @@ import secrets
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+# 宿主机首次建实验密钥；Superset 元数据库、业务读者和演示登录账号各有独立凭据。
+# 重跑复用 lab.env，避免服务已使用旧密钥而脚本突然生成新密码导致失联。
 local = ROOT / ".local"
 local.mkdir(mode=0o700, exist_ok=True)
 env_path = local / "lab.env"

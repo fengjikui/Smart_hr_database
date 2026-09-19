@@ -1,3 +1,6 @@
+# 项目共用的 FastAPI 进程入口：V1 的 /api/* 路由在本文件，V2 的 /api/v2/* 单独挂载。
+# 两版共享 HTTP 服务不代表共享人员数据、会话、授权规则或查询编译器；不要串用身份对象。
+# 本文件中的 V1 API 读 hr.sqlite/app.sqlite；V2 的存储和 Superset 分支见 v2/。
 import asyncio
 import csv
 import io
@@ -39,6 +42,8 @@ from .validate import validate
 
 @asynccontextmanager
 async def lifespan(app):
+    # 这是旧版多表样本及语义目录的启动准备；V2 的宽表由自身 store.ensure() 管理。
+    # 仅支持本机 demo 模式，不应把可切换演示身份的入口直接当成企业 SSO。
     if os.getenv("HR_MODE", "demo") != "demo":
         raise RuntimeError("当前交付是回环地址演示版。生产 SSO 和数据库隔离尚需按部署文档接入。")
     if not config.BUSINESS_DB.exists() or not config.APP_DB.exists():
@@ -72,6 +77,7 @@ ALLOWED_ORIGINS = {
 
 @app.middleware("http")
 async def boundaries(request: Request, call_next):
+    # 两版经过相同的来源、请求大小、速率及响应头约束，但使用各自独立的会话 Cookie。
     origin = request.headers.get("origin")
     if origin and origin not in ALLOWED_ORIGINS:
         return JSONResponse({"detail": "来源不受信任。"}, status_code=403)
@@ -213,6 +219,7 @@ def query(plan: QueryPlan, request: Request, principal=Depends(get_principal)):
 
 @app.post("/api/chat")
 async def chat(body: QuestionRequest, request: Request, principal=Depends(get_principal)):
+    # 自然语言入口只把已验证身份传给 V1 Agent；客户端问题文本不能指定授权主体。
     require_csrf(request, principal)
     return await answer(principal, body.question, body.previous_id)
 

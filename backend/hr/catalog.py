@@ -1,3 +1,5 @@
+# V1 已实现指标目录：Git 中 catalog.json 发布到应用库，供 UI、计划校验和查询解释读取。
+# 与 semantics.py 的综合口径检索互补；新增目录条目不会自动生成对应 SQL 编译能力。
 import json
 
 from . import config

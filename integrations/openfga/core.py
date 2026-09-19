@@ -16,6 +16,9 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, model_validator
 
 from integrations.openfga.runtime import BIN, LOCAL, ROOT
 
+# 独立 OpenFGA 权限实验：事实来自本目录 fixtures.json/已发布配置，不读取 V1/V2 数据库。
+# 应用负责校验事实、同步直接关系、查询并执行引擎结论；递归授权判断交给 OpenFGA。
+# OpenFGA 不替我们执行业务 SQL，也不会自动成为 V2 Agent 当前的授权后端。
 Identifier = Annotated[str, Field(pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,39}$")]
 CAPABILITIES = ["reports_enabled", "hrbp_enabled", "inherit_hrbp_enabled", "private_enabled", "export_enabled"]
 REASONS = {"owner": "本人", "report_grant": "管理汇报线", "hrbp_grant": "直接 HRBP 服务", "inherited_hrbp_grant": "下属 HRBP 服务继承"}
@@ -55,6 +58,7 @@ class Configuration(Record):
 
     @model_validator(mode="after")
     def validate_facts(self):
+        # 在写入引擎前拒绝孤儿和管理环，这是数据质量防线，不是另写一套权限判断。
         people = {p.person_id: p for p in self.people}
         if len(people) != len(self.people):
             raise ValueError("person_id 不能重复")
@@ -102,6 +106,8 @@ class FGA:
         return response.json() if response.content else {}
 
     def batch(self, state, user, people, relations=RELATIONS):
+        # 实验规模最多 50 人：分批 Check 各人/各动作，任何缺失或错误都拒绝整次结果。
+        # 这里没有本地权限兜底；引擎不可用不能假装已授权并继续返回名单。
         checks = [{"tuple_key": {"user": f"user:{user}", "relation": relation, "object": f"employee:{person['person_id']}"}}
                   for person in people for relation in relations]
         for index, check in enumerate(checks):
@@ -127,6 +133,7 @@ class FGA:
 
 
 def compile_model(source, binary=None):
+    # 官方 CLI 将 DSL 转成引擎模型 JSON；额外检查实验接口依赖的关系名称仍然存在。
     if not source.strip() or len(source) > 20000:
         raise ValueError("模型为空或超过 20,000 字符")
     with tempfile.TemporaryDirectory(prefix="hr-fga-model-") as folder:
@@ -152,6 +159,8 @@ def compile_model(source, binary=None):
 def build_tuples(config):
     """Only direct facts and role switches, never recursive permission expansion."""
     tuples = []
+    # 一条主管边只写一条 manager 事实；不把传递闭包展开成大量手工授权记录。
+    # 岗位 → 角色能力开关由当前配置映射，active=false 的账号不会写入有效用户能力。
     for person in config["people"]:
         resource = "employee:" + person["person_id"]
         user = "user:" + person["person_id"]
@@ -189,6 +198,8 @@ class Lab:
             return json.loads(path.read_text())
 
     def publish(self, config, source, expected_version, reason="配置发布"):
+        # 小型实验采用每次发布新 store：写入并完整试算后才原子切换 state.json。
+        # 版本比较避免多个窗口覆盖配置；失败删除新 store，保留上一版可用状态。
         config = Configuration.model_validate(config).model_dump()
         model = compile_model(source, self.cli)
         with self.lock:
@@ -225,6 +236,8 @@ class Lab:
                 raise
 
     def query(self, user, department="", export=False):
+        # 先按引擎 view_basic 筛人，再加部门条件；薪资和导出还需各自的动作授权。
+        # 用户选择仅用于本机身份切换演示，正式应用必须来自可信登录会话。
         state = self.state()
         people = state["config"]["people"]
         decisions, trace = self.engine.batch(state, user, people)
@@ -262,6 +275,7 @@ class Lab:
                 for state in [json.loads(path.read_text())]]
 
     def rollback(self, version, expected_version):
+        # 回滚是“用旧内容发布新版本”，不是把版本号倒退，便于审计谁在何时恢复了什么。
         path = self.directory / "revisions" / f"{version:04}.json"
         if not path.exists():
             raise ValueError("版本不存在")

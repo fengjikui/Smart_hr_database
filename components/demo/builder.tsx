@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V2 可视化条件编辑器，只修改结构化 Plan，不拼 SQL，也不配置角色授权。
+ * 候选字段/指标/部门来自当前身份的 bootstrap.catalog；后端仍会重新校验每项依赖。
+ * 这里的“人员范围”是已授权人群内的业务筛选，“全部”不表示绕过行权限。
+ */
 import { useState } from 'react';
 import { Plus, X, Play } from 'lucide-react';
 import type { Bootstrap, Filter, Plan } from './types';
@@ -19,7 +24,9 @@ export function PlanBuilder({
   const [field, setField] = useState('school_name');
   const [op, setOp] = useState<Filter['op']>('eq');
   const [text, setText] = useState('');
+  // 任意条件改变都回到第一页，避免旧页码超出新结果范围。
   const patch = (p: Partial<Plan>) => onChange({ ...value, ...p, page: 1 });
+  // 多选只是构造字段/指标/维度数组；可组合性、字段权限和上限由后端 Plan 校验。
   const toggle = (
     key: 'departments' | 'columns' | 'metrics' | 'group_by',
     v: string,
@@ -29,6 +36,7 @@ export function PlanBuilder({
         ? value[key].filter((x) => x !== v)
         : [...value[key], v],
     });
+  // 界面展示业务名称，传输保留稳定字段 key，避免中文别名变化影响查询协议。
   const name = (f: string) =>
     catalog.fields.find((x) => x.key === f)?.label || f;
   return (

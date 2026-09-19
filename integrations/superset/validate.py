@@ -13,6 +13,8 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parent
+# 验证首版 HR_LAB 小样本，不是完整 V2 回归。每次都真实登录目标 Superset 账号，
+# 从响应/SQL 与 PostgreSQL 拒绝中取证，不能用配置管理员结果代替普通用户结论。
 FIXTURE = json.loads((ROOT / "fixtures.json").read_text())
 CREDENTIALS = json.loads((ROOT / ".local/credentials.json").read_text())
 CHECKS = []

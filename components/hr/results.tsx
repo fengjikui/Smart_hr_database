@@ -1,4 +1,8 @@
 'use client';
+/**
+ * V1 的答案、图表与普通表格展示。接收 Answer 后不重新计算业务指标。
+ * V2 的服务端分页/独立核验位于 components/demo/result.tsx 和 grid.tsx。
+ */
 import { lazy, Suspense, useState } from 'react';
 import {
   BookOpen,
@@ -25,6 +29,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { number } from './client';
 import type { Answer, DataRow } from './types';
+// 较重的折线图按需加载，普通文本/表格答案不必等待对应图表组件。
 const TrendChart = lazy(() =>
   import('./charts').then((m) => ({ default: m.TrendChart })),
 );
@@ -97,6 +102,7 @@ export function BarChart({ answer }: { answer: Answer }) {
   );
 }
 export function Chart({ answer }: { answer: Answer }) {
+  // 图表类型由服务端按查询结果决定；前端只选择可视化组件，保留原始数据口径。
   return answer.chart_type === 'comparison' ? (
     <WorkforceChart answer={answer} />
   ) : answer.chart_type === 'line' ? (
@@ -159,6 +165,7 @@ export function DataTable({
 }: {
   answer: Pick<Answer, 'rows' | 'columns'>;
 }) {
+  // V1 表格对已返回 rows 做本地每页 10 行展示，不等同于 V2 的服务端查询分页。
   const [page, setPage] = useState(0);
   const count = 10;
   const pages = Math.ceil(answer.rows.length / count);
@@ -239,6 +246,7 @@ export function Result({
   onExport?: (a: Answer) => Promise<void>;
   canExport?: boolean;
 }) {
+  // 保存与导出委托工作台调用后端；按钮状态只防止重复操作，不是安全授权层。
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -266,6 +274,7 @@ export function Result({
       setBusy(false);
     }
   }
+  // 澄清/拒绝只呈现解释，不把缺少真实执行结果的响应渲染成成功图表。
   if (answer.status !== 'success')
     return (
       <div className={`answer-message ${answer.status}`}>

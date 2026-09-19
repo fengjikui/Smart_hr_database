@@ -11,6 +11,8 @@ from .metadata import FIELDS, TABLES
 from .models import QueryPlan
 from .query import DIMENSION_LABELS, compile_query
 
+# V1 的“字段与口径”展示装配层：读取结构说明与允许的查询模板，不抽样会话/隐私表数据。
+# 这里返回的说明不是 V2 的 FIELDS；两版字段名和业务事实结构有明确区别。
 CONVENTIONS = [
     {"name": "数据范围", "value": "全部为可复现合成数据，演示时区Asia/Shanghai；今天/本月按数据截止日解释。"},
     {

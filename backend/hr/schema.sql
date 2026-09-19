@@ -1,3 +1,5 @@
+-- V1 的 SQLite 业务库：基础档案、当前/历史任职、教育经历、考勤事实分别建表。
+-- 不用于 V2 的单张人员宽表，也不用于 Superset/PostgreSQL；由 seed.py 写临时库后校验发布。
 PRAGMA foreign_keys = ON;
 CREATE TABLE dataset_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE legal_entities (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
@@ -11,11 +13,14 @@ CREATE TABLE employees (id INTEGER PRIMARY KEY, employee_no TEXT NOT NULL UNIQUE
 CREATE TABLE employee_education (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), school_id INTEGER NOT NULL REFERENCES schools(id), education_level TEXT NOT NULL, education_rank INTEGER NOT NULL CHECK(education_rank BETWEEN 1 AND 5), degree TEXT NOT NULL CHECK(degree IN ('无学位','学士','硕士','博士')), major TEXT NOT NULL, start_date TEXT NOT NULL, graduation_date TEXT NOT NULL, study_mode TEXT NOT NULL CHECK(study_mode IN ('全日制','非全日制')), CHECK(start_date<graduation_date), UNIQUE(employee_id,education_rank,graduation_date));
 CREATE INDEX idx_education_employee_date ON employee_education(employee_id,graduation_date,education_rank);
 CREATE INDEX idx_education_school ON employee_education(school_id,employee_id);
+-- 私人信息只供模拟完整性演示，query.py 的读取表白名单不开放这张表。
 CREATE TABLE employee_private (employee_id INTEGER PRIMARY KEY REFERENCES employees(id), phone TEXT NOT NULL, identity_document TEXT NOT NULL, bank_account TEXT NOT NULL);
 CREATE TABLE assignments (id INTEGER PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employees(id), department_id INTEGER NOT NULL REFERENCES departments(id), manager_id INTEGER REFERENCES employees(id), position_id INTEGER NOT NULL REFERENCES positions(id), grade_id INTEGER NOT NULL REFERENCES grades(id), valid_from TEXT NOT NULL, valid_to TEXT, CHECK(manager_id IS NULL OR manager_id<>employee_id), CHECK(valid_to IS NULL OR valid_to>valid_from), UNIQUE(employee_id,valid_from));
 CREATE UNIQUE INDEX uq_current_assignment ON assignments(employee_id) WHERE valid_to IS NULL;
 CREATE INDEX idx_assignment_asof ON assignments(employee_id,valid_from,valid_to);
 CREATE INDEX idx_assignment_dept ON assignments(department_id,valid_from);
+-- 当前管理闭包由 seed.py 预计算；历史业务日期不会切换回历史管理授权。
+-- 深度 0/1/大于等于2 分别对应本人/直属/间接下属，security.py 用它限定 V1 候选人员。
 CREATE TABLE reporting_closure (ancestor_id INTEGER NOT NULL REFERENCES employees(id), descendant_id INTEGER NOT NULL REFERENCES employees(id), depth INTEGER NOT NULL CHECK(depth>=0), PRIMARY KEY(ancestor_id,descendant_id));
 CREATE INDEX idx_closure_desc ON reporting_closure(descendant_id);
 CREATE TABLE work_calendar (day TEXT PRIMARY KEY, is_workday INTEGER NOT NULL CHECK(is_workday IN (0,1)), note TEXT NOT NULL);

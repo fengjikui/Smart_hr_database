@@ -1,4 +1,8 @@
 'use client';
+/**
+ * V1 内嵌运行调试器：可发起一次 /chat，并轮询 /debug/runs 观察尚在执行的节点。
+ * 区别于 V2 独立页只读取已保存历史 trace；两者都以服务端真实记录为准。
+ */
 import { useEffect, useRef, useState } from 'react';
 import {
   Bug,
@@ -36,6 +40,7 @@ function duration(ms: number) {
   return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms.toFixed(1)} ms`;
 }
 export function JsonView({ value, label }: { value: unknown; label: string }) {
+  // 只读文本展示，传入的字符串/JSON 不作为 HTML 或脚本执行。
   return (
     <section className="debug-json">
       <div className="debug-json-heading">
@@ -80,12 +85,14 @@ export function DebugPanel({
   const [error, setError] = useState('');
   const [queryError, setQueryError] = useState('');
   const [revision, setRevision] = useState(0);
+  // 新提问尚未拿到调试 ID 时，用本次开始时间辅助定位；最终 ID 仍以后端响应为准。
   const pendingSince = useRef<number | null>(null);
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
     const cancel = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
+    // 每次完成后再安排下一轮，避免慢请求叠加；换身份/选中记录或卸载时取消请求和定时器。
     async function poll() {
       try {
         const list = await api<{ runs: DebugRunSummary[] }>('/debug/runs', {
@@ -133,6 +140,7 @@ export function DebugPanel({
   }, [boot.principal.id, selected, revision]);
   const run =
     loaded && (!selected || loaded.id === selected) ? loaded.value : null;
+  // 优先保留用户选中的节点，否则选择运行中、失败或模型节点，便于定位实际卡点。
   const node =
     run?.nodes.find(
       (n) => selection?.run === run.id && selection.node === n.id,
@@ -142,6 +150,7 @@ export function DebugPanel({
     run?.nodes.find((n) => n.key === 'model') ??
     run?.nodes[0];
   async function submit() {
+    // 调试提问仍走正式聊天 API；失败响应可带 debugRunId，以便查看被拦截或异常的节点。
     if (busy || question.trim().length < 2) return;
     const request = new AbortController();
     controller.current = request;

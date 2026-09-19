@@ -1,3 +1,5 @@
+/* V2 工作台样式，统一使用 d- 前缀避免与 V1 hr- 页面混淆。
+   本文件负责身份侧栏、聊天、条件编辑器和结果表；独立调试页布局另见 debug-workspace.css。 */
 .d-app {
   --d-red: #a32b36;
   --d-text: #28313a;
@@ -248,6 +250,7 @@
   padding: 0;
   background: var(--d-paper);
 }
+/* 对话记录独立滚动，输入区留在底部；消息内容不会撑高整个页面外壳。 */
 .d-chat-scroll {
   flex: 1;
   min-height: 0;
@@ -344,6 +347,7 @@
   font-size: 18px;
   flex-shrink: 0;
 }
+/* 紧凑输入框与内置发送按钮，实际自适应高度由 Workspace 的 useLayoutEffect 调整。 */
 .d-composer-dock {
   flex-shrink: 0;
   padding: 12px clamp(24px, 4vw, 64px) max(20px, env(safe-area-inset-bottom));
@@ -506,6 +510,7 @@
 .d-result-toolbar .d-actions {
   margin-left: auto;
 }
+/* 表格容器尺寸只决定展示区域，数据分页/筛选由 grid.tsx 的数据源协议处理。 */
 .d-grid {
   border-radius: 12px;
   overflow: hidden;
@@ -806,6 +811,7 @@
   }
 }
 @media (max-width: 700px) {
+  /* 小屏侧栏切换为抽屉，键盘焦点管理与 Escape 行为在 Workspace 中实现。 */
   .d-shell {
     display: block;
   }
@@ -944,6 +950,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* 尊重系统减少动态效果偏好，不影响查询或状态更新逻辑。 */
   .d-composer {
     transition: none;
   }

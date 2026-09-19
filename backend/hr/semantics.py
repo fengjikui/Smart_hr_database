@@ -16,6 +16,8 @@ from fastapi import HTTPException
 
 from . import config
 
+# V1 语义真源在 semantic/*.json；semantic.sqlite/FTS5 只是可重建的查询索引。
+# 这里检索的是字段说明和指标口径，不检索员工事实，也不是向量数据库方案。
 VERSION = "hr-semantics-1.0"
 SOURCE_NAMES = ("catalog.json", "proposed-metrics.json", "fields.json", "tables.json", "questions.json")
 _LOCK = RLock()
@@ -93,6 +95,7 @@ def source_documents(key):
 
 
 def publish():
+    # 先校验定义引用并计算源文件指纹；内容未变便复用已发布读模型，否则事务更新。
     documents, revision = source_documents(source_key())
     path = database_path()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -131,6 +134,7 @@ def publish():
 
 
 def visible(doc, principal, model=False):
+    # 元数据同样受权限过滤：不能先把敏感口径/治理关系全塞给模型，再只遮住最终结果。
     if doc["visibility"] == "salary" and not principal["salary_aggregate"]:
         return False
     if doc["visibility"] == "governance":
@@ -229,6 +233,7 @@ def read_documents(principal, ids, *, model=False, revision=None):
 
 
 def discover(principal, question, constraints, previous=None):
+    # 先返回轻量目录与少量相关指标；planned 只用于解释缺口，不获得编译执行资格。
     docs = all_documents(principal, model=True)
     metrics = {d["id"]: d for d in docs if d["kind"] == "metric"}
     hits = search(principal, question, kind="metric", limit=8, model=True)
@@ -289,6 +294,8 @@ def education_fields(plan):
 
 
 def disclose(principal, ids, constraints, revision, *, extra_ids=()):
+    # 渐进披露的出口：读取相关口径及依赖字段，固定字符预算，不无限追加整个目录。
+    # revision 将一次工作流绑定到同一份定义，避免途中发布新口径造成解释和执行错位。
     docs = all_documents(principal, model=True)
     lookup = {d["id"]: d for d in docs}
     chosen = read_documents(principal, list(dict.fromkeys([*ids, *extra_ids])), model=True, revision=revision)

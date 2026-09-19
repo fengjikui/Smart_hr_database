@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V2 独立节点调试页：读取已保存历史的 trace，展示每一步真实记录的输入、输出和耗时。
+ * 本页不重新触发模型推理；缺失 trace 时明确显示未记录，不能补造一条执行链。
+ * 与 V1 可主动发起/轮询运行的 DebugPanel 是两套接口。
+ */
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -53,7 +58,9 @@ export function DebugWorkspace({
   const [revision, setRevision] = useState(0);
   const history = listState?.revision === revision ? listState.rows : null;
   const listError = listState?.revision === revision ? listState.error : '';
+  // URL 指定记录优先，否则选当前身份的最新记录；不存在/无权访问交给后端拒绝。
   const selectedId = requestedId || history?.[0]?.id || '';
+  // 切换记录或刷新期间不展示上一个请求的数据；外层另以身份/权限指纹负责整页重建。
   const requestKey = `${selectedId}:${revision}`;
   const run = runState?.key === requestKey ? runState.data : null;
   const runError = runState?.key === requestKey ? runState.error : '';
@@ -71,6 +78,7 @@ export function DebugWorkspace({
     return () => c.abort();
   }, [boot.principal.csrf, revision]);
   useEffect(() => {
+    // 列表和详情分别可取消，避免快速点击历史记录时较慢的旧响应覆盖新选择。
     const c = new AbortController();
     if (selectedId) {
       request<SavedRun>(
@@ -194,6 +202,7 @@ function RunInspector({
   run: SavedRun;
   timestamp?: string;
 }) {
+  // 选中节点只影响展示；记录顺序、输出内容和耗时均使用服务端保存值。
   const [selected, setSelected] = useState(0);
   const steps = run.trace || [];
   const step = steps[selected];
@@ -287,6 +296,7 @@ function RunInspector({
 }
 
 function JsonPanel({ title, value }: { title: string; value: unknown }) {
+  // 通过 React 文本节点展示 JSON，不把节点内容当 HTML 执行；长内容可键盘聚焦滚动。
   return (
     <section className="d-trace-json">
       <h4>{title}</h4>

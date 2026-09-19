@@ -28,6 +28,8 @@ from .query import execute
 from .security import audit, scope_ids
 
 
+# V1 的图状态只服务本次请求；多轮只读取当前身份拥有的上一条成功计划，
+# 不开启跨用户记忆，也不允许模型临时选择任意工具或直接执行 SQL。
 class State(TypedDict, total=False):
     principal: dict
     question: str
@@ -96,6 +98,7 @@ def capability(state: State):
 
 
 def context(state: State):
+    # 相对时间锚定合成数据的截止日；历史计划必须同时匹配 owner 和 success 状态。
     with step("context", "读取截止日与本人前次计划", {"previous_id": state["previous_id"]}) as trace:
         with business() as db:
             as_of = db.execute("SELECT value FROM dataset_meta WHERE key='as_of'").fetchone()[0]
@@ -166,6 +169,7 @@ def disclose(state: State):
 
 
 async def model(state: State):
+    # 本机模型串行调用；结构修复次数和口径补读次数分别受限，不能无限重试。
     with step("capacity", "模型并发检查", {"max_concurrency": 1, "attempt": state["attempts"] + 1}) as trace:
         if agent._gate.locked():
             raise HTTPException(429, detail="本地模型正在处理一个问题，请稍后重试。固定看板仍可使用。")
@@ -240,6 +244,7 @@ def current_principal(state: State):
 
 
 def inspect(state: State):
+    # 补读不是访问任意文件：仅允许当前语义目录中、当前身份可见的精确 ID/受限检索。
     with step(
         "inspection",
         "补充读取请求与边界",
@@ -325,6 +330,7 @@ def inspect(state: State):
 
 
 def reauthorize(state: State):
+    # 模型推理可能耗时，执行前重新读主体与定义，避免继续使用推理开始时的旧授权。
     with step(
         "reauthorize",
         "执行前重新鉴权与口径覆盖检查",
@@ -408,6 +414,8 @@ def persist(state: State):
     return {"output": output}
 
 
+# 下方才是实际执行图：每个节点返回状态增量，next 决定条件边。
+# descriptor() 直接读取同一张图生成调试展示，避免展示流程与实际执行流程各维护一份。
 builder = StateGraph(State)
 for name, node in [
     ("receive", receive),

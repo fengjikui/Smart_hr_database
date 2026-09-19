@@ -1,3 +1,5 @@
+# V1 的本地模型适配层：模型输出受类型约束的计划，SQL 和权限由服务端确定。
+# model_status() 也被 V2 复用为健康探测；这不意味着 V2 使用下面的 V1 提示词或工作流。
 import asyncio
 import json
 import re
@@ -13,6 +15,7 @@ _gate = asyncio.Semaphore(1)
 
 
 async def model_status():
+    # 只读取 LM Studio 的已加载模型列表，不发起推理，不会修改模型加载状态。
     try:
         async with httpx.AsyncClient(trust_env=False, timeout=3) as client:
             response = await client.get(f"{config.MODEL_URL}/models")
@@ -38,6 +41,7 @@ async def model_status():
 
 
 def instructions(principal, as_of, previous=None, context=None):
+    # 提示词是帮助理解业务的第一道引导，不是权限保证；编译和执行阶段仍要独立校验。
     context = context or {}
     has_metric_definition = any(
         doc.get("kind") == "metric" and doc.get("status") == "available"
@@ -66,6 +70,7 @@ def instructions(principal, as_of, previous=None, context=None):
 
 
 async def ask_model(messages):
+    # JSON schema 同时允许查询计划和补充口径请求；无法解析时交给 workflow 有界修复。
     schema = QueryPlan.model_json_schema()
     schema = {"anyOf": [schema, MetadataRequest.model_json_schema()]}
     payload = {
@@ -133,6 +138,7 @@ async def ask_model(messages):
 
 
 async def answer(principal, question, previous_id=None):
+    # ContextVar 让嵌套节点记录到本次运行，finally 恢复上下文，避免不同请求串日志。
     run = DebugRun(principal, question)
     token = CURRENT_RUN.set(run)
     try:
@@ -161,6 +167,7 @@ async def answer(principal, question, previous_id=None):
 
 
 async def _answer(principal, question, previous_id=None):
+    # 延迟导入避免 agent 与 workflow 相互导入；真正的节点分支定义在 workflow.py。
     from .workflow import run
 
     return await run(principal, question, previous_id)

@@ -1,3 +1,8 @@
+/**
+ * V1 多表 HR 演示的前后端协议：单 metric、单 dimension 与固定 period 选择。
+ * 与 V2 宽表的 filters/group_by/metrics 数组协议不同，不能在两个工作台间直接传 Plan。
+ * 这些类型描述响应形状；权限和口径约束由 Python 服务端执行。
+ */
 export type Metric = {
   id: string;
   name: string;
@@ -35,6 +40,7 @@ export type Plan = {
 };
 export type DataRow = Record<string, string | number | boolean | null>;
 export type Answer = {
+  // 摘要、指标定义、SQL 和保护提示由一次服务端查询共同产生，展示时保持对应关系。
   status: 'success' | 'clarify' | 'refuse';
   summary: string;
   rows: DataRow[];
@@ -68,6 +74,7 @@ export type Answer = {
   debug_run_id?: string;
 };
 export type Principal = {
+  // 当前身份的只读展示信息；can_export/salary_aggregate 不替代接口的授权校验。
   id: string;
   employee_id: number;
   role: string;
@@ -106,6 +113,7 @@ export type OverviewData = {
   attendance_trend: Answer;
 };
 export type Dashboard = {
+  // 看板保存查询计划，result 是后端本次按当前权限重新查询的结果，不是永久授权快照。
   id: string;
   title: string;
   plan: Plan | null;
@@ -179,6 +187,7 @@ export type DebugNode = {
   error: unknown;
 };
 export type DebugRun = DebugRunSummary & {
+  // 节点输入输出是调试接口按所有者授权返回的记录，不应由浏览器猜测或补写。
   owner_id: string;
   model: string;
   catalog_version: string;
@@ -188,6 +197,7 @@ export type DebugRun = DebugRunSummary & {
   capture_policy: string;
 };
 export type SchemaTable = {
+  // 数据字典包含实际 DDL/约束与解释，用于阅读结构，不提供在页面上执行 DDL 的能力。
   name: string;
   database: string;
   description: string;

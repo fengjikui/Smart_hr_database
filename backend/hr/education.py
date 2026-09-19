@@ -4,6 +4,8 @@ import json
 import random
 from datetime import date, timedelta
 
+# V1 按教育经历建模：同一员工可有多段已完成学历，需按事件日及最高学历/任意经历口径查询。
+# V2 只有宽表中的当前教育记录，不会复用这里的多经历关联逻辑。
 MOE_985 = "https://www.moe.gov.cn/srcsite/A22/s7065/200612/t20061206_128833.html"
 MOE_211 = "https://www.moe.gov.cn/srcsite/A22/s7065/200512/t20051223_82762.html"
 SCHOOLS = [

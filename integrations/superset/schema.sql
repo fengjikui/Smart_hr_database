@@ -1,3 +1,6 @@
+-- 首版 HR_LAB 小样本 schema，只用于 hr_lab；完整 V2 是 v2/schema.sql + hr_v2。
+-- 原始事实 hr → 自定义关系授权 authz → 平台只读出口 analytics，各层职责不同。
+-- Superset 根据当前用户执行 RLS；主管递归和 HRBP 继承语义由下方业务 SQL 实现。
 CREATE SCHEMA IF NOT EXISTS hr;
 CREATE SCHEMA IF NOT EXISTS authz;
 CREATE SCHEMA IF NOT EXISTS analytics;
@@ -22,6 +25,7 @@ CREATE INDEX IF NOT EXISTS people_head_idx ON hr.people(head_person_id);
 CREATE INDEX IF NOT EXISTS people_hrbp_idx ON hr.people(dept_hrbp_id);
 
 CREATE OR REPLACE VIEW authz.management_closure AS
+-- depth=0 是本人；path 检测管理环，HRBP 边不参与这条递归。
 WITH RECURSIVE tree(root_id,target_id,depth,path,is_cycle) AS (
   SELECT person_id, person_id, 0, ARRAY[person_id], false FROM hr.people
   UNION ALL

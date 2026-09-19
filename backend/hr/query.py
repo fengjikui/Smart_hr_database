@@ -15,6 +15,8 @@ from .education import education_joins, filter_description, has_filter, predicat
 from .models import QueryPlan
 from .security import audit, scope_ids
 
+# V1 查询编译器：这些固定 SQL 片段是开发者白名单，不接受模型传入 SQL 表达式。
+# V2 的结构化计划、字段和执行路径另见 v2/query.py 与 v2/superset_query.py。
 DIMENSIONS = {
     "none": "'合计'",
     "division": "COALESCE(v.name,'公司管理层')",
@@ -134,6 +136,7 @@ def department_ids(db, name):
 
 
 def filtered_scope(principal, plan, db):
+    # 先求权限集合，再与业务部门/人员筛选求交；“全公司”或同名搜索不能突破授权上限。
     ids = scope_ids(principal, plan.relation)
     if plan.department:
         depts = department_ids(db, plan.department)
@@ -165,6 +168,8 @@ def filtered_scope(principal, plan, db):
 
 
 def compile_query(principal, plan, db):
+    # 顺序很重要：验证指标能力与敏感限制 → 解读时间 → 求授权人群 → 拼白名单 SQL。
+    # 用户值使用绑定参数；表名、维度、聚合表达式只能来自本模块定义。
     if plan.kind in ("clarify", "refuse"):
         raise HTTPException(422, detail=plan.message or "请补充要查询的指标与范围。")
     m = metric(plan.metric)
@@ -432,6 +437,8 @@ def compile_query(principal, plan, db):
 
 
 def execute(principal, plan: QueryPlan, record_audit=True):
+    # 编译后仍设置 SQLite 表/函数 authorizer 与执行期限；不靠“模型答应只读”保证安全。
+    # 最后做薪资小样本保护、摘要、审计；原始受限聚合不直接写入调试记录。
     started = time.perf_counter()
     try:
         with business() as db:

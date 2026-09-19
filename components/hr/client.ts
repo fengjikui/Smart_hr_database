@@ -1,6 +1,11 @@
+/**
+ * V1 HTTP 与资源读取工具，只处理 /api 下原版协议；V2 使用 components/demo/types.ts。
+ * 会话由同源 Cookie 承载，读请求禁缓存，写请求通过 mutation 附加 CSRF。
+ */
 import { useCallback, useEffect, useState } from 'react';
 
 export class ApiError extends Error {
+  // 后端失败时保留调试记录定位符，使 UI 能跳到实际失败节点，而不是丢失执行证据。
   constructor(
     message: string,
     public status: number,
@@ -42,6 +47,7 @@ export function mutation(
   };
 }
 export function useResource<T>(path: string, identity: string) {
+  // identity 必须参与请求 key；同一路径在不同身份下可能返回完全不同的数据。
   const [state, setState] = useState<{
     key: string;
     data: T | null;
@@ -67,7 +73,7 @@ export function useResource<T>(path: string, identity: string) {
       });
     return () => controller.abort();
   }, [path, requestKey]);
-  // Old identity or parameter results are never rendered while a new request loads.
+  // 新身份或新参数加载期间绝不展示旧结果；取消旧网络请求之外还要约束已保存状态。
   const current = state.key === requestKey;
   return {
     data: current ? state.data : null,

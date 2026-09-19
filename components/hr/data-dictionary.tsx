@@ -1,4 +1,8 @@
 'use client';
+/**
+ * V1 数据结构阅读页：列出业务库、应用库、语义库中的实际表、字段、约束和指标口径。
+ * 所有内容来自 /data-dictionary；这里只搜索/展示，不创建表、不运行显示出来的 DDL。
+ */
 import { useState } from 'react';
 import { Database, KeyRound, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -21,6 +25,7 @@ import type {
 } from './types';
 
 function TableDetail({ table }: { table: SchemaTable }) {
+  // 描述帮助理解含义，create_sql / foreign_keys / indexes 保留数据库结构的具体证据。
   return (
     <div className="schema-detail">
       <div className="schema-detail-heading">
@@ -104,6 +109,7 @@ export function DataDictionary({ boot }: { boot: Bootstrap }) {
   const [selected, setSelected] = useState('business:employees');
   if (error) return <Failure message={error} retry={reload} />;
   if (loading || !data) return <LoadingBlock />;
+  // 在已经取得的目录内搜索表名、说明和字段；不向数据库发自由文本 SQL。
   const term = query.trim().toLowerCase();
   const tables = data.tables.filter(
     (t) =>

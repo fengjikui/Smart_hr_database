@@ -1,5 +1,7 @@
 """Business descriptions shared by the UI and generated dictionary."""
 
+# V1 多表结构的中文说明；给数据字典使用，不执行授权，也不替代数据库真实 schema。
+# 不要把这里的员工整数 id 与 V2 宽表 person_id/employee_no 混为一个标识。
 TABLES = {
     "dataset_meta": "数据集元信息；每个配置键一行",
     "legal_entities": "法人主体；每个主体一行",

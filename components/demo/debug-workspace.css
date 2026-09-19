@@ -1,3 +1,5 @@
+/* V2 独立调试页：左侧历史导航，右侧节点步骤与输入/输出。
+   复用工作台的颜色变量；这里只安排展示，不改变节点执行顺序或权限。 */
 .d-trace-page {
   display: grid;
   grid-template-columns: 290px minmax(0, 1fr);
@@ -230,6 +232,7 @@
   }
 }
 @media (max-width: 760px) {
+  /* 小屏把历史和详情改为纵向阅读，保留原始 JSON 的可滚动查看能力。 */
   .d-trace-page {
     grid-template-columns: minmax(0, 1fr);
   }

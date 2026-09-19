@@ -14,6 +14,8 @@ from integrations.openfga.core import ConflictError, EngineError, Lab, Record
 from integrations.openfga.runtime import ROOT, SERVER_VERSION
 
 lab = Lab()
+# 此 Web 服务是可编辑合成事实/模型的本机管理实验，不是生产鉴权网关。
+# /api/roster 的 user 参数是“选谁来模拟”，不等价于已验证的企业登录身份。
 token = secrets.token_urlsafe(32)
 
 
@@ -29,6 +31,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost
 
 @app.middleware("http")
 async def local_demo_boundary(request: Request, call_next):
+    # 配置写入要求本机页面令牌及同源；这个保护与 OpenFGA 的人员可见性判断职责不同。
     if request.method not in {"GET", "HEAD"}:
         origin = request.headers.get("origin")
         expected_origin = str(request.base_url).rstrip("/")
@@ -126,6 +129,7 @@ class Revision(Record):
 
 @app.post("/api/publish")
 def publish(body: Publish):
+    # expected_version 提供乐观锁；真正的校验、模型转换、试算和原子切换在 Lab.publish。
     return lab.publish(body.config, body.model_source, body.expected_version)
 
 

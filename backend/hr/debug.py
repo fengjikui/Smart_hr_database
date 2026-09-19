@@ -16,6 +16,8 @@ from . import config
 from .db import application
 from .security import scope_ids
 
+# V1 节点日志与应用库中的 debug_runs 对应；V2 自有运行记录，不共用此表。
+# 日志里有授权内业务输出，读取时既校验归属，也要求当前授权指纹与记录时一致。
 CURRENT_RUN = ContextVar("hr_debug_run", default=None)
 GRANT_FIELDS = (
     "id",
@@ -35,6 +37,7 @@ def now():
 
 
 def safe(value):
+    # 对凭据/内部推理脱敏并限制体积；它只是日志清洗，不代替身份与行权限检查。
     if isinstance(value, dict):
         result = {
             str(k): "[已脱敏]"
@@ -112,6 +115,7 @@ def error_info(error):
 
 
 class DebugRun:
+    # 节点开始、结束均落盘；进程中断后可保留已完成部分，而不是伪造完整成功轨迹。
     def __init__(self, principal, question):
         ensure_schema()
         self.owner = principal["id"]
@@ -219,6 +223,7 @@ def list_runs(principal):
 
 
 def read_run(principal, run_id):
+    # 撤权后不再暴露旧日志：owner 与当前 grant_fingerprint 同时匹配才允许读。
     fingerprint = grant_fingerprint(principal)
     with application() as db:
         row = db.execute(

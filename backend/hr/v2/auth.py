@@ -1,3 +1,10 @@
+"""会话身份与授权的统一入口，隔离 SQLite 基线和 Superset 两种实现。
+
+上层目录、查询、历史都通过本模块取权限，不应自行读取全量人员再筛选。
+当前 session 是可切换身份的本机演示入口，不承担企业员工身份认证；生产
+需用可信登录系统确定 persona，不能沿用前端任意选择身份的方式。
+"""
+
 import hashlib
 import json
 import secrets
@@ -13,6 +20,7 @@ from .schema import FIELDS, Strict
 COOKIE = "hr_v2_session"
 
 
+# 字段组与功能开关是本项目业务策略；不等同于 Superset 自带的平台角色。
 class RolePolicy(Strict):
     reports: bool = True
     hrbp: bool = False
@@ -28,6 +36,7 @@ class PolicyChange(Strict):
 
 
 def session(persona, old=None):
+    """创建演示会话并撤销旧 token，使切换身份后的旧标签页不能继续查询。"""
     store.ensure()
     if persona not in {p["id"] for p in store.PERSONAS}:
         raise HTTPException(404, "演示身份不存在")
@@ -36,6 +45,7 @@ def session(persona, old=None):
         if old:
             db.execute("DELETE FROM sessions WHERE hash=?", (hashlib.sha256(old.encode()).hexdigest(),))
         db.execute("DELETE FROM sessions WHERE expires<?", (time.time(),))
+        # 数据库存 token 的哈希，不保存可直接拿来登录的明文会话凭据。
         db.execute(
             "INSERT INTO sessions VALUES (?,?,?,?)",
             (hashlib.sha256(token.encode()).hexdigest(), persona, csrf, time.time() + 8 * 3600),
@@ -44,6 +54,7 @@ def session(persona, old=None):
 
 
 def principal(request: Request):
+    """从有效 Cookie 恢复服务端 persona；业务请求不能自带替代执行身份。"""
     store.ensure()
     token = request.cookies.get(COOKIE, "")
     with store.connection(readonly=True) as db:
@@ -61,11 +72,13 @@ def principal(request: Request):
 
 
 def csrf(request, p):
+    """写操作/查询 POST 同时校验会话绑定的 CSRF，防止跨站借用 Cookie。"""
     if not secrets.compare_digest(request.headers.get("x-csrf-token", ""), p["csrf"]):
         raise HTTPException(403, "请求校验失败，请刷新重试")
 
 
 def refresh(p):
+    """长流程关键边界重新验证会话；无 session_hash 的内部测试身份不查会话。"""
     if p.get("session_hash"):
         with store.connection(readonly=True) as db:
             row = db.execute(
@@ -77,6 +90,11 @@ def refresh(p):
 
 
 def grants(p, config=None, rows=None):
+    """返回完整授权集合、分来源集合、管理深度及可解释路径。
+
+    Superset 在线模式读取经过 RLS 的快照；显式传入 rows/config 时用于本地
+    配置预览或独立样本检查。下方 Python 遍历不是 Superset 模式的最终授权。
+    """
     if superset_source.enabled() and config is None and rows is None:
         return superset_source.snapshot(p)["grant"]
     config = config or store.policy()
@@ -89,7 +107,8 @@ def grants(p, config=None, rows=None):
     if root not in lookup:
         raise HTTPException(403, "身份未映射到人员主键")
     rules = config["roles"][p["role"]]
-    # Independently traverse each source manager chain, detect all bad cycles/orphans.
+    # 从每位员工向上追溯主管链，既确定其相对当前人的深度，也检查整张图。
+    # 不设置任意递归层数；发现环或孤立引用直接失败，不能把异常部分当成无权限。
     depths = {}
     for person in rows:
         node = person["person_id"]
@@ -105,13 +124,15 @@ def grants(p, config=None, rows=None):
             depths[person["person_id"]] = path.index(root)
     reports = {eid for eid, depth in depths.items() if depth > 0} if rules["reports"] else set()
     direct_hrbp = {r["person_id"] for r in rows if r["dept_hrbp_id"] == root} if rules["hrbp"] else set()
-    # Permission inheritance follows management edges only, not arbitrary visible people.
+    # 继承来源必须是“管理线下属中的 HRBP”，不能沿已经可见的服务员工继续扩张。
+    # 例如王承哲→管理下属姜姜→姜姜服务王灏，并不把王灏变成王承哲的管理下属。
     inherited = (
         {r["person_id"] for r in rows if r["dept_hrbp_id"] in reports}
         if rules["inherit_hrbp"] and rules["reports"]
         else set()
     )
     ids = {root} | reports | direct_hrbp | inherited
+    # 一个人可能同时通过多种规则可见：人员集合去重，解释原因分别保留。
     origins = {}
     for eid in sorted(ids):
         reasons = []
@@ -145,6 +166,7 @@ def grants(p, config=None, rows=None):
 
 
 def scoped(p, scope="all", config=None, rows=None):
+    """把问题中的本人/直属/间接等范围与已有授权取交集，不产生新授权。"""
     grant = grants(p, config, rows)
     if scope == "all":
         return grant["ids"], grant
@@ -160,6 +182,7 @@ def scoped(p, scope="all", config=None, rows=None):
 
 
 def allowed_fields(p, config=None):
+    """字段组展开为字段 ID；输出、筛选、排序及指标依赖都要检查这个集合。"""
     if superset_source.enabled() and config is None:
         return superset_source.snapshot(p)["fields"]
     rules = (config or store.policy())["roles"][p["role"]]
@@ -167,6 +190,7 @@ def allowed_fields(p, config=None):
 
 
 def fingerprint(p):
+    """为历史和长查询建立失效标识；权限或数据变化后不能复用旧结果。"""
     if superset_source.enabled():
         # 历史读取、模型前后、结果返回前均重新查询，撤权不能靠旧会话缓存绕过。
         return superset_source.snapshot(p, refresh=True)["fingerprint"]
@@ -197,6 +221,7 @@ def people(p):
 
 
 def public(p):
+    """构造给页面使用的身份摘要；候选数含离职，在职数按固定快照日计算。"""
     grant = grants(p)
     rules = policy(p)["roles"][p["role"]]
 
@@ -217,6 +242,7 @@ def public(p):
 
 
 def policy_preview(p, body):
+    """仅在 SQLite 演示预览所有身份的影响；Superset 配置不能写入本地假装生效。"""
     if superset_source.enabled():
         raise HTTPException(409, "Superset 模式请在 Superset 配置角色/RLS，在 PostgreSQL 配置业务关系；本地规则编辑已停用")
     if p["id"] != "admin":
@@ -252,6 +278,7 @@ def policy_preview(p, body):
 
 
 def apply_policy(p, body):
+    """预览后再在事务内检查版本，防止两个配置页面相互覆盖；同时记录审计。"""
     candidate, diffs = policy_preview(p, body)
     with store.connection() as db:
         db.execute("BEGIN IMMEDIATE")

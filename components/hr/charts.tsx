@@ -1,4 +1,5 @@
 'use client';
+// V1 懒加载的趋势图：直接绘制服务端 rows；空值保持断点，不插值制造并不存在的数据。
 import {
   CartesianGrid,
   Line,

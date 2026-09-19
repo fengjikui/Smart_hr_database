@@ -1,3 +1,10 @@
+"""V2 SQLite 基线样本与应用状态存储，不是所有查询后端的统一业务数据库。
+
+v2_people.sqlite 保存原始合成宽表，供本地模式、迁移导出与离线参考使用；
+v2_app.sqlite 保存会话、历史、策略和审计。Superset 模式仍保留应用状态，
+但在线人员和策略应从 auth/superset_source 取得，不能直接调用这里的 people。
+"""
+
 import hashlib
 import json
 import random
@@ -9,9 +16,11 @@ from threading import RLock
 from .. import config
 from .schema import FIELDS, LEVELS, SCHOOLS
 
+# 固定快照使相对时间、年龄和基准答案可重现；它与电脑当前日期不是一回事。
 AS_OF = "2026-09-11"
 DATA_VERSION = "v2-minimal-1"
 LOCK = RLock()
+# 这些是本机演示 persona；其中 admin 是集团业务管理线，不等于 Superset Admin。
 PERSONAS = [
     {"id": "hr_lead", "person_id": "P0002", "name": "王承哲", "role": "hr_lead", "label": "HR主管 · 王承哲"},
     {"id": "hrbp", "person_id": "P0003", "name": "姜姜", "role": "hrbp", "label": "HRBP · 姜姜"},
@@ -28,11 +37,13 @@ PERSONAS = [
 
 
 def directory():
+    """由应用配置确定数据目录；测试通过临时 APP_DB 隔离会话与样本。"""
     return config.APP_DB.parent
 
 
 @contextmanager
 def connection(kind="app", readonly=False):
+    """区分人员库与应用库，统一事务收尾；readonly 同时启用只读打开与只读查询。"""
     path = directory() / ("v2_people.sqlite" if kind == "people" else "v2_app.sqlite")
     db = sqlite3.connect(f"file:{path}?mode=ro" if readonly else str(path), uri=readonly, timeout=5)
     db.row_factory = sqlite3.Row
@@ -50,6 +61,7 @@ def connection(kind="app", readonly=False):
 
 
 def default_policy():
+    """首次创建样本时使用的业务假设；已存在的策略不会被每次启动覆盖。"""
     roles = {}
     for role in ["hr_lead", "hrbp", "manager", "employee", "admin"]:
         roles[role] = {
@@ -65,6 +77,12 @@ def default_policy():
 
 
 def generate_rows(seed=20260911, size=300):
+    """固定随机种子生成可核验宽表：少量锚点关系，加可扩展的模拟员工。
+
+    姓名/工号锚点用于解释汇报线；随机部分覆盖学历、招聘、用工与缺失值。
+    指定编号区间额外布置入职/博士/校招/年龄样例，保证常见问题有可演示结果；
+    这些是人工合成规律，不代表真实企业分布或真实 HR 业务确认。
+    """
     rng = random.Random(seed)
     snapshot = date.fromisoformat(AS_OF)
     anchors = [
@@ -98,6 +116,7 @@ def generate_rows(seed=20260911, size=300):
         if i <= 11:
             hire = date(2018, 3, 1)
             birth = date(1980 + i % 10, 3, 5)
+        # 固定边界样例与普通随机数据并存，便于手动对上周/季度/年龄口径逐项核对。
         if 27 <= i <= 29:
             hire = date(2026, 9, 1) + timedelta(days=i - 27)
         if 40 <= i <= 48:
@@ -116,6 +135,7 @@ def generate_rows(seed=20260911, size=300):
         if 90 <= i <= 95:
             birth = date(2026 - [30, 40, 32][i % 3], 1, 1)
         rank = LEVELS[level]
+        # 先约束学习、毕业与入职时间的常识关系，避免生成学历与年龄明显矛盾的记录。
         minimum_age = {1: 18, 2: 21, 3: 22, 4: 25, 5: 29}[rank]
         if hire.year - birth.year <= minimum_age:
             birth = birth.replace(year=hire.year - minimum_age - 1)
@@ -173,6 +193,7 @@ def generate_rows(seed=20260911, size=300):
 
 
 def ensure():
+    """幂等初始化：只在人员文件不存在时生成样本，应用表使用 IF NOT EXISTS。"""
     with LOCK:
         directory().mkdir(parents=True, exist_ok=True)
         if not (directory() / "v2_people.sqlite").exists():
@@ -211,14 +232,17 @@ def ensure():
 
 
 def people():
+    """读取完整 SQLite 基线并固定排序；Superset 在线流程不应调用此函数。"""
     with connection("people", True) as db:
         return [dict(r) for r in db.execute("SELECT * FROM people ORDER BY person_id")]
 
 
 def data_fingerprint():
+    """对真实样本内容求摘要，而不只依赖版本号，捕获手工数据修改。"""
     return hashlib.sha256(json.dumps(people(), ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
 
 def policy():
+    """读取 SQLite 基线策略；Superset 运行时使用 auth.policy 选择正确权威来源。"""
     with connection(readonly=True) as db:
         return json.loads(db.execute("SELECT value FROM settings WHERE key='policy'").fetchone()[0])

@@ -130,6 +130,7 @@ class Compiler:
         return " AND ".join(f"({condition})" for condition in conditions)
 
     def metric(self, name):
+        """把一个业务指标展开成 PostgreSQL 表达式；辅助分母/样本量同样在库中计算。"""
         count = 'COUNT(DISTINCT "person_id")'
         if name == "count":
             return [(name, count)]
@@ -169,6 +170,7 @@ class Compiler:
         ]
 
     def query_object(self, columns, metrics, *, include_period=True, people=False):
+        """只描述业务筛选和展示方式；实际 FROM 与查看人 RLS 由 Superset 补入。"""
         return {
             "columns": columns,
             "metrics": metrics,
@@ -181,6 +183,7 @@ class Compiler:
         }
 
     def compile(self):
+        """一次请求可含结果、独立总计和补零部门域，避免用分页/分组结果反推合计。"""
         plan = self.plan
         if plan.kind == "people":
             # 排序列可不展示，但查询仍需该列供全量结果稳定排序使用。
@@ -202,6 +205,7 @@ class Compiler:
 
 
 def checked_rows(result):
+    """检查一批完整结果，超过演示边界直接拒绝，不能把截断数据交给后续核验。"""
     if result.get("error") or result.get("status") == "failed":
         raise HTTPException(502, "Superset 执行查询失败，请查看节点调试信息")
     rows = result.get("data")
@@ -213,6 +217,11 @@ def checked_rows(result):
 
 
 def execute(p, plan):
+    """取得授权快照→校验/编译 Plan→真实 Chart Data 查询→整理统一 V2 返回结构。
+
+    PostgreSQL 完成业务筛选和聚合；此处只补零、稳定排序、分页和列标签。
+    _all_rows 仅给服务端核验/导出使用，普通 API 由 service 删除。
+    """
     # 延迟导入避免 query.execute 的后端分派产生循环引用。
     from . import superset_source
 

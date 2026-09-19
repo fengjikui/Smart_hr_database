@@ -1,3 +1,5 @@
+# V1 请求/计划契约：Literal 白名单、字段边界和组合校验约束模型输出与手工请求。
+# QueryPlan 只描述业务意图，不包含任意 SQL；V2 的多指标 Plan 定义在 v2/schema.py。
 from datetime import date
 from typing import Literal
 

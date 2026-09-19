@@ -1,4 +1,8 @@
-"""Versioned semantic records. Only authorized field definitions reach the model/UI."""
+"""版本化语义目录：为模型与页面组织字段说明、口语别名和指标口径。
+
+基础词汇来自 schema，权限来自 auth；只披露当前用户可用的字段与指标。
+当前目录规模小，采用代码版本管理与按需展开，没有向量库或外部知识库。
+"""
 
 from . import auth, store
 from .schema import DIMENSIONS, FIELDS, METRICS
@@ -45,6 +49,7 @@ NOTES = {
 
 
 def catalog(p):
+    """生成本用户的目录快照；指标的全部依赖字段有权限时才允许出现在目录。"""
     allowed = auth.allowed_fields(p)
     fields = []
     for key, (label, group, description) in FIELDS.items():
@@ -81,6 +86,7 @@ def catalog(p):
         if set(v[2]) <= allowed
     ]
     dims = {k: v for k, v in DIMENSIONS.items() if k not in FIELDS or k in allowed}
+    # 候选值也可能泄露组织信息，因此部门来自授权人员，不从全量字典照搬。
     ids = set(auth.grants(p)["ids"])
     departments = sorted({r["dept_cn_name"] for r in auth.people(p) if r["person_id"] in ids})
     return {
@@ -95,6 +101,7 @@ def catalog(p):
 
 
 def disclose(p, ids):
+    """模型 inspect 的受限补读入口；未知或未授权 ID 不会返回定义。"""
     c = catalog(p)
     lookup = {d["id"]: d for d in c["fields"] + c["metrics"]}
     return [lookup[i] for i in ids if i in lookup]

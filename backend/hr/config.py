@@ -1,3 +1,6 @@
+# 跨版本基础配置：V1 和 V2 都复用本机模型地址、项目根目录及数据目录配置。
+# BUSINESS_DB/APP_DB 是 V1 的库名；V2 由这些路径的父目录推导自己的 v2_* 文件，
+# 不会把 V2 的宽表写进 V1 hr.sqlite。Superset 数据源开关另见 v2/superset_source.py。
 import os
 from pathlib import Path
 

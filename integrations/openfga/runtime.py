@@ -15,6 +15,8 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+# 与项目主服务分离：引擎 HTTP 8090、实验网页 8091、引擎 gRPC 8092。
+# 二进制、引擎 SQLite、配置历史、PID 和日志均留在本实验 .local 中，不进 Git。
 LOCAL = ROOT / ".local"
 BIN = LOCAL / "bin"
 SERVER_VERSION = "1.20.0"
@@ -22,6 +24,7 @@ CLI_VERSION = "0.7.20"
 
 
 def install():
+    # 固定版本并核对官方校验和；只解出指定可执行文件，不展开整个压缩包到工作目录。
     system = platform.system().lower()
     arch = {"aarch64": "arm64", "arm64": "arm64", "x86_64": "amd64"}[platform.machine()]
     BIN.mkdir(parents=True, exist_ok=True)
@@ -65,6 +68,7 @@ def wait_http(url, attempts=160):
 
 
 def owned_pid(name):
+    # 不能仅凭 PID 文件杀进程：PID 可能被复用，必须同时匹配本实验命令标识。
     path = LOCAL / f"{name}.pid"
     if not path.exists():
         return None
@@ -80,6 +84,7 @@ def port_free(port):
 
 
 def start():
+    # 只复用健康的本实验进程；发现端口被别人占用就停止启动，不清理未知进程。
     if owned_pid("engine") and owned_pid("web"):
         wait_http("http://127.0.0.1:8091/api/health")
         print("OpenFGA 权限实验室：http://127.0.0.1:8091")
@@ -99,6 +104,7 @@ def start():
         "web": [sys.executable, "-m", "uvicorn", "integrations.openfga.server:app", "--host", "127.0.0.1", "--port", "8091"],
     }
     started = []
+    # 任一启动失败只回收本次启动且仍匹配标识的进程，不影响项目主服务和其他程序。
     try:
         for name, command in commands.items():
             with (logs / f"{name}.log").open("ab") as output:

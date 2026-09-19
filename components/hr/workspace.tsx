@@ -1,4 +1,9 @@
 'use client';
+/**
+ * 根路径的 V1 工作台：组织概览、原版聊天、个人看板、数据/语义字典和嵌入式调试。
+ * 这里只编排页面与会话；各内容页在 views.tsx 等文件，HTTP 入口在 client.ts。
+ * V2 宽表和 Superset 查询演示位于 /demo，不复用本文件的会话/Plan 协议。
+ */
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -122,11 +127,13 @@ export default function Workspace() {
   const [toast, setToast] = useState('');
   const [chatKey, setChatKey] = useState(0);
   const [debugRunId, setDebugRunId] = useState<string | undefined>();
+  // 只接受最后一次身份切换的响应，防止较慢的旧 bootstrap 覆盖当前身份。
   const epoch = useRef(0);
   const initialize = useCallback(async (persona?: string) => {
     const version = ++epoch.current;
     setSwitching(true);
     setError('');
+    // 切换期间先卸下旧身份内容，再清空聊天种子与调试定位，避免旧结果闪现。
     setBoot(null);
     try {
       if (persona)
@@ -156,7 +163,7 @@ export default function Workspace() {
       if (version === epoch.current) setSwitching(false);
     }
   }, []);
-  // Initial session bootstrap intentionally starts a network operation once on mount.
+  // 挂载时启动一次身份初始化；开发期 Hook 检查例外只针对这次有意的网络引导。
   useEffect(() => {
     // oxlint-disable-next-line react/react-compiler
     void initialize();
@@ -167,6 +174,7 @@ export default function Workspace() {
     return () => clearTimeout(t);
   }, [toast]);
   function ask(q: string) {
+    // 概览/目录的示例问题作为新聊天输入，递增 key 使旧 Chat 的局部状态和请求退出。
     setInitial(q);
     setChatKey((v) => v + 1);
     setView('chat');
@@ -176,6 +184,7 @@ export default function Workspace() {
     setView('debug');
   }
   async function save(answer: Answer) {
+    // 看板只提交标题和结构化计划；每次读取看板由后端重新查权限和数据。
     if (!boot) return;
     await api(
       '/dashboards',
@@ -187,6 +196,7 @@ export default function Workspace() {
     setToast('已保存到“我的看板”，每次打开按当前权限刷新。');
   }
   async function download(answer: Answer) {
+    // 导出交给服务端生成，不从网页表格拼 CSV；接口同样检查当前会话与导出资格。
     if (!boot) return;
     const response = await fetch('/api/export', {
       ...mutation(boot.principal.csrf, answer.plan),

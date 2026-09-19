@@ -9,6 +9,8 @@ from pathlib import Path
 
 from . import config
 
+# V1 多表合成公司，默认 480 人，包含任职历史、教育经历和考勤；不是 V2 的 300 人宽表。
+# 固定随机种子与快照日用于复现，真实业务数据不经过这个生成器。
 DIVISIONS = [
     ("产品研发事业部", ["平台研发部", "智能产品部", "质量工程部"]),
     ("客户增长事业部", ["品牌市场部", "企业销售部", "客户成功部"]),
@@ -76,6 +78,7 @@ PERSONAS = [
 
 
 def initialize_app(path: Path, reset=False):
+    # 默认保留已有会话和看板；显式 reset 才重建应用状态，和重造业务事实分开控制。
     from .debug import ensure_schema
 
     if path.exists() and not reset:
@@ -123,6 +126,7 @@ def generate(
     as_of: str = config.DEMO_DATE,
     reset_app=False,
 ):
+    # 先写临时 hr.seed.sqlite，完成一致性校验后原子替换业务库；失败不发布半成品。
     if size < 100 or size > 10000:
         raise ValueError("员工数量应为 100–10000")
     directory.mkdir(parents=True, exist_ok=True)
@@ -525,6 +529,8 @@ def generate(
 
 
 def upgrade_demo_data():
+    # 名称中的 data_version/备份名 v2 指旧版样本格式升级，不是 backend/hr/v2 应用。
+    # 仅自动升级 synthetic=true 的样本，升级前备份业务库与应用库。
     from datetime import UTC, datetime
 
     target = config.BUSINESS_DB

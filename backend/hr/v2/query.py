@@ -1,4 +1,8 @@
-"""Allowlisted SQL compiler; no model-written SQL is accepted."""
+"""查询计划公共校验，以及 SQLite 基线编译器与执行器。
+
+execute 按配置分派到本地基线或 Superset；两条路径复用依赖字段、业务口径与
+分页格式。这里只有白名单 Plan→SQL 的编译，不能把模型返回的 SQL 直接传入。
+"""
 
 import itertools
 import sqlite3
@@ -12,6 +16,7 @@ from .schema import DIMENSIONS, FIELDS, LEVELS, METRICS, SCHOOLS
 
 
 def dependencies(plan):
+    """收集所有会被使用的字段，而不只看返回列，防止借筛选/排序探测隐藏数据。"""
     fields = set(plan.columns if plan.kind == "people" else [])
     if plan.population == "confirmed":
         fields.update(["formalize_flag", "confirmation_date"])
@@ -38,6 +43,11 @@ def dependencies(plan):
 
 
 def validate(p, plan):
+    """在执行前同时校验身份、字段权限、人群、日期和指标之间的约束。
+
+    返回已授权的目标范围与来源信息，供本地编译器使用或解释关系；Superset
+    编译器仍需在实际查询时经过数据集 RLS，不能把这个集合当作上游鉴权替代。
+    """
     auth.refresh(p)
     if plan.kind not in ("people", "aggregate"):
         raise HTTPException(422, plan.message or "请完善问题")
@@ -62,6 +72,7 @@ def validate(p, plan):
         m not in ("hires", "departures", "net_change", "count") for m in plan.metrics
     ):
         raise HTTPException(422, "组合事件统计只支持人数、入职、离职和净增；其他指标请单独查询")
+    # 入离职是发生过的事件，不能先过滤成“今天仍在职”，否则会漏掉已离职者。
     if plan.population != "all" and any(m in ("hires", "departures", "net_change") for m in plan.metrics):
         raise HTTPException(422, "入离职指标必须使用全部状态，避免漏掉目前已离职的员工")
     ids, grant = auth.scoped(p, plan.scope)
@@ -98,6 +109,7 @@ def validate(p, plan):
 
 
 def months(start, end):
+    """生成闭区间内的月份，用于无事件月份补零，不查询额外人员。"""
     cursor = date.fromisoformat(start).replace(day=1)
     stop = date.fromisoformat(end)
     result = []
@@ -108,6 +120,8 @@ def months(start, end):
 
 
 class Compiler:
+    """SQLite 专用：所有业务值绑定成参数，列名只能来自 schema 白名单。"""
+
     def __init__(self, p, plan):
         self.p, self.plan = p, plan
         self.ids, self.grant = validate(p, plan)
@@ -124,6 +138,7 @@ class Compiler:
         return ",".join(self.bind(v) for v in values) or "NULL"
 
     def expr(self, field, alias="p"):
+        """统一处理派生年龄、关系、月份；普通字段只做受控标识符引用。"""
         if field == "age":
             return f"CASE WHEN {alias}.birth_date IS NOT NULL THEN CAST(strftime('%Y',:snapshot) AS INTEGER)-CAST(strftime('%Y',{alias}.birth_date) AS INTEGER)-(strftime('%m-%d',:snapshot)<strftime('%m-%d',{alias}.birth_date)) END"
         if field == "relation":
@@ -141,6 +156,7 @@ class Compiler:
         return f'{alias}."{field}"'
 
     def condition(self, f):
+        """将类型化筛选翻译为表达式；学历高低按目录等级而非中文字符串排序。"""
         expr = self.expr(f.field)
         values = f.values
         if f.field == "diploma_code_desc" and f.op in ("gte", "lte"):
@@ -158,6 +174,11 @@ class Compiler:
         return f"{expr}{op}{self.bind(values[0])}"
 
     def base(self):
+        """构造两层 CTE：base 是授权且符合业务条件的人员，facts 是本次统计事实。
+
+        入离职组合把一个人展开成两个可能的事件，因此人数仍需去重；日期前
+        的 base 同时保留补零部门域，避免“本月没有事件”让整个部门消失。
+        """
         plan = self.plan
         conditions = [f"p.person_id IN ({self.listing(self.ids)})"]
         if plan.departments:
@@ -178,6 +199,7 @@ class Compiler:
         return f"WITH base AS ({base}), facts AS ({facts}) "
 
     def metric(self, name):
+        """一个业务指标可展开多个结果列，比例返回分子/分母，平均数返回样本量。"""
         predicates = {
             "masters": "p.diploma_code_desc IN ('硕士研究生','博士研究生')",
             "doctors": "p.degree_code_desc='博士' AND p.education_expired_date<=:snapshot",
@@ -212,6 +234,7 @@ class Compiler:
         ]
 
     def compile(self):
+        """同时编译结果、完整人群合计与可选部门域；总比例不能由各组比例相加。"""
         prefix = self.base()
         plan = self.plan
         if plan.kind == "people":
@@ -238,7 +261,8 @@ class Compiler:
 
 
 def order_rows(rows, plan):
-    # Stable default ordering; explicit sorts retain deterministic group tie breaks.
+    """两种后端共用稳定排序；分页/导出/核验需要相同的空值与并列次序。"""
+    # 先按分组建立稳定底序，再从最后一个排序项向前应用，保留多字段优先级。
     ordered = sorted(rows, key=lambda r: tuple(str(r.get(k, "")) for k in plan.group_by))
     for o in reversed(plan.order_by):
         present = [r for r in ordered if r.get(o.field) is not None]
@@ -248,6 +272,7 @@ def order_rows(rows, plan):
 
 
 def fill_zeros(rows, plan, departments):
+    """只补受支持的月份×授权部门组合；零样本比例/平均数保持未知而不是零。"""
     if not plan.group_by or not plan.start_date or not any(d.endswith("_month") for d in plan.group_by):
         return rows
     if any(d != "dept_cn_name" and not d.endswith("_month") for d in plan.group_by):
@@ -271,6 +296,7 @@ def fill_zeros(rows, plan, departments):
 
 
 def execute(p, plan):
+    """统一执行入口；返回内部分页前数据供核验/导出，普通接口会删去 _all_rows。"""
     if superset_source.enabled():
         from .superset_query import execute as execute_superset
 
@@ -294,6 +320,8 @@ def execute(p, plan):
             "instr",
         }
 
+        # 除只读连接外再限制可读表和函数，减少编译器未来扩展时的意外访问面。
+        # 此 authorizer 仅属于 SQLite 基线；Superset 路径由数据集/PG 视图控制。
         def authorizer(action, table, column, database, trigger):
             if action == sqlite3.SQLITE_READ:
                 return sqlite3.SQLITE_OK if table == "people" else sqlite3.SQLITE_DENY

@@ -1,9 +1,17 @@
+"""V2 字段、指标口径与请求协议的单一词汇表。
+
+FIELDS/METRICS 为目录披露、权限依赖和两种编译器提供共同 ID；Plan 是模型
+与页面提交的受限查询描述，不包含 SQL、数据库 ID、执行账号或授权人员集合。
+结构校验在本文件，依赖身份的业务/权限校验在 query.validate。
+"""
+
 from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-# Source IDs retained verbatim; only the 20 questions' dependencies plus dept_master_id.
+# 保留来源字段 ID；只纳入 20 个演示问题所需字段和部门主管关联字段。
+# 每项依次为中文名称、权限字段组、定义；registry 再补口语别名与“不是”的说明。
 FIELDS = {
     "person_id": ("人员ID", "basic", "人员主键，非工号，员工唯一记录"),
     "employee_no": ("工号", "basic", "字符串标识，保留前导零"),
@@ -36,6 +44,7 @@ FIELDS = {
     "contract_type_code_desc": ("合同类型", "contract", "合同类型说明，独立字段权限组"),
     "contract_end_date": ("合同到期日期", "contract", "允许查询未来到期日期，空值不视为即将到期"),
 }
+# 学历排序和院校标签是明确的小型演示字典；不能把它当作实时、完整院校数据源。
 LEVELS = {"高中及以下": 1, "专科": 2, "本科": 3, "硕士研究生": 4, "博士研究生": 5}
 SCHOOLS = {
     "清华大学": (1, 1),
@@ -46,6 +55,7 @@ SCHOOLS = {
     "深圳大学": (0, 0),
     "南京工业大学": (0, 0),
 }
+# 每项依次为名称、单位、依赖字段、口径。依赖字段参与权限检查，不只是文档。
 METRICS = {
     "count": ("人数", "人", ["person_id"], "符合当前人群与筛选条件的去重员工人数"),
     "hires": ("入职人数", "人", ["onboard_date"], "期间入职人数，不要求现在仍在职"),
@@ -115,10 +125,12 @@ MetricName = Literal[*tuple(METRICS)]
 DimensionName = Literal[*tuple(DIMENSIONS)]
 
 
+# 拒绝额外字段和隐式类型转换，防止请求偷偷携带 sql 等协议外控制参数。
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
 
+# 筛选只支持少量明确操作；values 使用字符串，由字段专属校验/编译器解释类型。
 class Filter(Strict):
     field: FieldName
     op: Literal["eq", "in", "gte", "lte", "contains", "not_null"] = "eq"
@@ -140,6 +152,8 @@ class Order(Strict):
     direction: Literal["asc", "desc"] = "asc"
 
 
+# kind 同时覆盖执行计划与图控制动作：inspect 补读定义，clarify 请求澄清。
+# scope 是问题想看的子范围，不是授权范围；服务端永远与真实授权取交集。
 class Plan(Strict):
     kind: Literal["aggregate", "people", "clarify", "inspect"] = "aggregate"
     scope: Literal["all", "reports", "direct", "indirect", "hrbp", "inherited_hrbp", "self"] = "all"
@@ -162,6 +176,7 @@ class Plan(Strict):
 
     @model_validator(mode="after")
     def valid(self):
+        # 此处只检查与具体用户无关的结构关系；日期上界、字段权限等在 query 中检查。
         for key in ("columns", "metrics", "group_by", "departments"):
             values = getattr(self, key)
             if len(set(values)) != len(values):
@@ -187,6 +202,7 @@ class Plan(Strict):
         return self
 
 
+# previous_id 只是历史引用，恢复时仍检查归属和当前授权，不信任前端传回旧结果。
 class Question(Strict):
     question: str = Field(min_length=2, max_length=800)
     previous_id: str | None = Field(default=None, max_length=60)

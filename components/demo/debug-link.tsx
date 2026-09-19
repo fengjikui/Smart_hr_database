@@ -1,3 +1,4 @@
+// V2 只负责构造独立调试页链接。runId 是记录定位符，访问权限仍由历史读取接口检查。
 import { ExternalLink, Workflow } from 'lucide-react';
 
 export function RunDebugLink({

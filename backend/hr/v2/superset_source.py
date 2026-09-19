@@ -46,6 +46,7 @@ def manifest():
 
 
 def identity(p):
+    """交叉核对 persona、员工主键和业务角色；清单是后端受控映射，不是用户输入。"""
     # p 由服务端会话决定；禁止使用前端临时指定的用户名去获取别人的 token。
     subject = manifest().get("principals", {}).get(p["id"])
     if not subject or subject["person_id"] != p["person_id"] or subject["role"] != p["role"]:
@@ -56,6 +57,7 @@ def identity(p):
 
 
 def checked_response(response):
+    """把上游拒绝/故障转换为安全的 API 错误；错误结果不能伪装成零行。"""
     if response.status_code in (401, 403):
         raise HTTPException(403, "Superset 拒绝当前身份访问；请检查用户与数据集权限")
     if response.status_code >= 400:
@@ -90,6 +92,7 @@ def session(p):
 
 
 def _chart(client, dataset_key, queries):
+    """在已登录业务会话中查询固定数据集，检查每个 QueryObject 都返回成功结果。"""
     spec = manifest()["datasets"][dataset_key]
     payload = {"datasource": {"id": spec["id"], "type": "table"}, "force": True,
                "result_format": "json", "result_type": "full", "queries": queries}
@@ -219,6 +222,8 @@ def snapshot(p, refresh=False):
              "hrbp": [r["person_id"] for r in rows if r["_hrbp"]],
              "inherited_hrbp": [r["person_id"] for r in rows if r["_inherited"]],
              "origins": origins, "policy_version": context["policy_version"]}
+    # 指纹刻意不包含 SQL 文本或返回顺序，而使用真实授权内容与出口 ID。
+    # 这不是生产级全库版本号；本机样本通过重复真实查询换取可直观看到的即时撤权。
     fingerprint = hashlib.sha256(json.dumps({"backend": "superset", "subject": subject,
         "context": context, "rows": rows, "query_scopes": scopes},
         sort_keys=True, ensure_ascii=False).encode()).hexdigest()

@@ -8,7 +8,11 @@
 
 现场操作见 [V2演示脚本](docs/DEMO_V2_WALKTHROUGH.md)，测试证据见 [V2验收报告](docs/DEMO_V2_VALIDATION.md)，实现及边界见 [V2实现记录](docs/DEMO_V2_IMPLEMENTATION.md)。下文原版入口和多表考勤能力仍保留，与 V2 使用独立演示数据。
 
-## 现场启动
+**学习整个代码库先读 [代码目录与执行逻辑导读](docs/PROJECT_CODE_GUIDE.md)**，它区分原版、V2 两种查询后端与独立权限实验，并串起一次提问的完整调用链。更多专题见 [文档导航](docs/index.md)。
+
+当前分支的 V2 还支持 Superset/PostgreSQL：先按 [完整接入讲义](docs/V2_SUPERSET_IMPLEMENTATION_GUIDE.md) 初始化，再运行 `npm run demo:superset`，仍打开 `/demo`。普通 `npm run demo` 默认使用 SQLite；分支名不会自动决定运行后端。
+
+## 原版现场启动与独立实验
 
 独立的 **OpenFGA 花名册权限演示**：[http://127.0.0.1:8091](http://127.0.0.1:8091)。用 12 名合成员工演示成熟引擎的汇报线递归、HRBP 继承、角色配置、调岗撤权和真实请求响应。运行 `uv run python integrations/openfga/runtime.py up`。详见 [启动、5分钟讲解与权限模型](integrations/openfga/README.md)。该实验与下方 HR 问数主系统分开运行。
 
@@ -38,7 +42,7 @@ npm run demo:production
 
 开发模式使用 `npm run demo`。前端3000、后端8000、模型1234全部仅监听本机。启动器自动设置默认本地模型；若手动使用其他模型服务，请按 `.env.example` 导出环境变量，再分别运行 `npm run api` 与 `npm run dev`。`.env` 不会被后端自动加载。生产模式修改代码后先重新 `npm run build`。
 
-## 已实现
+## 原版已实现
 
 - 24张业务表、480名模拟员工、51个组织节点、四级组织、79,735条考勤；另有独立应用库存身份、口径、看板、会话与审计。
 - 17项正式定义的演示指标，涵盖人数、入离职、司龄、考勤、批准加班、晚离岗及受限薪酬汇总。
@@ -49,7 +53,7 @@ npm run demo:production
 
 绩效、招聘、培训已有模拟关系表，用于讨论后续接入，**当前尚未开放自然语言查询**。一个问题支持一个指标和一个分组维度；年龄、性别、排名、同比、预测等条件明确拒绝或澄清。
 
-## 数据结构与节点调试
+## 原版数据结构与节点调试
 
 左侧新增 **数据库与口径**（公司负责人身份）和 **节点调试**。数据库与口径页列出全部24张业务表、8个应用逻辑表/索引、3个语义逻辑表/索引、200个字段及17项指标，可展开类型、主外键、索引、完整DDL、计算公式和编译SQL。内容来自实际数据库和查询编译器。
 
@@ -73,12 +77,13 @@ npm run release                      # 干净Git版本检查、构建、打包�
 
 完整CI检查会临时启动3000/8000端口，执行前先停止已有演示。已启动生产演示时可运行 `uv run python scripts/smoke_http.py --model` 验证真实HTTP与模型链路。
 
-原版 LangGraph 与语义库的验证证据及边界见 [语义架构](docs/SEMANTIC_ARCHITECTURE.md) 和 [测试说明](docs/TESTING.md)。`evaluate_model.py`自动隔离应用库；使用`--suite semantics`运行原版20个口语场景。远端为私有仓库 `fengjikui/Smart_hr_database`，GitHub CI 与发布工作流已提供；V2 的本次验证结果见上方专门报告。
+原版 LangGraph 与语义库的验证证据及边界见 [语义架构](docs/SEMANTIC_ARCHITECTURE.md) 和 [测试说明](docs/TESTING.md)。`evaluate_model.py`自动隔离应用库；使用`--suite semantics`运行原版20个口语场景。GitHub CI 与发布工作流已提供；仓库可见性以 GitHub 实际设置为准，V2 的验证结果见上方专门报告。
 
 ## 文档索引
 
 | 文档 | 内容 |
 |---|---|
+| [整个项目代码导读](docs/PROJECT_CODE_GUIDE.md) | 完整目录、V1/V2区别、模型到SQL调用链、权限边界、前端状态、API、测试与修改入口 |
 | [V2 PostgreSQL 与 Superset 完整接入](docs/V2_SUPERSET_IMPLEMENTATION_GUIDE.md) | 300人完整迁移、用户/角色/RLS清单、Agent真实查询接入、逐步复现与权限验收 |
 | [Superset 权限实操课](docs/SUPERSET_HANDS_ON_CLASSROOM.md) | 从12笔订单开始，手填角色、区域、本人、AND/OR、敏感字段与汇报线规则；含可复现数据和验收 |
 | [Superset与OpenFGA学习指南](docs/SUPERSET_OPENFGA_STUDY_GUIDE.md) | 约105分钟学习路线、能力对照、配置与接入、同步和性能、官方出处、自测与讲解稿 |
@@ -101,11 +106,11 @@ npm run release                      # 干净Git版本检查、构建、打包�
 
 ## 生产边界
 
-本版本用于**本机合成数据演示**。演示身份选择器有意允许切换身份，不是登录鉴权产品；数据库只读与授权由应用强制，SQLite没有生产级行安全策略。接入真实HR数据前需替换为企业SSO、正式授权管理、PostgreSQL等数据库行/列防护、HTTPS、集中审计与备份恢复，并经HR和安全负责人验收。前端使用Sites脚手架的Vinext beta，正式技术选型应单独评审维护与兼容性；无需沿用演示框架。
+本版本用于**本机合成数据演示**。演示身份选择器有意允许切换身份，不是登录鉴权产品。SQLite模式由应用强制只读与授权；V2 Superset模式使用业务账号、数据集权限和RLS，业务关系规则仍由项目PostgreSQL视图实现。接入真实HR数据前需替换为企业SSO、正式授权管理及受控数据库执行边界，并完善HTTPS、集中审计与备份恢复，经HR和安全负责人验收。前端使用Sites脚手架的Vinext beta，正式技术选型应单独评审维护与兼容性；无需沿用演示框架。
 
 源数据和模型文件均不提交Git。标准启动不会清空个人看板。合成数据重新生成是受控维护动作，不应在演示进行中执行。
 
-## 教育背景与组织分析
+## 原版教育背景与组织分析
 
 员工档案新增最高学历、最高学位、毕业院校、专业、毕业日期、学习形式。独立教育经历表支持多校毕业去重，院校字典维护名称、简称和历史211/985标签。
 
@@ -113,7 +118,7 @@ npm run release                      # 干净Git版本检查、构建、打包�
 
 完整默认口径、支持问题及接入字段见 [教育分析说明](docs/EDUCATION_ANALYTICS.md)。升级合成数据时先备份业务库，按原种子/人数/截止日重建；保留应用库，旧看板的“部门”分组迁为“团队”以保持原有具体任职组织分组语义。
 
-## 语义知识库与渐进式查询
+## 原版语义知识库与渐进式查询
 
 左侧“语义知识库”可搜索17个可执行指标、15个规划指标、200个字段和160个问题，查看口语别名、“表示什么／不表示什么”、时间和权限口径、依赖字段、示例及实际LangGraph查询图。数量按公司负责人身份统计，其他身份只显示可读定义。
 

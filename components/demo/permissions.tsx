@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V2 关系解释与原生演示策略配置页。关系路径完全来自后端，不在浏览器递归人员表。
+ * SQLite 演示模式可预览/应用策略；Superset 模式由 bootstrap 关闭 can_configure，
+ * 配置入口转移到 Superset/PostgreSQL，不能把这个表单当成 Superset 角色管理器。
+ */
 import { useEffect, useState } from 'react';
 import { request, type Bootstrap, type Policy, type Rules } from './types';
 import { StaticGrid } from './grid';
@@ -50,6 +55,7 @@ export function Permissions({
       .catch((e) => {
         if (!c.signal.aborted) onError(e.message);
       });
+    // 前端按能力隐藏编辑器；后端 policy 接口仍独立拒绝无权修改的身份。
     if (boot.principal.can_configure)
       request<Policy>('/policy', boot.principal.csrf, undefined, c.signal)
         .then(setPolicy)
@@ -58,6 +64,7 @@ export function Permissions({
         });
     return () => c.abort();
   }, [boot.principal.csrf, boot.principal.can_configure, onError]);
+  // 编辑会清空旧预览，要求基于最新草稿再次评估受影响人群。
   const update = (role: string, next: Rules) => {
     if (policy)
       setPolicy({ ...policy, roles: { ...policy.roles, [role]: next } });
@@ -67,11 +74,13 @@ export function Permissions({
     if (!policy) return;
     setBusy(true);
     try {
+      // expected_version 用于后端并发版本检查，避免覆盖其他人刚应用的权限配置。
       const r = await request<{ changes: Change[] }>(
         '/policy/' + (apply ? 'apply' : 'preview'),
         boot.principal.csrf,
         { expected_version: policy.version, roles: policy.roles },
       );
+      // 应用后重新取 bootstrap，由外层指纹 key 重建页面，撤销旧结果和旧聊天上下文。
       if (apply) onChanged();
       else setPreview(r.changes);
     } catch (e) {

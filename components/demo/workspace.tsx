@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V2 页面总装配：DemoWorkspace 管身份和数据版本，Workspace 管当前一次聊天/核验交互。
+ * /demo 与 /demo/debug 共用外层身份壳；V1 根页面由 components/hr/workspace.tsx 承担。
+ * 所有业务请求经 types.ts → 同源 /api/v2 → FastAPI，浏览器不直连 PostgreSQL/Superset。
+ */
 import Link from 'next/link';
 import {
   useCallback,
@@ -55,12 +60,14 @@ export default function DemoWorkspace({ debug = false }: { debug?: boolean }) {
   const [boot, setBoot] = useState<Bootstrap | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  // 递增序号用于忽略快速切换身份后晚到的旧响应；它不是后端授权凭证。
   const epoch = useRef(0);
   const refresh = useCallback(async (persona?: string) => {
     const version = ++epoch.current;
     setLoading(true);
     setError('');
     try {
+      // 演示身份通过服务端会话切换；前端不能靠修改 principal.id 扩大权限。
       if (persona) await request('/session', '', { persona_id: persona });
       let response = await fetch('/api/v2/bootstrap');
       if (response.status === 401) {
@@ -101,7 +108,8 @@ export default function DemoWorkspace({ debug = false }: { debug?: boolean }) {
       disposed = true;
     };
   }, []);
-  // Invalidate mounted views after changes made in another tab; no background model calls.
+  // 每 30 秒检查其他标签页导致的身份/权限/数据变化；只读取 bootstrap，不后台调用模型。
+  // 子组件 key 含身份、权限版本、指纹，变化后整体重建，清掉聊天、表格和历史选择状态。
   useEffect(() => {
     if (!boot) return;
     let disposed = false;
@@ -175,6 +183,7 @@ export default function DemoWorkspace({ debug = false }: { debug?: boolean }) {
   );
 }
 
+// 此组件的生命周期绑定外层身份 key，局部状态只服务于当前身份和数据版本。
 function Workspace({
   boot,
   onChanged,
@@ -186,9 +195,11 @@ function Workspace({
 }) {
   const [tab, setTab] = useState<Tab>('chat');
   const [question, setQuestion] = useState('');
+  // replies 用于对话展示；previous 只指向最近成功的历史记录，作为下一轮业务条件上下文。
   const [replies, setReplies] = useState<Result[]>([]);
   const [pendingQuestion, setPendingQuestion] = useState('');
   const chatEpoch = useRef(0);
+  // 输入法合成中的 Enter 是确认候选词，不能误触发发送；稍后键盘处理还检查结束时间。
   const composing = useRef(false);
   const compositionEndedAt = useRef(0);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -197,6 +208,7 @@ function Workspace({
   const latestTurn = useRef<HTMLDivElement | null>(null);
   const composerInput = useRef<HTMLTextAreaElement | null>(null);
   const [previous, setPrevious] = useState<Result | null>(null);
+  // draft 是编辑中的条件，seed 是最后一次已执行结果，不能把未执行草稿当作查询事实。
   const [draft, setDraft] = useState<Plan>(defaultPlan);
   const [seed, setSeed] = useState<Result | null>(null);
   const [seedKey, setSeedKey] = useState(0);
@@ -226,6 +238,7 @@ function Workspace({
     };
   }, [boot.principal.csrf, onError]);
   useEffect(() => {
+    // 历史只在打开对应页时拉取；能否恢复仍由后端检查所有者与当前权限/数据指纹。
     if (tab !== 'history') return;
     const c = new AbortController();
     request<typeof history>(
@@ -240,6 +253,7 @@ function Workspace({
       });
     return () => c.abort();
   }, [tab, boot.principal.csrf, onError]);
+  // 聊天、手动查询和恢复历史共用请求生命周期：新操作取消旧操作，取消不显示为业务错误。
   async function perform<T>(
     fn: (signal: AbortSignal) => Promise<T>,
     done: (value: T) => void,
@@ -258,6 +272,7 @@ function Workspace({
       if (!c.signal.aborted) setBusy(false);
     }
   }
+  // 从回答带入自助核验时保留服务端实际执行的 Plan，并重置到第一页。
   const explore = useCallback((r: Result) => {
     setDraft({ ...r.plan, page: 1 });
     setSeed(r);
@@ -265,6 +280,7 @@ function Workspace({
     setTab('explore');
     setError('');
   }, []);
+  // 多轮对话只提交问题和 previous_id，由后端重新读取并校验历史，不能信任浏览器旧答案。
   const ask = async () => {
     const text = question.trim();
     if (busy || text.length < 2) return;
@@ -283,6 +299,7 @@ function Workspace({
         ),
       (r) => {
         setReplies((items) => [...items, r]);
+        // 澄清、拒绝和错误可以展示，但不能替换最近成功查询的结构化上下文。
         if (r.status === 'success') setPrevious(r);
         setQuestion('');
       },
@@ -291,6 +308,7 @@ function Workspace({
       setPendingQuestion('');
     }
   };
+  // 自助核验直接提交结构化 Plan，跳过模型理解步骤，但仍走同一后端权限校验和执行器。
   const run = () =>
     void perform(
       (signal) => request<Result>('/query', boot.principal.csrf, draft, signal),
@@ -299,6 +317,7 @@ function Workspace({
         setSeedKey((k) => k + 1);
       },
     );
+  // 恢复历史拿到的是后端认可的记录；如果权限已撤回，接口拒绝而不是展示旧快照。
   const load = (id: string) =>
     void perform(
       (signal) =>
@@ -315,6 +334,7 @@ function Workspace({
       },
     );
   function newConversation() {
+    // 新对话中断在途请求并切断 previous_id 链，不删除服务器保存的历史记录。
     chatEpoch.current += 1;
     aborter.current?.abort();
     setBusy(false);
@@ -327,6 +347,7 @@ function Workspace({
     setTab('chat');
   }
   useLayoutEffect(() => {
+    // 在绘制前按内容调整输入框高度；上限保持轻量问数的一两行体验，长内容内部滚动。
     const input = composerInput.current;
     if (!input) return;
     input.style.height = '0px';
@@ -358,6 +379,7 @@ function Workspace({
     menuButton.current?.focus();
   }, []);
   useEffect(() => {
+    // 移动端侧栏打开后约束键盘焦点；关闭时把焦点还给菜单按钮。
     if (!mobileOpen) return;
     const keyboard = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

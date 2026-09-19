@@ -1,1 +1,5 @@
-"""Versioned, minimal-field HR demonstration with independent verification."""
+"""V2 HR 问数：最小业务宽表、可切换查询后端、权限约束与独立结果核验。
+
+HTTP 入口在 api；自然语言入口在 graph；确定性查询入口在 query。
+本包与原 V1 的业务数据、会话和历史分开，避免演示与回归相互污染。
+"""

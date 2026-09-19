@@ -118,6 +118,8 @@ def prepare_database(fixture, sync_data=False):
 def create_people_views(cur, fields):
     """数据源列隔离：公共出口没有合同列；合同出口同时核对业务字段组。"""
     for level in ["public", "contract"]:
+        # 这里得到“每个查看人各自的候选行”，不是已经完成最终登录隔离的全局人员表。
+        # 同一员工可出现多次；只有 Superset 注入 _viewer_id 后才是某个登录人的结果。
         columns = [f["id"] for f in fields if level == "contract" or f["group"] != "contract"]
         # 附加的授权列便于受控查询、核验和节点解释，不能由模型指定查看人。
         condition = "AND r.field_groups ? 'contract'" if level == "contract" else ""

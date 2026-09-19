@@ -1,7 +1,8 @@
-"""Bounded LangGraph workflow: disclose -> plan -> validate -> execute -> explain.
+"""有界 LangGraph：身份校验→目录披露→模型计划→校验→执行→解释与存档。
 
-The model chooses a typed plan, never SQL. Result prose uses verified cells so
-numeric facts cannot drift during a second language-model generation step.
+模型只选择结构化 Plan，不持有数据库凭据、不生成可自由执行的 SQL。
+数字回答由已执行单元格套入确定性模板，避免第二次模型生成时改写数字。
+补读定义和修正计划都经过 validate 节点路由，并有次数与总耗时上限。
 """
 
 import asyncio
@@ -23,6 +24,7 @@ from .schema import Plan
 
 
 class State(TypedDict, total=False):
+    # principal/fingerprint 是本轮可信上下文；question/candidate 是待校验输入。
     principal: dict
     question: str
     parent_id: str | None
@@ -32,6 +34,7 @@ class State(TypedDict, total=False):
     documents: list
     messages: list
     trace: list
+    # candidate 保留模型原始候选；plan 只在校验成功后写入，execute 不读原候选。
     candidate: dict
     plan: Any
     result: dict
@@ -42,6 +45,7 @@ class State(TypedDict, total=False):
 
 
 def record(s, name, inputs, outputs, started):
+    """追加可展示的节点输入/输出；最终与本人历史绑定，不能在这里写入凭据。"""
     s["trace"].append(
         {
             "name": name,
@@ -53,6 +57,7 @@ def record(s, name, inputs, outputs, started):
 
 
 def date_hints(question):
+    """将明确相对时间绑定到数据快照日；这里不使用电脑当天日期漂移演示结果。"""
     today = date.fromisoformat(store.AS_OF)
     hints = {}
     monday = today - timedelta(days=today.weekday())
@@ -87,6 +92,7 @@ def date_hints(question):
 
 
 def authorize(s):
+    """固定本轮身份与权限指纹，只从本人且仍有效的成功历史恢复上一轮 Plan。"""
     started = time.perf_counter()
     p = s["principal"]
     auth.refresh(p)
@@ -113,6 +119,11 @@ def authorize(s):
 
 
 def discover(s):
+    """先披露授权目录索引，再给匹配词条详情；模型可通过 inspect 有限补读。
+
+    这里是版本化字段目录检索，不是向量数据库检索，也不读取验收题目答案。
+    部门候选来自当前授权人员，不能把不可见部门作为模型上下文泄露出去。
+    """
     started = time.perf_counter()
     catalog = registry.catalog(s["principal"])
     s["catalog"] = catalog
@@ -167,6 +178,7 @@ def discover(s):
 
 
 async def call_model(messages):
+    """请求本地 OpenAI 兼容端点，约束 JSON Schema；只返回候选计划及调试证据。"""
     schema = Plan.model_json_schema()
     schema["required"] = list(schema["properties"])
     for definition in schema.get("$defs", {}).values():
@@ -206,6 +218,7 @@ async def call_model(messages):
 
 
 async def model_node(s):
+    """一次模型调用计为一次 attempt；协议/连接失败转为澄清，不尝试猜测执行。"""
     started = time.perf_counter()
     s["attempts"] += 1
     try:
@@ -219,6 +232,12 @@ async def model_node(s):
 
 
 def validate_node(s):
+    """将候选变成可信 Plan，或设置 next 指向补读、重试、结束。
+
+    依次检查显式类型→可审计条件绑定→Pydantic 结构→字段/范围权限→口语条件。
+    inspect 最多两次；一般计划错误最多获得一次修正机会，总模型尝试不超过四次。
+    401/403/409 表示身份或权限问题，直接 blocked，不能让模型反复尝试绕过。
+    """
     started = time.perf_counter()
     candidate = s["candidate"]
     try:
@@ -231,6 +250,7 @@ def validate_node(s):
         candidate, bindings = grounding.normalize(
             s["question"], candidate, s["previous"], date_hints(s["question"])
         )
+        # 规则补齐必须单列 trace，不能把修正后的成功算作模型原始输出正确。
         if bindings:
             record(
                 s,
@@ -271,7 +291,7 @@ def validate_node(s):
             record(
                 s, "提问条件对齐", {"question": s["question"], "plan": plan.model_dump()}, grounded, started
             )
-            # Date interpretation is independently checked, never silently dropped.
+            # 再次独立核对时间，防止模型修正其他条件时悄悄丢掉日期限定。
             hints = date_hints(s["question"])
             if hints and any(getattr(plan, k) != v for k, v in hints.items()):
                 raise ValueError("日期条件必须保留：" + json.dumps(hints))
@@ -319,6 +339,7 @@ def validate_node(s):
 
 
 def execute_node(s):
+    """模型执行可能耗时：先检查期间是否撤权，再经统一 service 运行查询。"""
     started = time.perf_counter()
     auth.refresh(s["principal"])
     if s["fingerprint"] != auth.fingerprint(s["principal"]):
@@ -339,6 +360,7 @@ def execute_node(s):
 
 
 def finish_node(s):
+    """成功/澄清/阻止都保存节点轨迹；存档前仍需与本轮开始的权限指纹一致。"""
     started = time.perf_counter()
     record(
         s,
@@ -356,6 +378,8 @@ def finish_node(s):
     return s
 
 
+# 唯一回边是 validate→model；execute 不能返回模型生成新 SQL，也不存在无界循环。
+# LangGraph 的 recursion_limit 约束节点步数，与人员汇报线的递归深度没有关系。
 _builder = StateGraph(State)
 for name, fn in [
     ("authorize", authorize),
@@ -379,6 +403,7 @@ GRAPH = _builder.compile()
 
 
 async def answer(p, body):
+    """API 的异步问数入口：限制本机模型并发，并给整张图设置总超时。"""
     try:
         await asyncio.wait_for(_gate.acquire(), timeout=0.1)
     except TimeoutError as exc:

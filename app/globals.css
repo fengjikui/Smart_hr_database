@@ -1,3 +1,5 @@
+/* 全站基础样式与 V1 产品界面。V2 的专属布局/红色主题在 components/demo/*.css。
+   样式只控制外观和响应式布局；隐藏按钮或列不构成数据权限。 */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
@@ -224,7 +226,7 @@ button:disabled {
   letter-spacing: 0.1em;
 }
 
-/* Product surfaces */
+/* V1 产品外壳：侧栏、导航、主内容和基础卡片。 */
 .hr-sidebar [data-slot='sidebar-inner'] {
   background: var(--sidebar);
 }
@@ -850,7 +852,7 @@ button:disabled {
   color: var(--primary);
   flex-shrink: 0;
 }
-/* Conversations and verifiable answers */
+/* V1 对话与可核验答案：消息区、结果摘要、图表和解释面板。 */
 .chat-workspace {
   max-width: 980px;
   margin: 0 auto;
@@ -1236,7 +1238,7 @@ button:disabled {
   font-size: 14px;
   line-height: 1.8;
 }
-/* Tables, organization and governance */
+/* V1 数据表格、组织结构与数据治理页。 */
 [data-slot='table'] {
   font-size: 13px;
 }
@@ -1966,7 +1968,7 @@ button:disabled {
   }
 }
 
-/* Readable on meeting-room screens; smaller text is reserved for metadata. */
+/* 演示会议屏幕的字号调整：正文优先保证可读性，较小字号保留给辅助信息。 */
 .kpi-label,
 .page-description,
 .bar-caption,
@@ -2024,7 +2026,7 @@ button:disabled {
   }
 }
 
-/* Technical reference and observable query execution. */
+/* V1 数据字典和节点调试界面，承载结构说明与真实查询过程。 */
 .debug-query {
   margin: 22px 0;
   padding: 20px;
@@ -2549,7 +2551,7 @@ button:disabled {
   }
 }
 
-/* Semantic registry: searchable index and one continuous definition document. */
+/* V1 语义知识库：可搜索目录与连续的定义详情。 */
 .semantic-tabs {
   max-width: 100%;
   overflow-x: auto;

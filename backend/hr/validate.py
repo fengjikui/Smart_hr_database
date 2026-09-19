@@ -1,3 +1,5 @@
+# V1 合成数据一致性验收：检查任职、管理闭包、教育、考勤、薪酬等事实之间的约束。
+# CHECKS 中每条 SQL 返回违规数量，0 才通过；验证口径与样本自洽，不等于已获 HR 确认。
 import json
 import sqlite3
 from datetime import UTC, datetime

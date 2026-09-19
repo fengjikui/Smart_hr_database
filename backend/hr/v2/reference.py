@@ -1,8 +1,8 @@
-"""Independent Python reference: no SQL compiler or permission resolver imports.
+"""独立 Python 参考计算：不复用 SQL 编译器或运行时权限遍历函数。
 
-Only immutable field/metric vocabulary and the source data are shared. This is a
-separate implementation used to reconcile the current synthetic data, not proof
-that the business assumptions have been approved.
+只共享字段/指标词汇与输入数据，以另一种实现核对人数、筛选、事件及舍入。
+离线回归可以输入完整合成数据并独立 BFS；在线对账只能输入已授权快照。
+计算一致不代表业务口径已经得到真实 HR 确认，也不证明模型理解了提问。
 """
 
 from collections import defaultdict, deque
@@ -16,6 +16,11 @@ from .schema import LEVELS, SCHOOLS
 
 
 def independent_scope(p, plan, rows, policy):
+    """从当前人向下 BFS，独立求管理线与 HRBP 范围，用于离线授权名单对照。
+
+    与 auth.grants 的逐人向上追溯有意采用不同算法，避免复制同一种实现错误。
+    本函数不是完整数据质量校验器；传入数据的全局环/孤立引用另由导入与授权检查。
+    """
     children = defaultdict(list)
     for r in rows:
         children[r["head_person_id"]].append(r["person_id"])
@@ -49,6 +54,7 @@ def independent_scope(p, plan, rows, policy):
 
 
 def calculate(p, plan, *, source=None, scope=None):
+    """返回未分页 rows/totals；可显式注入数据及授权范围，不需要连接查询数据库。"""
     # 在线核验可传入 Superset 已授权快照：参考计算不能成为全量数据泄露的旁路。
     # 离线集成验收仍用默认的独立 BFS 验证完整权限名单。
     source = store.people() if source is None else source
@@ -110,6 +116,7 @@ def calculate(p, plan, *, source=None, scope=None):
     def in_range(value):
         return bool(value and plan.start_date and plan.start_date <= value <= plan.end_date)
 
+    # 人员记录先按权限/条件过滤，再展开事件；同一人可有两条事实，但人数要去重。
     facts = []
     for row in records:
         if plan.date_field == "employment_events":
@@ -150,6 +157,7 @@ def calculate(p, plan, *, source=None, scope=None):
         return row[key] if row[key] is not None else "未知"
 
     def metrics(group):
+        """直接按人员/事件列表计算指标，独立实现分子、分母及平均数的样本口径。"""
         unique = {r["person_id"]: r for r in group}
         persons = list(unique.values())
         out = {}
@@ -175,6 +183,7 @@ def calculate(p, plan, *, source=None, scope=None):
                         and r["onboard_date"] <= r["confirmation_date"] <= store.AS_OF
                     ]
                 )
+                # 明确采用四舍五入，避免 Python 浮点 round 的银行家舍入影响 SQL 对账。
                 out[m] = (
                     float(
                         (Decimal(sum(vals)) / Decimal(len(vals))).quantize(
@@ -236,6 +245,7 @@ def calculate(p, plan, *, source=None, scope=None):
 
         result = [{k: r[k] for k in plan.columns} for r in sorted(facts, key=cmp_to_key(compare))]
         return {"rows": result, "totals": {"count": len(result)}}
+    # 没有分组时空样本仍产生一个总体统计；有分组时仅月度场景补齐允许的空组合。
     groups = defaultdict(list)
     for r in facts:
         groups[tuple(dimension(r, d) for d in plan.group_by)].append(r)

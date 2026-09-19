@@ -1,3 +1,10 @@
+"""V2 HTTP 边界：会话/CSRF → 类型化请求 → auth、service 或 LangGraph。
+
+页面、自助核验和聊天都复用同一后端身份，不能由浏览器传入 Superset 用户或
+数据库连接。这里的身份选择属于本机演示，不是生产 SSO；Superset 模式也
+不把服务端凭据返回浏览器。路由本身尽量不重复实现查询与授权规则。
+"""
+
 import csv
 import io
 import json
@@ -24,6 +31,7 @@ class Drill(Strict):
 
 
 def checked(request: Request, p=Depends(auth.principal)):
+    """组合已有会话与 CSRF 依赖；POST 查询、下钻、核验和导出共同使用。"""
     auth.csrf(request, p)
     return p
 
@@ -41,6 +49,7 @@ def health():
     }
 
 
+# 演示入口允许操作者切换预定义身份；真实部署需要替换为可信认证后的映射。
 @router.post("/session")
 def session(body: Persona, request: Request, response: Response):
     token = auth.session(body.persona_id, request.cookies.get(auth.COOKIE))
@@ -50,6 +59,7 @@ def session(body: Persona, request: Request, response: Response):
     return {"ok": True, "demo_only": True}
 
 
+# 页面启动时一起取得身份、授权目录、数据版本和模型状态，避免先展示全量目录。
 @router.get("/bootstrap")
 async def bootstrap(p=Depends(auth.principal)):
     return {
@@ -63,6 +73,7 @@ async def bootstrap(p=Depends(auth.principal)):
     }
 
 
+# 结构化查询入口用于可视化编辑器；自然语言 chat 最终也经过同一个 run_query。
 @router.post("/query")
 def execute(body: Plan, p=Depends(checked)):
     return service.run_query(p, body)
@@ -95,11 +106,13 @@ def read(rid: str, p=Depends(auth.principal)):
     return service.read_run(p, rid)
 
 
+# 题单只供演示导航；模型运行图不根据问题编号查找标准答案。
 @router.get("/cases")
 def cases(p=Depends(auth.principal)):
     return json.loads((config.PROJECT / "evaluation/demo-v2-cases.json").read_text())
 
 
+# 关系页也必须鉴权，不能为了画图额外读取未授权祖先/HRBP 的姓名。
 @router.get("/relations")
 def relations(p=Depends(auth.principal)):
     grant = auth.grants(p)
@@ -123,6 +136,7 @@ def relations(p=Depends(auth.principal)):
     return {"rows": rows, "policy_version": grant["policy_version"], "assumption": True}
 
 
+# 这组配置 API 仅服务原 SQLite 演示；Superset 模式拒绝本地规则写入。
 @router.get("/policy")
 def policy(p=Depends(auth.principal)):
     if superset_source.enabled():
@@ -143,6 +157,8 @@ def apply(body: auth.PolicyChange, p=Depends(checked)):
     return auth.apply_policy(p, body)
 
 
+# 导出不是另一个直连数据库通道：沿用查询编译、完整授权与前后指纹检查。
+# 当前 export 开关只约束本应用；不会自动关闭 Superset 自带下载菜单。
 @router.post("/export")
 def export(body: Plan, p=Depends(checked)):
     if not auth.policy(p)["roles"][p["role"]]["export"]:
@@ -158,7 +174,7 @@ def export(body: Plan, p=Depends(checked)):
         if v is None:
             return ""
         value = str(v)
-        # CSV is text; prevent spreadsheet formula injection including leading whitespace.
+        # CSV 打开到表格软件时，防止 =/+/-/@ 等被解释成公式；前导零工号也保留为文本。
         return (
             "'" + value
             if value.lstrip().startswith(("=", "+", "-", "@"))

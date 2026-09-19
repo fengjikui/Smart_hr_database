@@ -10,6 +10,9 @@ import psycopg2
 from superset.app import create_app
 
 ROOT = Path(__file__).resolve().parent
+# 首版小样本 HR_LAB 实验：输入本目录 fixtures.json，业务数据库是 hr_lab。
+# 不是把 V2 的 300 人导入这里；完整 V2 导入位于 v2/setup.py，使用独立 hr_v2。
+# 本脚本可重设自己 HR_LAB_* 对象；课堂 LEARN_* 与完整演示 V2_* 分别有独立初始化入口。
 fixture = json.loads((ROOT / "fixtures.json").read_text())
 
 
@@ -63,6 +66,8 @@ with app.app_context():
             )
 
     datasets = {}
+    # Superset 的成熟能力是身份、角色、数据集访问与 RLS 注入；管理/HRBP 业务关系
+    # 仍由 schema.sql 中我们编写的 PostgreSQL 视图计算，不是 Superset 内置 HR 规则。
     data_roles = {}
     for level, db_user, key in [
         ("public", "hr_public_reader", "PUBLIC_DB_PASSWORD"),
@@ -114,6 +119,7 @@ with app.app_context():
         db.session.commit()
 
     for u in fixture["users"]:
+        # db_user 是共享数据库读者，user 是 Superset 登录人；RLS 通过登录 ID 关联业务人。
         roles = [sm.find_role("Gamma"), data_roles["public"]]
         business_role = sm.add_role("HR_LAB_ROLE_" + u["role"])
         roles.append(business_role)

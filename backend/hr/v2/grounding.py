@@ -1,7 +1,8 @@
-"""Literal condition guard. No acceptance question IDs or expected plans are used.
+"""显式口语条件的确定性约束，辅助检查模型是否遗漏/改写用户已经说清的要求。
 
-This does not repair a model plan silently: missing or contradictory grounded
-conditions trigger the bounded model repair branch and remain in the trace.
+不读取验收题目 ID 或标准计划。normalize 对无歧义表达做有记录的绑定，
+check 再检查计划与提问；未通过时交由图的有限修正分支处理。它不是通用
+中文语义理解器，也不能独立证明所有自然语言问题都被正确理解。
 """
 
 import re
@@ -19,6 +20,7 @@ SCHOOL_ALIASES = {
 
 
 def constraints(question, previous=None):
+    """提取明确学校、专业、年龄、全日制等条件，并继承追问中未被替换的筛选。"""
     filters = []
 
     def add(field, op, values):
@@ -64,6 +66,7 @@ def constraints(question, previous=None):
 
 
 def check(question, plan, previous=None, departments=None):
+    """拒绝缺失、冲突、超出数据事实范围的计划；成功时返回可放入 trace 的证据。"""
     required = constraints(question, previous)
     actual = [f.model_dump() for f in plan.filters]
 
@@ -122,6 +125,7 @@ def check(question, plan, previous=None, departments=None):
         and plan.population != "all"
     ):
         raise ValueError("事件人群需包含目前已离职人员，不应限制当前在职")
+    # 追问的范围、状态、日期、部门也要保留，不能只继承 filters 导致人群悄悄变化。
     if previous and "其他条件不变" in question:
         for key in ("scope", "population", "date_field", "start_date", "end_date", "departments"):
             if getattr(plan, key) != previous[key]:
@@ -130,10 +134,10 @@ def check(question, plan, previous=None, departments=None):
 
 
 def normalize(question, candidate, previous, date_range):
-    """Bind explicit time/range literals before schema validation; audit every edit.
+    """在结构校验前绑定明确时间/范围，返回新候选和逐项变化记录。
 
-    Only unambiguous surface conditions are filled. This is reported separately
-    from raw model accuracy and never loads a case/question-to-answer mapping.
+    不原地覆盖模型候选；graph 将每次补齐单独写入节点轨迹，并把原始计划
+    正确率与规则修正后的可执行率分开。没有按问题文本查标准答案的映射。
     """
     import copy
 
@@ -156,7 +160,7 @@ def normalize(question, candidate, previous, date_range):
             field = "termin_date"
         if field:
             raw.update(date_field=field, **date_range)
-            # A single canonical date interval avoids duplicate or contradictory date representations.
+            # 只保留一个规范日期区间，避免 filters 与 start/end 同时表达且互相冲突。
             raw["filters"] = [f for f in raw.get("filters", []) if f.get("field") != field]
             if field in ("onboard_date", "termin_date", "employment_events") and "在职" not in question:
                 raw["population"] = "all"
@@ -185,13 +189,12 @@ def normalize(question, candidate, previous, date_range):
             f.get("field") == "degree_code_desc" and f.get("op") == "eq" and f.get("values") == ["博士"]
             for f in raw.get("filters", [])
         ):
-            # Canonical degree metric also checks graduation, unlike a raw degree equality count.
+            # “取得博士学位”还需已毕业；规范指标包含日期口径，直接数 degree 等值并不等价。
             raw["metrics"] = ["doctors_count"]
             raw["filters"] = [f for f in raw.get("filters", []) if f.get("field") != "degree_code_desc"]
     metrics = raw.get("metrics", [])
     if raw.get("kind") == "aggregate" and "count" in metrics and "总人数" not in question:
-        # Conditional metrics already compute the requested cohort. Avoid duplicating
-        # a generic count when the request only asks for this background count/rate.
+        # 条件指标已经计算目标人群；只问这一类人数/占比时，避免额外返回容易混淆的总人数。
         if set(metrics) == {"count", "doctors_count"} and "博士" in question:
             raw["metrics"] = ["doctors_count"]
             raw["filters"] = [
@@ -214,10 +217,10 @@ def normalize(question, candidate, previous, date_range):
 
 
 def needs_previous(question):
+    """区分依赖上一轮的指代，与同一句内已经定义人群的自包含问题。"""
     if any(word in question for word in ("刚才", "上次", "上一条", "其他条件不变")):
         return True
-    # An anaphor after an explicit cohort in the same utterance is self-contained:
-    # "今年已转正多少人？这些人平均..." must not require a previous chat turn.
+    # “今年已转正多少人？这些人平均……”在同句中已有指代对象，不强制要求历史轮次。
     return bool(
         re.match(
             r"^(?:请)?(?:在|对|给|把|继续查看|继续统计|统计)?(?:这些人|这批人|他们|她们)", question.strip()

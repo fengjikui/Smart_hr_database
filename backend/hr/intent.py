@@ -9,6 +9,8 @@ from .education import school_directory
 from .models import QueryPlan
 
 
+# V1 模型之外的明确意图校验：已识别的关系、学校、日期等不能被模型静默丢弃。
+# 只处理已声明支持的表达；遇到不支持条件要澄清/拒绝，不能装作“理解了全部问题”。
 def explicit_constraints(question):
     q = question
     # Normalize common event phrasing only; this does not create arbitrary value aliases.

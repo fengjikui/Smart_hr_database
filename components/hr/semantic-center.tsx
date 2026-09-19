@@ -1,4 +1,9 @@
 'use client';
+/**
+ * V1 语义知识库阅读页：索引、单条定义、关联字段/指标和实际查询图。
+ * 对应后端的渐进式披露设计：先取精简目录，选中条目后再取详细定义。
+ * 页面本身不检索人员明细，也不修改知识库或权限规则。
+ */
 import { useState } from 'react';
 import { ArrowRight, Bug, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -103,6 +108,7 @@ function EntryDetail({
   onSelect: (id: string) => void;
   onAsk: (question: string) => void;
 }) {
+  // 详情按稳定语义 ID 单独读取，避免初始索引把全部长定义一次性塞给页面。
   const { data, error, loading, reload } = useResource<Entry>(
     `/semantics/documents/${encodeURIComponent(id)}`,
     identity,
@@ -236,6 +242,7 @@ function QueryWorkflow({
   identity: string;
   onDebug: () => void;
 }) {
+  // 流程节点与边取自服务端实际编译图，不用前端硬编码图冒充真实执行链。
   const { data, error, loading, reload } = useResource<Workflow>(
     '/workflow',
     identity,
@@ -311,6 +318,7 @@ export function SemanticCenter({
   onDebug: () => void;
 }) {
   const [kind, setKind] = useState('metric');
+  // draft 是输入中的文本，query 是用户提交的检索词；每次按键不直接请求服务端。
   const [draft, setDraft] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState('metric:education_ratio');
@@ -319,6 +327,7 @@ export function SemanticCenter({
     boot.principal.id,
   );
   const docs = data?.documents.filter((d) => d.kind === kind) ?? [];
+  // 无搜索词时优先展示当前可执行题目；规划中的问题仍可阅读但不能据此宣称已支持。
   if (kind === 'question' && !query) {
     docs.sort(
       (a, b) =>

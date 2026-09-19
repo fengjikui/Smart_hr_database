@@ -15,6 +15,8 @@ EVENT_PROBE_NAME = "V2_PROBE_public_events_deny"
 
 
 def main(action, value):
+    # PostgreSQL 事实/策略和 Superset 元数据是两个事务域；捕获的恢复快照必须同时覆盖二者。
+    # 调用端负责 finally 恢复；这些破坏性模拟只用于本机合成演示验收，不能当业务配置入口。
     from superset import db
     from superset import security_manager as sm
     from superset.connectors.sqla.models import RowLevelSecurityFilter, SqlaTable

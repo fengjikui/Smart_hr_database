@@ -1,3 +1,5 @@
+# V1 应用内权限实现：会话绑定 principals，再从当前管理闭包或服务组织得到人员集合。
+# 这套逻辑不是 V2 的 HRBP 继承模型，也不调用 OpenFGA/Superset；保留用于旧版多表演示。
 import hashlib
 import secrets
 import time
@@ -14,6 +16,7 @@ SESSION_SECONDS = 8 * 3600
 
 
 def get_principal(request: Request):
+    # 请求携带的是随机会话令牌；库内仅存哈希，角色和范围始终从服务器读取。
     token = request.cookies.get(COOKIE_NAME, "")
     with application() as db:
         row = db.execute(
@@ -49,6 +52,8 @@ def create_session(persona_id: str, old_token: str | None = None):
 
 
 def scope_ids(principal, relation="all"):
+    # scope_mode 先确定授权上限；问题里的直属/间接/本人只是进一步收窄，不能扩大集合。
+    # reporting_closure 在造数时预计算；这里读取闭包，不是每次查询现算递归。
     with business() as db:
         if principal["scope_mode"] == "reports":
             candidates = rows(
@@ -90,6 +95,7 @@ def scope_ids(principal, relation="all"):
 
 
 def public_principal(principal):
+    # 授权候选人可能含离职员工；界面在职人数还需按快照日再过滤，两个数字不必相同。
     ids = scope_ids(principal)
     with business() as db:
         snapshot = db.execute("SELECT value FROM dataset_meta WHERE key='as_of'").fetchone()[0]
@@ -138,6 +144,7 @@ def public_principal(principal):
 
 
 def audit(principal, action, outcome, metric_id=None, scope_count=None, duration_ms=0):
+    # 审计保存动作、结论和授权版本；不将查询结果或私人字段复制进审计表。
     with application() as db:
         db.execute(
             "INSERT INTO audit_events VALUES (?,?,?,?,?,?,?,?,?)",

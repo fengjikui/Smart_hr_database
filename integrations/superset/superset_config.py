@@ -2,6 +2,8 @@
 
 import os
 
+# 此配置同时供 HR_LAB、LEARN、V2 实验使用；元数据库只存平台用户/角色/图表等对象，
+# 业务事实在各自数据源数据库。这里开放模板以使用 current_user_id()，不是开放任意模型 SQL。
 SECRET_KEY = os.environ["SUPERSET_SECRET_KEY"]
 SQLALCHEMY_DATABASE_URI = (
     "postgresql+psycopg2://superset_meta:" + os.environ["META_PASSWORD"] + "@postgres:5432/superset_meta"
@@ -12,6 +14,8 @@ FEATURE_FLAGS = {
     "ALLOW_ADHOC_SUBQUERY": False,
     "DASHBOARD_RBAC": False,
 }
+# SQL Lab 的实验特性开关不等于业务用户获准使用 SQL Lab；用户角色还需单独授权。
+# 完整 V2 演示既不暴露连接到 SQL Lab，也不授业务账号对应能力，避免绕开受控数据集。
 # No query-response caching while proving immediate permission revocation.
 CACHE_CONFIG = {"CACHE_TYPE": "NullCache"}
 DATA_CACHE_CONFIG = {"CACHE_TYPE": "NullCache"}
