@@ -98,6 +98,7 @@ export type Principal = {
   rules: Rules;
 };
 export type Bootstrap = {
+  query_backend?: 'sqlite' | 'superset';
   fingerprint: string;
   principal: Principal;
   personas: { id: string; label: string }[];

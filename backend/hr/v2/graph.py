@@ -103,7 +103,7 @@ def authorize(s):
         "身份与历史校验",
         {"persona": p["id"], "previous_id": s.get("parent_id")},
         {
-            "policy_version": store.policy()["version"],
+            "policy_version": auth.policy(p)["version"],
             "previous_plan": previous,
             "visible_count": len(auth.grants(p)["ids"]),
         },
@@ -327,10 +327,11 @@ def execute_node(s):
     record(
         s,
         "重新鉴权与只读SQL执行",
-        {"plan": s["plan"].model_dump(), "policy_version": store.policy()["version"]},
+        {"plan": s["plan"].model_dump(), "policy_version": auth.policy(s["principal"])["version"]},
         {
             k: s["result"][k]
-            for k in ("sql", "parameters", "rows", "totals", "total_rows", "duration_ms", "scope_count")
+            for k in ("sql", "parameters", "rows", "totals", "total_rows", "duration_ms", "scope_count",
+                      "execution_backend", "source_queries") if k in s["result"]
         },
         started,
     )

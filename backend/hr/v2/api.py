@@ -7,7 +7,7 @@ from pydantic import Field
 
 from .. import config
 from ..agent import model_status
-from . import auth, query, registry, service, store
+from . import auth, query, registry, service, store, superset_source
 from .schema import Plan, Question, Strict
 
 router = APIRouter(prefix="/api/v2", tags=["HR Demo V2"])
@@ -37,6 +37,7 @@ def health():
         "as_of": store.AS_OF,
         "synthetic": True,
         "source_fields": 26,
+        "query_backend": "superset" if superset_source.enabled() else "sqlite",
     }
 
 
@@ -58,6 +59,7 @@ async def bootstrap(p=Depends(auth.principal)):
         "model": await model_status(),
         "data_version": store.DATA_VERSION,
         "fingerprint": auth.fingerprint(p),
+        "query_backend": "superset" if superset_source.enabled() else "sqlite",
     }
 
 
@@ -101,15 +103,16 @@ def cases(p=Depends(auth.principal)):
 @router.get("/relations")
 def relations(p=Depends(auth.principal)):
     grant = auth.grants(p)
-    if not store.policy()["roles"][p["role"]]["details"]:
+    if not auth.policy(p)["roles"][p["role"]]["details"]:
         raise HTTPException(403, "当前角色未开放人员明细")
-    lookup = {r["person_id"]: r for r in store.people()}
+    lookup = {r["person_id"]: r for r in auth.people(p)}
     rows = []
     for eid in grant["ids"]:
         person = lookup[eid]
         paths = []
         for origin in grant["origins"][eid]:
-            paths.append({**origin, "names": [lookup[n]["name"] for n in origin["path"]]})
+            paths.append({**origin, "names": [lookup[n]["name"] if n in lookup else "未授权路径节点"
+                                               for n in origin["path"]]})
         rows.append(
             {
                 **{k: person[k] for k in ("person_id", "employee_no", "name", "dept_cn_name")},
@@ -122,6 +125,8 @@ def relations(p=Depends(auth.principal)):
 
 @router.get("/policy")
 def policy(p=Depends(auth.principal)):
+    if superset_source.enabled():
+        raise HTTPException(409, "Superset 模式的配置入口在 Superset 与 PostgreSQL，本地规则编辑已停用")
     if p["id"] != "admin":
         raise HTTPException(403, "仅配置管理员可查看完整配置")
     return store.policy()
@@ -140,7 +145,7 @@ def apply(body: auth.PolicyChange, p=Depends(checked)):
 
 @router.post("/export")
 def export(body: Plan, p=Depends(checked)):
-    if not store.policy()["roles"][p["role"]]["export"]:
+    if not auth.policy(p)["roles"][p["role"]]["export"]:
         raise HTTPException(403, "当前角色未开放导出")
     before = auth.fingerprint(p)
     result = query.execute(p, body)

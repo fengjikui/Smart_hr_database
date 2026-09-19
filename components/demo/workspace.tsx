@@ -477,6 +477,11 @@ function Workspace({
                   候选人员 {boot.principal.candidate_count} 位（含离职）
                 </span>
                 <span>权限版本 {boot.principal.policy_version}</span>
+                <span>
+                  {boot.query_backend === 'superset'
+                    ? 'Superset 权限 · PostgreSQL 查询'
+                    : '本地 SQLite 演示'}
+                </span>
                 <span className={boot.model.connected ? 'd-model-ok' : ''}>
                   ●{' '}
                   {boot.model.connected

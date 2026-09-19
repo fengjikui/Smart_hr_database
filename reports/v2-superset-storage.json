@@ -1,0 +1,339 @@
+{
+  "passed": true,
+  "checked_at": "2026-09-19T23:14:20.586985+00:00",
+  "check_count": 51,
+  "checks": [
+    {
+      "name": "全量宽表列顺序与原 V2 相同",
+      "passed": true,
+      "actual": [
+        "person_id",
+        "employee_no",
+        "name",
+        "head_person_id",
+        "dept_master_id",
+        "dept_hrbp_id",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date",
+        "birth_date",
+        "age",
+        "school_name",
+        "first_major",
+        "diploma_code_desc",
+        "degree_code_desc",
+        "full_time_flag",
+        "education_expired_date",
+        "hire_type_code_desc",
+        "labour_type_code_desc",
+        "position_code_desc",
+        "current_employment_start_date",
+        "confirmation_date",
+        "formalize_flag",
+        "contract_type_code_desc",
+        "contract_end_date"
+      ]
+    },
+    {
+      "name": "全量人员行数与导出一致",
+      "passed": true,
+      "actual": 300
+    },
+    {
+      "name": "当前标准演示完整 300 人",
+      "passed": true,
+      "actual": 300
+    },
+    {
+      "name": "当前标准演示完整 26 字段",
+      "passed": true,
+      "actual": 26
+    },
+    {
+      "name": "工号前导零仍保留",
+      "passed": true,
+      "actual": "00031266"
+    },
+    {
+      "name": "PostgreSQL 逐字段完整快照 SHA-256 与 SQLite 导出一致",
+      "passed": true,
+      "actual": "275ac36cf0526ec6fd37c6dc6ea2d5ea9dba7333e4493f52f27dcbd444b4d228"
+    },
+    {
+      "name": "数据库元数据记录实际指纹与快照日",
+      "passed": true,
+      "actual": [
+        "275ac36cf0526ec6fd37c6dc6ea2d5ea9dba7333e4493f52f27dcbd444b4d228",
+        "2026-09-11"
+      ]
+    },
+    {
+      "name": "管理线及 HRBP 图无环且无孤儿",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_public_reader 数据库权限拒绝：SELECT * FROM v2_data.people",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_public_reader 数据库权限拒绝：SELECT * FROM v2_auth.identity_map",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_public_reader 数据库权限拒绝：SELECT * FROM v2_auth.role_policy",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_public_reader 数据库权限拒绝：SELECT contract_end_date FROM v2_api.people_contract",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_public_reader 数据库权限拒绝：SELECT contract_end_date FROM v2_api.events_contract",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "public 出口合同列物理隔离",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "name": "v2_public_reader 默认只读",
+      "passed": true,
+      "actual": "on"
+    },
+    {
+      "name": "v2_contract_reader 数据库权限拒绝：SELECT * FROM v2_data.people",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_contract_reader 数据库权限拒绝：SELECT * FROM v2_auth.identity_map",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_contract_reader 数据库权限拒绝：SELECT * FROM v2_auth.role_policy",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "contract 出口合同列物理隔离",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_contract_reader 默认只读",
+      "passed": true,
+      "actual": "on"
+    },
+    {
+      "name": "8 个 V2 自定义角色",
+      "passed": true,
+      "actual": [
+        "V2_Context",
+        "V2_Data_contract",
+        "V2_Data_public",
+        "V2_Role_admin",
+        "V2_Role_employee",
+        "V2_Role_hr_lead",
+        "V2_Role_hrbp",
+        "V2_Role_manager"
+      ]
+    },
+    {
+      "name": "7 个 V2 独立账号",
+      "passed": true,
+      "actual": [
+        "v2_admin",
+        "v2_employee",
+        "v2_hr_lead",
+        "v2_hrbp",
+        "v2_manager",
+        "v2_setup_admin",
+        "v2_unmapped"
+      ]
+    },
+    {
+      "name": "v2_unmapped 不含超级角色或 SQL Lab 角色",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_unmapped 不含数据库全访问、全数据集或 SQL Lab 权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_admin 不含超级角色或 SQL Lab 角色",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_admin 不含数据库全访问、全数据集或 SQL Lab 权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "配置管理员与业务身份分离",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "v2_manager 不含超级角色或 SQL Lab 角色",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_manager 不含数据库全访问、全数据集或 SQL Lab 权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_hrbp 不含超级角色或 SQL Lab 角色",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_hrbp 不含数据库全访问、全数据集或 SQL Lab 权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_employee 不含超级角色或 SQL Lab 角色",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_employee 不含数据库全访问、全数据集或 SQL Lab 权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_hr_lead 不含超级角色或 SQL Lab 角色",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "v2_hr_lead 不含数据库全访问、全数据集或 SQL Lab 权限",
+      "passed": true,
+      "actual": []
+    },
+    {
+      "name": "5 个注册物理视图数据集",
+      "passed": true,
+      "actual": [
+        "context",
+        "events_contract",
+        "events_public",
+        "people_contract",
+        "people_public"
+      ]
+    },
+    {
+      "name": "数据集没有附加自定义虚拟 SQL",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "3 条 V2 RLS",
+      "passed": true,
+      "actual": [
+        "V2_context_scope",
+        "V2_scope_contract",
+        "V2_scope_public"
+      ]
+    },
+    {
+      "name": "V2_scope_contract 是 Base 且无豁免角色",
+      "passed": true,
+      "actual": [
+        "Base",
+        0
+      ]
+    },
+    {
+      "name": "V2_scope_contract 精确绑定预期数据集",
+      "passed": true,
+      "actual": [
+        9,
+        10
+      ]
+    },
+    {
+      "name": "V2_scope_contract 使用可信登录 ID",
+      "passed": true,
+      "actual": "_viewer_id = {{ current_user_id() }}"
+    },
+    {
+      "name": "V2_scope_contract 未加入可放宽的 OR 组",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "name": "V2_context_scope 是 Base 且无豁免角色",
+      "passed": true,
+      "actual": [
+        "Base",
+        0
+      ]
+    },
+    {
+      "name": "V2_context_scope 精确绑定预期数据集",
+      "passed": true,
+      "actual": [
+        11
+      ]
+    },
+    {
+      "name": "V2_context_scope 使用可信登录 ID",
+      "passed": true,
+      "actual": "superset_user_id = {{ current_user_id() }}"
+    },
+    {
+      "name": "V2_context_scope 未加入可放宽的 OR 组",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "name": "V2_scope_public 是 Base 且无豁免角色",
+      "passed": true,
+      "actual": [
+        "Base",
+        0
+      ]
+    },
+    {
+      "name": "V2_scope_public 精确绑定预期数据集",
+      "passed": true,
+      "actual": [
+        7,
+        8
+      ]
+    },
+    {
+      "name": "V2_scope_public 使用可信登录 ID",
+      "passed": true,
+      "actual": "_viewer_id = {{ current_user_id() }}"
+    },
+    {
+      "name": "V2_scope_public 未加入可放宽的 OR 组",
+      "passed": true,
+      "actual": false
+    },
+    {
+      "name": "旧 HR 实验和课堂学生角色/RLS 配置完全保留",
+      "passed": true,
+      "actual": {
+        "roles": 16,
+        "rules": 3
+      }
+    }
+  ]
+}

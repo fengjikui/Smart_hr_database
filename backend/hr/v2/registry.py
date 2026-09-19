@@ -82,7 +82,7 @@ def catalog(p):
     ]
     dims = {k: v for k, v in DIMENSIONS.items() if k not in FIELDS or k in allowed}
     ids = set(auth.grants(p)["ids"])
-    departments = sorted({r["dept_cn_name"] for r in store.people() if r["person_id"] in ids})
+    departments = sorted({r["dept_cn_name"] for r in auth.people(p) if r["person_id"] in ids})
     return {
         "version": VERSION,
         "fields": fields,
@@ -90,7 +90,7 @@ def catalog(p):
         "dimensions": dims,
         "departments": departments,
         "as_of": store.AS_OF,
-        "storage": "版本化Python目录作为定义源，应用SQLite存放配置、审计与历史；26字段采用索引加按需披露，无向量库。",
+        "storage": "版本化Python目录保存字段与口径；应用SQLite保留会话、审计与历史。业务数据与授权以当前查询后端为准；26字段采用索引加按需披露，无向量库。",
     }
 
 

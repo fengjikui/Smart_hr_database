@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 
-from . import auth, query, reference, store
+from . import auth, query, reference, store, superset_source
 from .schema import FIELDS, METRICS, Plan
 
 
@@ -45,7 +45,11 @@ def run_query(p, plan):
 def reconcile(p, plan):
     before = auth.fingerprint(p)
     actual = query.execute(p, plan)
-    expected = reference.calculate(p, plan)
+    if superset_source.enabled():
+        ids, grant = auth.scoped(p, plan.scope)
+        expected = reference.calculate(p, plan, source=auth.people(p), scope=(set(ids), grant["depths"]))
+    else:
+        expected = reference.calculate(p, plan)
     auth.refresh(p)
     if before != auth.fingerprint(p):
         raise HTTPException(409, "对账期间权限或数据已变化")
@@ -69,8 +73,9 @@ def reconcile(p, plan):
         "query_hash": digest(actual["_all_rows"]),
         "reference_hash": digest(expected["rows"]),
         "totals": expected["totals"],
-        "method": "只读SQL结果 vs 独立Python逐人员过滤与分组；权限采用独立BFS遍历",
-        "limitation": "验证演示口径下的计算一致性；不代替业务确认口径，也不证明模型理解符合提问本意。",
+        "method": ("Superset/PostgreSQL结果 vs 当前已授权快照的独立Python计算" if superset_source.enabled()
+                   else "只读SQL结果 vs 独立Python逐人员过滤与分组；权限采用独立BFS遍历"),
+        "limitation": "验证演示口径下的计算一致性；在线对账不独立证明授权范围正确，权限名单另由离线回归核验；不代替业务确认口径，也不证明模型理解符合提问本意。",
         "fingerprint": before,
         "data_version": store.DATA_VERSION,
         "as_of": store.AS_OF,

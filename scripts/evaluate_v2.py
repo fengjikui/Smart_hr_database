@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from backend.hr import config
-from backend.hr.v2 import query, reference, service, store
+from backend.hr.v2 import query, reference, service, store, superset_source
 from backend.hr.v2.graph import answer
 from backend.hr.v2.schema import Plan, Question
 
@@ -52,6 +52,7 @@ async def main(args):
     report = {
         "started_at": datetime.now(UTC).isoformat(),
         "model": config.MODEL_ID,
+        "query_backend": "superset" if superset_source.enabled() else "sqlite",
         "isolated": True,
         "cases": [],
         "pressure": [pressure()],

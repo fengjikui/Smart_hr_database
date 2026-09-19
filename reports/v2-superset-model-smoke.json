@@ -1,0 +1,4768 @@
+{
+  "started_at": "2026-09-19T23:26:28.696789+00:00",
+  "model": "hr-qwen",
+  "query_backend": "superset",
+  "isolated": true,
+  "cases": [
+    {
+      "id": "HR-01",
+      "passed": true,
+      "elapsed_s": 7.38,
+      "status": "success",
+      "question": "我的直属和间接下属按部门分别有多少在职人员？同时给出合计。",
+      "expected_plan": {
+        "kind": "aggregate",
+        "group_by": [
+          "dept_cn_name",
+          "relation"
+        ],
+        "scope": "reports"
+      },
+      "actual_plan": {
+        "kind": "aggregate",
+        "scope": "reports",
+        "population": "active",
+        "departments": [],
+        "filters": [],
+        "date_field": null,
+        "start_date": null,
+        "end_date": null,
+        "group_by": [
+          "dept_cn_name",
+          "relation"
+        ],
+        "metrics": [
+          "count"
+        ],
+        "columns": [],
+        "order_by": [],
+        "page": 1,
+        "page_size": 50,
+        "message": null,
+        "inspect_ids": []
+      },
+      "expected": {
+        "rows": [
+          {
+            "dept_cn_name": "可信与AI实验室",
+            "relation": "直属下属",
+            "count": 56
+          },
+          {
+            "dept_cn_name": "平台研发部",
+            "relation": "直属下属",
+            "count": 1
+          },
+          {
+            "dept_cn_name": "平台研发部",
+            "relation": "间接下属",
+            "count": 55
+          },
+          {
+            "dept_cn_name": "智能产品部",
+            "relation": "直属下属",
+            "count": 1
+          },
+          {
+            "dept_cn_name": "智能产品部",
+            "relation": "间接下属",
+            "count": 55
+          }
+        ],
+        "totals": {
+          "count": 168
+        }
+      },
+      "actual": {
+        "rows": [
+          {
+            "dept_cn_name": "可信与AI实验室",
+            "relation": "直属下属",
+            "count": 56
+          },
+          {
+            "dept_cn_name": "平台研发部",
+            "relation": "直属下属",
+            "count": 1
+          },
+          {
+            "dept_cn_name": "平台研发部",
+            "relation": "间接下属",
+            "count": 55
+          },
+          {
+            "dept_cn_name": "智能产品部",
+            "relation": "直属下属",
+            "count": 1
+          },
+          {
+            "dept_cn_name": "智能产品部",
+            "relation": "间接下属",
+            "count": 55
+          }
+        ],
+        "totals": {
+          "count": 168
+        }
+      },
+      "message": null,
+      "model_attempts": 1,
+      "rule_bindings": 0,
+      "raw_candidates": [
+        {
+          "kind": "aggregate",
+          "scope": "reports",
+          "population": "active",
+          "departments": [],
+          "filters": [],
+          "date_field": null,
+          "start_date": null,
+          "end_date": null,
+          "group_by": [
+            "dept_cn_name",
+            "relation"
+          ],
+          "metrics": [
+            "count"
+          ],
+          "columns": [],
+          "order_by": [],
+          "page": 1,
+          "page_size": 50,
+          "message": null,
+          "inspect_ids": []
+        }
+      ],
+      "trace": [
+        {
+          "name": "身份与历史校验",
+          "input": {
+            "persona": "manager",
+            "previous_id": null
+          },
+          "output": {
+            "policy_version": 1,
+            "previous_plan": null,
+            "visible_count": 179
+          },
+          "duration_ms": 352.33
+        },
+        {
+          "name": "目录检索与初步披露",
+          "input": {
+            "question": "我的直属和间接下属按部门分别有多少在职人员？同时给出合计。",
+            "catalog_version": "v2-semantics-1"
+          },
+          "output": {
+            "index": [
+              {
+                "id": "people.person_id",
+                "label": "人员ID",
+                "aliases": [
+                  "人员主键",
+                  "人员标识"
+                ]
+              },
+              {
+                "id": "people.employee_no",
+                "label": "工号",
+                "aliases": [
+                  "员工编号",
+                  "工号"
+                ]
+              },
+              {
+                "id": "people.name",
+                "label": "姓名",
+                "aliases": [
+                  "名字",
+                  "员工姓名"
+                ]
+              },
+              {
+                "id": "people.head_person_id",
+                "label": "直接主管ID",
+                "aliases": [
+                  "直属领导",
+                  "汇报给",
+                  "直接上级"
+                ]
+              },
+              {
+                "id": "people.dept_master_id",
+                "label": "部门主管ID",
+                "aliases": [
+                  "部门负责人"
+                ]
+              },
+              {
+                "id": "people.dept_hrbp_id",
+                "label": "HRBP人员ID",
+                "aliases": [
+                  "人力BP",
+                  "服务HRBP",
+                  "HR业务伙伴"
+                ]
+              },
+              {
+                "id": "people.dept_code",
+                "label": "部门编码",
+                "aliases": [
+                  "部门编码"
+                ]
+              },
+              {
+                "id": "people.dept_cn_name",
+                "label": "部门",
+                "aliases": [
+                  "部门名称",
+                  "组织",
+                  "团队"
+                ]
+              },
+              {
+                "id": "people.onboard_date",
+                "label": "入职日期",
+                "aliases": [
+                  "入司时间",
+                  "入职时间",
+                  "新入职"
+                ]
+              },
+              {
+                "id": "people.termin_date",
+                "label": "离职日期",
+                "aliases": [
+                  "离司时间",
+                  "离职时间"
+                ]
+              },
+              {
+                "id": "people.birth_date",
+                "label": "出生日期",
+                "aliases": [
+                  "生日"
+                ]
+              },
+              {
+                "id": "people.age",
+                "label": "年龄",
+                "aliases": [
+                  "周岁",
+                  "岁数"
+                ]
+              },
+              {
+                "id": "people.school_name",
+                "label": "学校",
+                "aliases": [
+                  "院校",
+                  "毕业学校",
+                  "母校"
+                ]
+              },
+              {
+                "id": "people.first_major",
+                "label": "专业",
+                "aliases": [
+                  "第一专业",
+                  "所学专业"
+                ]
+              },
+              {
+                "id": "people.diploma_code_desc",
+                "label": "学历",
+                "aliases": [
+                  "文化程度",
+                  "学历背景"
+                ]
+              },
+              {
+                "id": "people.degree_code_desc",
+                "label": "学位",
+                "aliases": [
+                  "学位",
+                  "博士学位"
+                ]
+              },
+              {
+                "id": "people.full_time_flag",
+                "label": "是否全日制",
+                "aliases": [
+                  "学习形式",
+                  "全日制"
+                ]
+              },
+              {
+                "id": "people.education_expired_date",
+                "label": "毕业时间",
+                "aliases": [
+                  "毕业日期",
+                  "教育结束时间"
+                ]
+              },
+              {
+                "id": "people.hire_type_code_desc",
+                "label": "招聘类型",
+                "aliases": [
+                  "校招",
+                  "社招",
+                  "招聘来源"
+                ]
+              },
+              {
+                "id": "people.labour_type_code_desc",
+                "label": "用工类型",
+                "aliases": [
+                  "外包",
+                  "用工性质"
+                ]
+              },
+              {
+                "id": "people.position_code_desc",
+                "label": "岗位",
+                "aliases": [
+                  "职位",
+                  "现岗位"
+                ]
+              },
+              {
+                "id": "people.current_employment_start_date",
+                "label": "当前任职开始日期",
+                "aliases": [
+                  "当前任职时间",
+                  "现岗位起始日"
+                ]
+              },
+              {
+                "id": "people.confirmation_date",
+                "label": "转正日期",
+                "aliases": [
+                  "实际转正日"
+                ]
+              },
+              {
+                "id": "people.formalize_flag",
+                "label": "是否已转正",
+                "aliases": [
+                  "转正状态"
+                ]
+              },
+              {
+                "id": "metric.count",
+                "label": "人数",
+                "aliases": [
+                  "人数"
+                ]
+              },
+              {
+                "id": "metric.hires",
+                "label": "入职人数",
+                "aliases": [
+                  "入职人数"
+                ]
+              },
+              {
+                "id": "metric.departures",
+                "label": "离职人数",
+                "aliases": [
+                  "离职人数"
+                ]
+              },
+              {
+                "id": "metric.net_change",
+                "label": "净增人数",
+                "aliases": [
+                  "净增人数"
+                ]
+              },
+              {
+                "id": "metric.masters_count",
+                "label": "硕士及以上人数",
+                "aliases": [
+                  "硕士及以上人数"
+                ]
+              },
+              {
+                "id": "metric.masters_ratio",
+                "label": "硕士及以上占比",
+                "aliases": [
+                  "硕士及以上占比"
+                ]
+              },
+              {
+                "id": "metric.doctors_count",
+                "label": "博士学位人数",
+                "aliases": [
+                  "博士学位人数"
+                ]
+              },
+              {
+                "id": "metric.school_985_count",
+                "label": "985人数",
+                "aliases": [
+                  "985人数"
+                ]
+              },
+              {
+                "id": "metric.school_211_count",
+                "label": "211人数",
+                "aliases": [
+                  "211人数"
+                ]
+              },
+              {
+                "id": "metric.school_985_ratio",
+                "label": "985占比",
+                "aliases": [
+                  "985占比"
+                ]
+              },
+              {
+                "id": "metric.school_211_ratio",
+                "label": "211占比",
+                "aliases": [
+                  "211占比"
+                ]
+              },
+              {
+                "id": "metric.outsource_count",
+                "label": "外包人数",
+                "aliases": [
+                  "外包人数"
+                ]
+              },
+              {
+                "id": "metric.outsource_ratio",
+                "label": "外包占比",
+                "aliases": [
+                  "外包占比"
+                ]
+              },
+              {
+                "id": "metric.avg_age",
+                "label": "平均年龄",
+                "aliases": [
+                  "平均年龄"
+                ]
+              },
+              {
+                "id": "metric.avg_confirmation_days",
+                "label": "平均转正用时",
+                "aliases": [
+                  "平均转正用时"
+                ]
+              }
+            ],
+            "documents": [
+              {
+                "id": "metric.count",
+                "key": "count",
+                "label": "人数",
+                "unit": "人",
+                "fields": [
+                  "people.person_id"
+                ],
+                "definition": "符合当前人群与筛选条件的去重员工人数",
+                "aliases": [
+                  "人数"
+                ],
+                "null_rule": "比例分母含未知；平均数排除未知，零分母返回空值。",
+                "rounding": "四舍五入保留2位小数",
+                "scope_rule": "当前授权范围与问题条件取交集后计算"
+              },
+              {
+                "id": "people.dept_cn_name",
+                "key": "dept_cn_name",
+                "table_id": "people",
+                "label": "部门",
+                "group": "basic",
+                "aliases": [
+                  "部门名称",
+                  "组织",
+                  "团队"
+                ],
+                "description": "当前部门名称，历史事件也按当前部门分组",
+                "not_meaning": "不是入职或离职当时的部门；本数据不保留任职历史。",
+                "type": "string",
+                "nullable": true
+              }
+            ],
+            "date_hints": {}
+          },
+          "duration_ms": 0.62
+        },
+        {
+          "name": "模型生成计划",
+          "input": {
+            "attempt": 1,
+            "messages": [
+              {
+                "role": "system",
+                "content": "你是HR查询计划器，只生成JSON，禁止SQL。/no_think\n一名员工一条当前记录，字段表为people。合成数据截止日2026-09-11，时区Asia/Shanghai。\n字段索引：{\"person_id\": {\"label\": \"人员ID\", \"meaning\": \"人员主键，非工号，员工唯一记录\"}, \"employee_no\": {\"label\": \"工号\", \"meaning\": \"字符串标识，保留前导零\"}, \"name\": {\"label\": \"姓名\", \"meaning\": \"展示姓名，重名时以工号区分\"}, \"head_person_id\": {\"label\": \"直接主管ID\", \"meaning\": \"管理关系，关联person_id，不是HRBP\"}, \"dept_master_id\": {\"label\": \"部门主管ID\", \"meaning\": \"部门主管关联person_id，当前不单独授权\"}, \"dept_hrbp_id\": {\"label\": \"HRBP人员ID\", \"meaning\": \"HRBP服务关系，允许指向本人\"}, \"dept_code\": {\"label\": \"部门编码\", \"meaning\": \"当前部门编码，无历史归属\"}, \"dept_cn_name\": {\"label\": \"部门\", \"meaning\": \"当前部门名称，历史事件也按当前部门分组\"}, \"onboard_date\": {\"label\": \"入职日期\", \"meaning\": \"本次演示采用的入职日期，不等于任职开始日期\"}, \"termin_date\": {\"label\": \"离职日期\", \"meaning\": \"离职当天已不在职，空值表示未离职\"}, \"birth_date\": {\"label\": \"出生日期\", \"meaning\": \"计算快照日周岁的依据，缺失时年龄未知\"}, \"age\": {\"label\": \"年龄\", \"meaning\": \"快照日的周岁，30至40含两个边界\"}, \"school_name\": {\"label\": \"学校\", \"meaning\": \"宽表当前教育记录的院校，无完整多段教育历史\"}, \"first_major\": {\"label\": \"专业\", \"meaning\": \"当前教育记录第一专业\"}, \"diploma_code_desc\": {\"label\": \"学历\", \"meaning\": \"高中及以下、专科、本科、硕士研究生、博士研究生；硕士及以上包括博士\"}, \"degree_code_desc\": {\"label\": \"学位\", \"meaning\": \"无学位、学士、硕士、博士；与学历分开\"}, \"full_time_flag\": {\"label\": \"是否全日制\", \"meaning\": \"是、否或未知\"}, \"education_expired_date\": {\"label\": \"毕业时间\", \"meaning\": \"演示假设等同教育结束日期，真实源待确认\"}, \"hire_type_code_desc\": {\"label\": \"招聘类型\", \"meaning\": \"校园招聘或社会招聘；未知不判为校园招聘\"}, \"labour_type_code_desc\": {\"label\": \"用工类型\", \"meaning\": \"正式、外包、实习\"}, \"position_code_desc\": {\"label\": \"岗位\", \"meaning\": \"当前岗位名称，无前一岗位历史\"}, \"current_employment_start_date\": {\"label\": \"当前任职开始日期\", \"meaning\": \"仅当前任职开始，不表示完整调岗事件\"}, \"confirmation_date\": {\"label\": \"转正日期\", \"meaning\": \"实际已转正日期，不是预计日期\"}, \"formalize_flag\": {\"label\": \"是否已转正\", \"meaning\": \"是或否，需与转正日期一致\"}}\n指标索引：{\"count\": {\"label\": \"人数\", \"definition\": \"符合当前人群与筛选条件的去重员工人数\"}, \"hires\": {\"label\": \"入职人数\", \"definition\": \"期间入职人数，不要求现在仍在职\"}, \"departures\": {\"label\": \"离职人数\", \"definition\": \"期间离职人数\"}, \"net_change\": {\"label\": \"净增人数\", \"definition\": \"期间入职减离职\"}, \"masters_count\": {\"label\": \"硕士及以上人数\", \"definition\": \"当前学历为硕士研究生或博士研究生人数\"}, \"masters_ratio\": {\"label\": \"硕士及以上占比\", \"definition\": \"硕士及以上人数/同组全部人群；未知学历计入分母\"}, \"doctors_count\": {\"label\": \"博士学位人数\", \"definition\": \"当前已取得博士学位人数\"}, \"school_985_count\": {\"label\": \"985人数\", \"definition\": \"当前教育院校在演示985字典中的人数\"}, \"school_211_count\": {\"label\": \"211人数\", \"definition\": \"当前教育院校在演示211字典中的人数，包含985\"}, \"school_985_ratio\": {\"label\": \"985占比\", \"definition\": \"985人数/同组全部人群，未知院校仍计入分母\"}, \"school_211_ratio\": {\"label\": \"211占比\", \"definition\": \"211人数/同组全部人群，不能与985相加\"}, \"outsource_count\": {\"label\": \"外包人数\", \"definition\": \"用工类型为外包人数\"}, \"outsource_ratio\": {\"label\": \"外包占比\", \"definition\": \"外包人数/同组全部人群\"}, \"avg_age\": {\"label\": \"平均年龄\", \"definition\": \"快照日有效周岁平均值，未知不入平均，另给有效样本数\"}, \"avg_confirmation_days\": {\"label\": \"平均转正用时\", \"definition\": \"有效转正日期减入职日期的平均天数\"}}\n本次已披露详情：[{\"id\": \"metric.count\", \"key\": \"count\", \"label\": \"人数\", \"unit\": \"人\", \"fields\": [\"people.person_id\"], \"definition\": \"符合当前人群与筛选条件的去重员工人数\", \"aliases\": [\"人数\"], \"null_rule\": \"比例分母含未知；平均数排除未知，零分母返回空值。\", \"rounding\": \"四舍五入保留2位小数\", \"scope_rule\": \"当前授权范围与问题条件取交集后计算\"}, {\"id\": \"people.dept_cn_name\", \"key\": \"dept_cn_name\", \"table_id\": \"people\", \"label\": \"部门\", \"group\": \"basic\", \"aliases\": [\"部门名称\", \"组织\", \"团队\"], \"description\": \"当前部门名称，历史事件也按当前部门分组\", \"not_meaning\": \"不是入职或离职当时的部门；本数据不保留任职历史。\", \"type\": \"string\", \"nullable\": true}]\n分组维度：{\"dept_cn_name\": \"部门\", \"diploma_code_desc\": \"学历\", \"full_time_flag\": \"是否全日制\", \"school_name\": \"学校\", \"labour_type_code_desc\": \"用工类型\", \"hire_type_code_desc\": \"招聘类型\", \"position_code_desc\": \"岗位\", \"relation\": \"汇报关系\", \"onboard_month\": \"入职月份\", \"termin_month\": \"离职月份\", \"event_month\": \"事件月份\", \"confirmation_month\": \"转正月份\"}\n可选择的部门：[\"可信与AI实验室\", \"平台研发部\", \"智能产品部\"]\n前次成功计划（追问时继承未改变条件）：null\n确定性时间解释：{}\n明确条件：[]\n规则：\n1. kind=aggregate统计，kind=people明细；缺少口径kind=inspect，inspect_ids最多6个索引ID（people.字段、metric.指标），最多2轮；不支持或有歧义kind=clarify并说明message。不得忽略不能表达的条件。\n2. scope=all是当前全部授权，绝不是扩大权限；直属及间接用reports且排除本人；只直属direct，只间接indirect；本人服务HRBP用scope=hrbp，通过下属HRBP查看用scope=inherited_hrbp。禁止使用dept_hrbp_id=self作为过滤，self不是人员主键；范围由scope表达。直属与间接分别展示group_by包含relation。默认在职population=active；入离职期间人数/明细用all，不要求现在仍在职；今年已转正用confirmed。\n3. 日期用YYYY-MM-DD。date_field入职onboard_date、离职termin_date、合同到期contract_end_date、实际转正confirmation_date、当前任职current_employment_start_date。入职+离职+净增用employment_events及hires,departures,net_change三个指标。月份用与日期对应的onboard_month/termin_month/event_month/confirmation_month，配合dept_cn_name最多2个维度。没有期间时日期字段和起止为null。\n4. 按部门、每个部门、两个部门对比用group_by=[\"dept_cn_name\"]，部门仅填写明确名称，学校/专业多值OR用in，一个字段多条件与其他字段AND。不要为“各部门”填写全部部门列表。\n5. “硕士及以上”筛选diploma_code_desc gte 硕士研究生；全日制full_time_flag eq 是；校招hire_type_code_desc eq 校园招聘；年龄区间gte/lte含边界，值均字符串。学位博士是degree_code_desc，不是学历。博士学位人数用doctors_count，自动检查毕业时间。仅目前学历记录，非完整历史。\n6. 比例使用metrics中现有ratio指标，不能同时用对应条件筛掉分母；985、211同时查询给school_985_count,school_211_count,school_985_ratio,school_211_ratio。硕士及以上人数+占比给count,masters_count,masters_ratio。外包比例及人数总数给count,outsource_count,outsource_ratio。\n7. 人员明细columns只包含问题点名的字段，按提问顺序；专业first_major，毕业时间education_expired_date，部门dept_cn_name。排序order_by包含field和direction asc/desc；未要求排序则空列表。统计不带多余columns条件。零月份服务端补齐。\n8. 追问给出完整新计划，继承前次人群、部门、时间和未修改筛选；“把学校改成”必须替换原school_name条件。没有前次上下文时不能猜“这些人”。所有教育条件作用同一当前记录。\n9. 不能查不存在的薪酬、考勤、绩效或历史汇报线；拒绝写入、删除、自由SQL及绕过权限。不要将无法回答的问题换成人数。\n10. 必须明确kind与metrics（统计）或columns（明细）；page=1,page_size=50；最多5指标、12明细字段、12筛选。不填person_id权限集合，由后端强制处理。"
+              },
+              {
+                "role": "user",
+                "content": "我的直属和间接下属按部门分别有多少在职人员？同时给出合计。"
+              }
+            ]
+          },
+          "output": {
+            "request": {
+              "model": "hr-qwen",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "你是HR查询计划器，只生成JSON，禁止SQL。/no_think\n一名员工一条当前记录，字段表为people。合成数据截止日2026-09-11，时区Asia/Shanghai。\n字段索引：{\"person_id\": {\"label\": \"人员ID\", \"meaning\": \"人员主键，非工号，员工唯一记录\"}, \"employee_no\": {\"label\": \"工号\", \"meaning\": \"字符串标识，保留前导零\"}, \"name\": {\"label\": \"姓名\", \"meaning\": \"展示姓名，重名时以工号区分\"}, \"head_person_id\": {\"label\": \"直接主管ID\", \"meaning\": \"管理关系，关联person_id，不是HRBP\"}, \"dept_master_id\": {\"label\": \"部门主管ID\", \"meaning\": \"部门主管关联person_id，当前不单独授权\"}, \"dept_hrbp_id\": {\"label\": \"HRBP人员ID\", \"meaning\": \"HRBP服务关系，允许指向本人\"}, \"dept_code\": {\"label\": \"部门编码\", \"meaning\": \"当前部门编码，无历史归属\"}, \"dept_cn_name\": {\"label\": \"部门\", \"meaning\": \"当前部门名称，历史事件也按当前部门分组\"}, \"onboard_date\": {\"label\": \"入职日期\", \"meaning\": \"本次演示采用的入职日期，不等于任职开始日期\"}, \"termin_date\": {\"label\": \"离职日期\", \"meaning\": \"离职当天已不在职，空值表示未离职\"}, \"birth_date\": {\"label\": \"出生日期\", \"meaning\": \"计算快照日周岁的依据，缺失时年龄未知\"}, \"age\": {\"label\": \"年龄\", \"meaning\": \"快照日的周岁，30至40含两个边界\"}, \"school_name\": {\"label\": \"学校\", \"meaning\": \"宽表当前教育记录的院校，无完整多段教育历史\"}, \"first_major\": {\"label\": \"专业\", \"meaning\": \"当前教育记录第一专业\"}, \"diploma_code_desc\": {\"label\": \"学历\", \"meaning\": \"高中及以下、专科、本科、硕士研究生、博士研究生；硕士及以上包括博士\"}, \"degree_code_desc\": {\"label\": \"学位\", \"meaning\": \"无学位、学士、硕士、博士；与学历分开\"}, \"full_time_flag\": {\"label\": \"是否全日制\", \"meaning\": \"是、否或未知\"}, \"education_expired_date\": {\"label\": \"毕业时间\", \"meaning\": \"演示假设等同教育结束日期，真实源待确认\"}, \"hire_type_code_desc\": {\"label\": \"招聘类型\", \"meaning\": \"校园招聘或社会招聘；未知不判为校园招聘\"}, \"labour_type_code_desc\": {\"label\": \"用工类型\", \"meaning\": \"正式、外包、实习\"}, \"position_code_desc\": {\"label\": \"岗位\", \"meaning\": \"当前岗位名称，无前一岗位历史\"}, \"current_employment_start_date\": {\"label\": \"当前任职开始日期\", \"meaning\": \"仅当前任职开始，不表示完整调岗事件\"}, \"confirmation_date\": {\"label\": \"转正日期\", \"meaning\": \"实际已转正日期，不是预计日期\"}, \"formalize_flag\": {\"label\": \"是否已转正\", \"meaning\": \"是或否，需与转正日期一致\"}}\n指标索引：{\"count\": {\"label\": \"人数\", \"definition\": \"符合当前人群与筛选条件的去重员工人数\"}, \"hires\": {\"label\": \"入职人数\", \"definition\": \"期间入职人数，不要求现在仍在职\"}, \"departures\": {\"label\": \"离职人数\", \"definition\": \"期间离职人数\"}, \"net_change\": {\"label\": \"净增人数\", \"definition\": \"期间入职减离职\"}, \"masters_count\": {\"label\": \"硕士及以上人数\", \"definition\": \"当前学历为硕士研究生或博士研究生人数\"}, \"masters_ratio\": {\"label\": \"硕士及以上占比\", \"definition\": \"硕士及以上人数/同组全部人群；未知学历计入分母\"}, \"doctors_count\": {\"label\": \"博士学位人数\", \"definition\": \"当前已取得博士学位人数\"}, \"school_985_count\": {\"label\": \"985人数\", \"definition\": \"当前教育院校在演示985字典中的人数\"}, \"school_211_count\": {\"label\": \"211人数\", \"definition\": \"当前教育院校在演示211字典中的人数，包含985\"}, \"school_985_ratio\": {\"label\": \"985占比\", \"definition\": \"985人数/同组全部人群，未知院校仍计入分母\"}, \"school_211_ratio\": {\"label\": \"211占比\", \"definition\": \"211人数/同组全部人群，不能与985相加\"}, \"outsource_count\": {\"label\": \"外包人数\", \"definition\": \"用工类型为外包人数\"}, \"outsource_ratio\": {\"label\": \"外包占比\", \"definition\": \"外包人数/同组全部人群\"}, \"avg_age\": {\"label\": \"平均年龄\", \"definition\": \"快照日有效周岁平均值，未知不入平均，另给有效样本数\"}, \"avg_confirmation_days\": {\"label\": \"平均转正用时\", \"definition\": \"有效转正日期减入职日期的平均天数\"}}\n本次已披露详情：[{\"id\": \"metric.count\", \"key\": \"count\", \"label\": \"人数\", \"unit\": \"人\", \"fields\": [\"people.person_id\"], \"definition\": \"符合当前人群与筛选条件的去重员工人数\", \"aliases\": [\"人数\"], \"null_rule\": \"比例分母含未知；平均数排除未知，零分母返回空值。\", \"rounding\": \"四舍五入保留2位小数\", \"scope_rule\": \"当前授权范围与问题条件取交集后计算\"}, {\"id\": \"people.dept_cn_name\", \"key\": \"dept_cn_name\", \"table_id\": \"people\", \"label\": \"部门\", \"group\": \"basic\", \"aliases\": [\"部门名称\", \"组织\", \"团队\"], \"description\": \"当前部门名称，历史事件也按当前部门分组\", \"not_meaning\": \"不是入职或离职当时的部门；本数据不保留任职历史。\", \"type\": \"string\", \"nullable\": true}]\n分组维度：{\"dept_cn_name\": \"部门\", \"diploma_code_desc\": \"学历\", \"full_time_flag\": \"是否全日制\", \"school_name\": \"学校\", \"labour_type_code_desc\": \"用工类型\", \"hire_type_code_desc\": \"招聘类型\", \"position_code_desc\": \"岗位\", \"relation\": \"汇报关系\", \"onboard_month\": \"入职月份\", \"termin_month\": \"离职月份\", \"event_month\": \"事件月份\", \"confirmation_month\": \"转正月份\"}\n可选择的部门：[\"可信与AI实验室\", \"平台研发部\", \"智能产品部\"]\n前次成功计划（追问时继承未改变条件）：null\n确定性时间解释：{}\n明确条件：[]\n规则：\n1. kind=aggregate统计，kind=people明细；缺少口径kind=inspect，inspect_ids最多6个索引ID（people.字段、metric.指标），最多2轮；不支持或有歧义kind=clarify并说明message。不得忽略不能表达的条件。\n2. scope=all是当前全部授权，绝不是扩大权限；直属及间接用reports且排除本人；只直属direct，只间接indirect；本人服务HRBP用scope=hrbp，通过下属HRBP查看用scope=inherited_hrbp。禁止使用dept_hrbp_id=self作为过滤，self不是人员主键；范围由scope表达。直属与间接分别展示group_by包含relation。默认在职population=active；入离职期间人数/明细用all，不要求现在仍在职；今年已转正用confirmed。\n3. 日期用YYYY-MM-DD。date_field入职onboard_date、离职termin_date、合同到期contract_end_date、实际转正confirmation_date、当前任职current_employment_start_date。入职+离职+净增用employment_events及hires,departures,net_change三个指标。月份用与日期对应的onboard_month/termin_month/event_month/confirmation_month，配合dept_cn_name最多2个维度。没有期间时日期字段和起止为null。\n4. 按部门、每个部门、两个部门对比用group_by=[\"dept_cn_name\"]，部门仅填写明确名称，学校/专业多值OR用in，一个字段多条件与其他字段AND。不要为“各部门”填写全部部门列表。\n5. “硕士及以上”筛选diploma_code_desc gte 硕士研究生；全日制full_time_flag eq 是；校招hire_type_code_desc eq 校园招聘；年龄区间gte/lte含边界，值均字符串。学位博士是degree_code_desc，不是学历。博士学位人数用doctors_count，自动检查毕业时间。仅目前学历记录，非完整历史。\n6. 比例使用metrics中现有ratio指标，不能同时用对应条件筛掉分母；985、211同时查询给school_985_count,school_211_count,school_985_ratio,school_211_ratio。硕士及以上人数+占比给count,masters_count,masters_ratio。外包比例及人数总数给count,outsource_count,outsource_ratio。\n7. 人员明细columns只包含问题点名的字段，按提问顺序；专业first_major，毕业时间education_expired_date，部门dept_cn_name。排序order_by包含field和direction asc/desc；未要求排序则空列表。统计不带多余columns条件。零月份服务端补齐。\n8. 追问给出完整新计划，继承前次人群、部门、时间和未修改筛选；“把学校改成”必须替换原school_name条件。没有前次上下文时不能猜“这些人”。所有教育条件作用同一当前记录。\n9. 不能查不存在的薪酬、考勤、绩效或历史汇报线；拒绝写入、删除、自由SQL及绕过权限。不要将无法回答的问题换成人数。\n10. 必须明确kind与metrics（统计）或columns（明细）；page=1,page_size=50；最多5指标、12明细字段、12筛选。不填person_id权限集合，由后端强制处理。"
+                },
+                {
+                  "role": "user",
+                  "content": "我的直属和间接下属按部门分别有多少在职人员？同时给出合计。"
+                }
+              ],
+              "temperature": 0,
+              "max_tokens": 1600,
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              },
+              "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                  "name": "hr_v2_plan",
+                  "schema": {
+                    "$defs": {
+                      "Filter": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "field": {
+                            "enum": [
+                              "person_id",
+                              "employee_no",
+                              "name",
+                              "head_person_id",
+                              "dept_master_id",
+                              "dept_hrbp_id",
+                              "dept_code",
+                              "dept_cn_name",
+                              "onboard_date",
+                              "termin_date",
+                              "birth_date",
+                              "age",
+                              "school_name",
+                              "first_major",
+                              "diploma_code_desc",
+                              "degree_code_desc",
+                              "full_time_flag",
+                              "education_expired_date",
+                              "hire_type_code_desc",
+                              "labour_type_code_desc",
+                              "position_code_desc",
+                              "current_employment_start_date",
+                              "confirmation_date",
+                              "formalize_flag",
+                              "contract_type_code_desc",
+                              "contract_end_date"
+                            ],
+                            "title": "Field",
+                            "type": "string"
+                          },
+                          "op": {
+                            "default": "eq",
+                            "enum": [
+                              "eq",
+                              "in",
+                              "gte",
+                              "lte",
+                              "contains",
+                              "not_null"
+                            ],
+                            "title": "Op",
+                            "type": "string"
+                          },
+                          "values": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "maxItems": 10,
+                            "title": "Values",
+                            "type": "array"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "op",
+                          "values"
+                        ],
+                        "title": "Filter",
+                        "type": "object"
+                      },
+                      "Order": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "field": {
+                            "maxLength": 50,
+                            "title": "Field",
+                            "type": "string"
+                          },
+                          "direction": {
+                            "default": "asc",
+                            "enum": [
+                              "asc",
+                              "desc"
+                            ],
+                            "title": "Direction",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "direction"
+                        ],
+                        "title": "Order",
+                        "type": "object"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "default": "aggregate",
+                        "enum": [
+                          "aggregate",
+                          "people",
+                          "clarify",
+                          "inspect"
+                        ],
+                        "title": "Kind",
+                        "type": "string"
+                      },
+                      "scope": {
+                        "default": "all",
+                        "enum": [
+                          "all",
+                          "reports",
+                          "direct",
+                          "indirect",
+                          "hrbp",
+                          "inherited_hrbp",
+                          "self"
+                        ],
+                        "title": "Scope",
+                        "type": "string"
+                      },
+                      "population": {
+                        "default": "active",
+                        "enum": [
+                          "active",
+                          "all",
+                          "confirmed"
+                        ],
+                        "title": "Population",
+                        "type": "string"
+                      },
+                      "departments": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 8,
+                        "title": "Departments",
+                        "type": "array"
+                      },
+                      "filters": {
+                        "items": {
+                          "$ref": "#/$defs/Filter"
+                        },
+                        "maxItems": 12,
+                        "title": "Filters",
+                        "type": "array"
+                      },
+                      "date_field": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "onboard_date",
+                              "termin_date",
+                              "contract_end_date",
+                              "confirmation_date",
+                              "current_employment_start_date",
+                              "employment_events"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Date Field"
+                      },
+                      "start_date": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Start Date"
+                      },
+                      "end_date": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "End Date"
+                      },
+                      "group_by": {
+                        "items": {
+                          "enum": [
+                            "dept_cn_name",
+                            "diploma_code_desc",
+                            "full_time_flag",
+                            "school_name",
+                            "labour_type_code_desc",
+                            "hire_type_code_desc",
+                            "position_code_desc",
+                            "relation",
+                            "onboard_month",
+                            "termin_month",
+                            "event_month",
+                            "confirmation_month"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 2,
+                        "title": "Group By",
+                        "type": "array"
+                      },
+                      "metrics": {
+                        "items": {
+                          "enum": [
+                            "count",
+                            "hires",
+                            "departures",
+                            "net_change",
+                            "masters_count",
+                            "masters_ratio",
+                            "doctors_count",
+                            "school_985_count",
+                            "school_211_count",
+                            "school_985_ratio",
+                            "school_211_ratio",
+                            "outsource_count",
+                            "outsource_ratio",
+                            "avg_age",
+                            "avg_confirmation_days"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 5,
+                        "minItems": 1,
+                        "title": "Metrics",
+                        "type": "array"
+                      },
+                      "columns": {
+                        "items": {
+                          "enum": [
+                            "person_id",
+                            "employee_no",
+                            "name",
+                            "head_person_id",
+                            "dept_master_id",
+                            "dept_hrbp_id",
+                            "dept_code",
+                            "dept_cn_name",
+                            "onboard_date",
+                            "termin_date",
+                            "birth_date",
+                            "age",
+                            "school_name",
+                            "first_major",
+                            "diploma_code_desc",
+                            "degree_code_desc",
+                            "full_time_flag",
+                            "education_expired_date",
+                            "hire_type_code_desc",
+                            "labour_type_code_desc",
+                            "position_code_desc",
+                            "current_employment_start_date",
+                            "confirmation_date",
+                            "formalize_flag",
+                            "contract_type_code_desc",
+                            "contract_end_date"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 12,
+                        "title": "Columns",
+                        "type": "array"
+                      },
+                      "order_by": {
+                        "items": {
+                          "$ref": "#/$defs/Order"
+                        },
+                        "maxItems": 2,
+                        "title": "Order By",
+                        "type": "array"
+                      },
+                      "page": {
+                        "default": 1,
+                        "maximum": 10000,
+                        "minimum": 1,
+                        "title": "Page",
+                        "type": "integer"
+                      },
+                      "page_size": {
+                        "default": 50,
+                        "maximum": 200,
+                        "minimum": 1,
+                        "title": "Page Size",
+                        "type": "integer"
+                      },
+                      "message": {
+                        "anyOf": [
+                          {
+                            "maxLength": 400,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Message"
+                      },
+                      "inspect_ids": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 6,
+                        "title": "Inspect Ids",
+                        "type": "array"
+                      }
+                    },
+                    "title": "Plan",
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "scope",
+                      "population",
+                      "departments",
+                      "filters",
+                      "date_field",
+                      "start_date",
+                      "end_date",
+                      "group_by",
+                      "metrics",
+                      "columns",
+                      "order_by",
+                      "page",
+                      "page_size",
+                      "message",
+                      "inspect_ids"
+                    ]
+                  }
+                }
+              }
+            },
+            "candidate": {
+              "kind": "aggregate",
+              "scope": "reports",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": null,
+              "start_date": null,
+              "end_date": null,
+              "group_by": [
+                "dept_cn_name",
+                "relation"
+              ],
+              "metrics": [
+                "count"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "usage": {
+              "prompt_tokens": 2236,
+              "completion_tokens": 97,
+              "total_tokens": 2333,
+              "completion_tokens_details": {
+                "reasoning_tokens": 96
+              }
+            },
+            "finish_reason": "stop"
+          },
+          "duration_ms": 4848.35
+        },
+        {
+          "name": "提问条件对齐",
+          "input": {
+            "question": "我的直属和间接下属按部门分别有多少在职人员？同时给出合计。",
+            "plan": {
+              "kind": "aggregate",
+              "scope": "reports",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": null,
+              "start_date": null,
+              "end_date": null,
+              "group_by": [
+                "dept_cn_name",
+                "relation"
+              ],
+              "metrics": [
+                "count"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "required_filters": [],
+            "named_departments": [],
+            "checked": true
+          },
+          "duration_ms": 0.32
+        },
+        {
+          "name": "结构、口径与字段权限校验",
+          "input": {
+            "candidate": {
+              "kind": "aggregate",
+              "scope": "reports",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": null,
+              "start_date": null,
+              "end_date": null,
+              "group_by": [
+                "dept_cn_name",
+                "relation"
+              ],
+              "metrics": [
+                "count"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "valid": true,
+            "next": "execute"
+          },
+          "duration_ms": 0.4
+        },
+        {
+          "name": "重新鉴权与只读SQL执行",
+          "input": {
+            "plan": {
+              "kind": "aggregate",
+              "scope": "reports",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": null,
+              "start_date": null,
+              "end_date": null,
+              "group_by": [
+                "dept_cn_name",
+                "relation"
+              ],
+              "metrics": [
+                "count"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "policy_version": 1
+          },
+          "output": {
+            "sql": "SELECT COALESCE(\"dept_cn_name\", '未知') AS dept_cn_name, COALESCE(\"relation\", '未知') AS relation, COUNT(DISTINCT \"person_id\") AS count \nFROM v2_api.people_public \nWHERE (_viewer_id = 20) AND ((\"_reports\" IS TRUE) AND (\"onboard_date\" <= e'2026-09-11' AND (\"termin_date\" IS NULL OR \"termin_date\" > e'2026-09-11'))) GROUP BY COALESCE(\"dept_cn_name\", '未知'), COALESCE(\"relation\", '未知') \n LIMIT 1001;\n\n",
+            "parameters": {
+              "snapshot": "2026-09-11",
+              "start": null,
+              "end": null,
+              "scope": "reports",
+              "departments": [],
+              "filters": []
+            },
+            "rows": [
+              {
+                "dept_cn_name": "可信与AI实验室",
+                "relation": "直属下属",
+                "count": 56
+              },
+              {
+                "dept_cn_name": "平台研发部",
+                "relation": "直属下属",
+                "count": 1
+              },
+              {
+                "dept_cn_name": "平台研发部",
+                "relation": "间接下属",
+                "count": 55
+              },
+              {
+                "dept_cn_name": "智能产品部",
+                "relation": "直属下属",
+                "count": 1
+              },
+              {
+                "dept_cn_name": "智能产品部",
+                "relation": "间接下属",
+                "count": 55
+              }
+            ],
+            "totals": {
+              "count": 168
+            },
+            "total_rows": 5,
+            "duration_ms": 204.11,
+            "scope_count": 178,
+            "execution_backend": "superset",
+            "source_queries": [
+              "SELECT superset_user_id AS superset_user_id, persona_id AS persona_id, person_id AS person_id, role_key AS role_key, policy_version AS policy_version, rules_json AS rules_json, as_of AS as_of, data_fingerprint AS data_fingerprint, graph_valid AS graph_valid \nFROM v2_api.context \nWHERE (superset_user_id = 20) GROUP BY superset_user_id, persona_id, person_id, role_key, policy_version, rules_json, as_of, data_fingerprint, graph_valid \n LIMIT 2;\n\n",
+              "SELECT person_id AS person_id, employee_no AS employee_no, name AS name, head_person_id AS head_person_id, dept_master_id AS dept_master_id, dept_hrbp_id AS dept_hrbp_id, dept_code AS dept_code, dept_cn_name AS dept_cn_name, onboard_date AS onboard_date, termin_date AS termin_date, birth_date AS birth_date, age AS age, school_name AS school_name, first_major AS first_major, diploma_code_desc AS diploma_code_desc, degree_code_desc AS degree_code_desc, full_time_flag AS full_time_flag, education_expired_date AS education_expired_date, hire_type_code_desc AS hire_type_code_desc, labour_type_code_desc AS labour_type_code_desc, position_code_desc AS position_code_desc, current_employment_start_date AS current_employment_start_date, confirmation_date AS confirmation_date, formalize_flag AS formalize_flag, _viewer_id AS _viewer_id, _depth AS _depth, _reports AS _reports, _hrbp AS _hrbp, _inherited AS _inherited, _origins AS _origins \nFROM v2_api.people_public \nWHERE (_viewer_id = 20) GROUP BY person_id, employee_no, name, head_person_id, dept_master_id, dept_hrbp_id, dept_code, dept_cn_name, onboard_date, termin_date, birth_date, age, school_name, first_major, diploma_code_desc, degree_code_desc, full_time_flag, education_expired_date, hire_type_code_desc, labour_type_code_desc, position_code_desc, current_employment_start_date, confirmation_date, formalize_flag, _viewer_id, _depth, _reports, _hrbp, _inherited, _origins \n LIMIT 1000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id, event_day AS event_day, is_hire AS is_hire, is_exit AS is_exit \nFROM v2_api.events_public \nWHERE (_viewer_id = 20) GROUP BY person_id, _viewer_id, event_day, is_hire, is_exit \n LIMIT 2000;\n\n",
+              "SELECT COALESCE(\"dept_cn_name\", '未知') AS dept_cn_name, COALESCE(\"relation\", '未知') AS relation, COUNT(DISTINCT \"person_id\") AS count \nFROM v2_api.people_public \nWHERE (_viewer_id = 20) AND ((\"_reports\" IS TRUE) AND (\"onboard_date\" <= e'2026-09-11' AND (\"termin_date\" IS NULL OR \"termin_date\" > e'2026-09-11'))) GROUP BY COALESCE(\"dept_cn_name\", '未知'), COALESCE(\"relation\", '未知') \n LIMIT 1001;\n\n",
+              "SELECT COUNT(DISTINCT \"person_id\") AS count \nFROM v2_api.people_public \nWHERE (_viewer_id = 20) AND ((\"_reports\" IS TRUE) AND (\"onboard_date\" <= e'2026-09-11' AND (\"termin_date\" IS NULL OR \"termin_date\" > e'2026-09-11'))) \n LIMIT 1001;\n\n"
+            ]
+          },
+          "duration_ms": 1382.01
+        },
+        {
+          "name": "结果组织",
+          "input": {
+            "status": "success",
+            "totals": {
+              "count": 168
+            }
+          },
+          "output": {
+            "summary": "在当前授权范围内，人数 168 人。 共 5 个分组，合计按完整人群重新计算。 数据截止 2026-09-11；组织采用当前部门。",
+            "numeric_source": "执行结果单元格，确定性模板，无模型自由补写数字"
+          },
+          "duration_ms": 0.0
+        }
+      ]
+    },
+    {
+      "id": "HR-05",
+      "passed": true,
+      "elapsed_s": 9.28,
+      "status": "success",
+      "question": "过去15天，平台研发部和智能产品部分别入职、离职多少人，净增多少？",
+      "expected_plan": {
+        "kind": "aggregate",
+        "group_by": [
+          "dept_cn_name"
+        ],
+        "departments": [
+          "平台研发部",
+          "智能产品部"
+        ],
+        "population": "all",
+        "date_field": "employment_events",
+        "start_date": "2026-08-28",
+        "end_date": "2026-09-11",
+        "metrics": [
+          "hires",
+          "departures",
+          "net_change"
+        ]
+      },
+      "actual_plan": {
+        "kind": "aggregate",
+        "scope": "all",
+        "population": "all",
+        "departments": [
+          "平台研发部",
+          "智能产品部"
+        ],
+        "filters": [],
+        "date_field": "employment_events",
+        "start_date": "2026-08-28",
+        "end_date": "2026-09-11",
+        "group_by": [
+          "dept_cn_name"
+        ],
+        "metrics": [
+          "hires",
+          "departures",
+          "net_change"
+        ],
+        "columns": [],
+        "order_by": [],
+        "page": 1,
+        "page_size": 50,
+        "message": null,
+        "inspect_ids": []
+      },
+      "expected": {
+        "rows": [
+          {
+            "dept_cn_name": "平台研发部",
+            "hires": 1,
+            "departures": 0,
+            "net_change": 1
+          },
+          {
+            "dept_cn_name": "智能产品部",
+            "hires": 2,
+            "departures": 0,
+            "net_change": 2
+          }
+        ],
+        "totals": {
+          "hires": 3,
+          "departures": 0,
+          "net_change": 3
+        }
+      },
+      "actual": {
+        "rows": [
+          {
+            "dept_cn_name": "平台研发部",
+            "hires": 1,
+            "departures": 0,
+            "net_change": 1
+          },
+          {
+            "dept_cn_name": "智能产品部",
+            "hires": 2,
+            "departures": 0,
+            "net_change": 2
+          }
+        ],
+        "totals": {
+          "hires": 3,
+          "departures": 0,
+          "net_change": 3
+        }
+      },
+      "message": null,
+      "model_attempts": 1,
+      "rule_bindings": 1,
+      "raw_candidates": [
+        {
+          "kind": "aggregate",
+          "scope": "all",
+          "population": "all",
+          "departments": [
+            "平台研发部",
+            "智能产品部"
+          ],
+          "filters": [],
+          "date_field": null,
+          "start_date": "2026-08-28",
+          "end_date": "2026-09-11",
+          "group_by": [
+            "dept_cn_name"
+          ],
+          "metrics": [
+            "hires",
+            "departures",
+            "net_change"
+          ],
+          "columns": [],
+          "order_by": [],
+          "page": 1,
+          "page_size": 50,
+          "message": null,
+          "inspect_ids": []
+        }
+      ],
+      "trace": [
+        {
+          "name": "身份与历史校验",
+          "input": {
+            "persona": "hr_lead",
+            "previous_id": null
+          },
+          "output": {
+            "policy_version": 1,
+            "previous_plan": null,
+            "visible_count": 239
+          },
+          "duration_ms": 559.88
+        },
+        {
+          "name": "目录检索与初步披露",
+          "input": {
+            "question": "过去15天，平台研发部和智能产品部分别入职、离职多少人，净增多少？",
+            "catalog_version": "v2-semantics-1"
+          },
+          "output": {
+            "index": [
+              {
+                "id": "people.person_id",
+                "label": "人员ID",
+                "aliases": [
+                  "人员主键",
+                  "人员标识"
+                ]
+              },
+              {
+                "id": "people.employee_no",
+                "label": "工号",
+                "aliases": [
+                  "员工编号",
+                  "工号"
+                ]
+              },
+              {
+                "id": "people.name",
+                "label": "姓名",
+                "aliases": [
+                  "名字",
+                  "员工姓名"
+                ]
+              },
+              {
+                "id": "people.head_person_id",
+                "label": "直接主管ID",
+                "aliases": [
+                  "直属领导",
+                  "汇报给",
+                  "直接上级"
+                ]
+              },
+              {
+                "id": "people.dept_master_id",
+                "label": "部门主管ID",
+                "aliases": [
+                  "部门负责人"
+                ]
+              },
+              {
+                "id": "people.dept_hrbp_id",
+                "label": "HRBP人员ID",
+                "aliases": [
+                  "人力BP",
+                  "服务HRBP",
+                  "HR业务伙伴"
+                ]
+              },
+              {
+                "id": "people.dept_code",
+                "label": "部门编码",
+                "aliases": [
+                  "部门编码"
+                ]
+              },
+              {
+                "id": "people.dept_cn_name",
+                "label": "部门",
+                "aliases": [
+                  "部门名称",
+                  "组织",
+                  "团队"
+                ]
+              },
+              {
+                "id": "people.onboard_date",
+                "label": "入职日期",
+                "aliases": [
+                  "入司时间",
+                  "入职时间",
+                  "新入职"
+                ]
+              },
+              {
+                "id": "people.termin_date",
+                "label": "离职日期",
+                "aliases": [
+                  "离司时间",
+                  "离职时间"
+                ]
+              },
+              {
+                "id": "people.birth_date",
+                "label": "出生日期",
+                "aliases": [
+                  "生日"
+                ]
+              },
+              {
+                "id": "people.age",
+                "label": "年龄",
+                "aliases": [
+                  "周岁",
+                  "岁数"
+                ]
+              },
+              {
+                "id": "people.school_name",
+                "label": "学校",
+                "aliases": [
+                  "院校",
+                  "毕业学校",
+                  "母校"
+                ]
+              },
+              {
+                "id": "people.first_major",
+                "label": "专业",
+                "aliases": [
+                  "第一专业",
+                  "所学专业"
+                ]
+              },
+              {
+                "id": "people.diploma_code_desc",
+                "label": "学历",
+                "aliases": [
+                  "文化程度",
+                  "学历背景"
+                ]
+              },
+              {
+                "id": "people.degree_code_desc",
+                "label": "学位",
+                "aliases": [
+                  "学位",
+                  "博士学位"
+                ]
+              },
+              {
+                "id": "people.full_time_flag",
+                "label": "是否全日制",
+                "aliases": [
+                  "学习形式",
+                  "全日制"
+                ]
+              },
+              {
+                "id": "people.education_expired_date",
+                "label": "毕业时间",
+                "aliases": [
+                  "毕业日期",
+                  "教育结束时间"
+                ]
+              },
+              {
+                "id": "people.hire_type_code_desc",
+                "label": "招聘类型",
+                "aliases": [
+                  "校招",
+                  "社招",
+                  "招聘来源"
+                ]
+              },
+              {
+                "id": "people.labour_type_code_desc",
+                "label": "用工类型",
+                "aliases": [
+                  "外包",
+                  "用工性质"
+                ]
+              },
+              {
+                "id": "people.position_code_desc",
+                "label": "岗位",
+                "aliases": [
+                  "职位",
+                  "现岗位"
+                ]
+              },
+              {
+                "id": "people.current_employment_start_date",
+                "label": "当前任职开始日期",
+                "aliases": [
+                  "当前任职时间",
+                  "现岗位起始日"
+                ]
+              },
+              {
+                "id": "people.confirmation_date",
+                "label": "转正日期",
+                "aliases": [
+                  "实际转正日"
+                ]
+              },
+              {
+                "id": "people.formalize_flag",
+                "label": "是否已转正",
+                "aliases": [
+                  "转正状态"
+                ]
+              },
+              {
+                "id": "people.contract_type_code_desc",
+                "label": "合同类型",
+                "aliases": [
+                  "合同性质"
+                ]
+              },
+              {
+                "id": "people.contract_end_date",
+                "label": "合同到期日期",
+                "aliases": [
+                  "合同截止日",
+                  "合同到期时间"
+                ]
+              },
+              {
+                "id": "metric.count",
+                "label": "人数",
+                "aliases": [
+                  "人数"
+                ]
+              },
+              {
+                "id": "metric.hires",
+                "label": "入职人数",
+                "aliases": [
+                  "入职人数"
+                ]
+              },
+              {
+                "id": "metric.departures",
+                "label": "离职人数",
+                "aliases": [
+                  "离职人数"
+                ]
+              },
+              {
+                "id": "metric.net_change",
+                "label": "净增人数",
+                "aliases": [
+                  "净增人数"
+                ]
+              },
+              {
+                "id": "metric.masters_count",
+                "label": "硕士及以上人数",
+                "aliases": [
+                  "硕士及以上人数"
+                ]
+              },
+              {
+                "id": "metric.masters_ratio",
+                "label": "硕士及以上占比",
+                "aliases": [
+                  "硕士及以上占比"
+                ]
+              },
+              {
+                "id": "metric.doctors_count",
+                "label": "博士学位人数",
+                "aliases": [
+                  "博士学位人数"
+                ]
+              },
+              {
+                "id": "metric.school_985_count",
+                "label": "985人数",
+                "aliases": [
+                  "985人数"
+                ]
+              },
+              {
+                "id": "metric.school_211_count",
+                "label": "211人数",
+                "aliases": [
+                  "211人数"
+                ]
+              },
+              {
+                "id": "metric.school_985_ratio",
+                "label": "985占比",
+                "aliases": [
+                  "985占比"
+                ]
+              },
+              {
+                "id": "metric.school_211_ratio",
+                "label": "211占比",
+                "aliases": [
+                  "211占比"
+                ]
+              },
+              {
+                "id": "metric.outsource_count",
+                "label": "外包人数",
+                "aliases": [
+                  "外包人数"
+                ]
+              },
+              {
+                "id": "metric.outsource_ratio",
+                "label": "外包占比",
+                "aliases": [
+                  "外包占比"
+                ]
+              },
+              {
+                "id": "metric.avg_age",
+                "label": "平均年龄",
+                "aliases": [
+                  "平均年龄"
+                ]
+              },
+              {
+                "id": "metric.avg_confirmation_days",
+                "label": "平均转正用时",
+                "aliases": [
+                  "平均转正用时"
+                ]
+              }
+            ],
+            "documents": [
+              {
+                "id": "metric.count",
+                "key": "count",
+                "label": "人数",
+                "unit": "人",
+                "fields": [
+                  "people.person_id"
+                ],
+                "definition": "符合当前人群与筛选条件的去重员工人数",
+                "aliases": [
+                  "人数"
+                ],
+                "null_rule": "比例分母含未知；平均数排除未知，零分母返回空值。",
+                "rounding": "四舍五入保留2位小数",
+                "scope_rule": "当前授权范围与问题条件取交集后计算"
+              }
+            ],
+            "date_hints": {
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11"
+            }
+          },
+          "duration_ms": 0.24
+        },
+        {
+          "name": "模型生成计划",
+          "input": {
+            "attempt": 1,
+            "messages": [
+              {
+                "role": "system",
+                "content": "你是HR查询计划器，只生成JSON，禁止SQL。/no_think\n一名员工一条当前记录，字段表为people。合成数据截止日2026-09-11，时区Asia/Shanghai。\n字段索引：{\"person_id\": {\"label\": \"人员ID\", \"meaning\": \"人员主键，非工号，员工唯一记录\"}, \"employee_no\": {\"label\": \"工号\", \"meaning\": \"字符串标识，保留前导零\"}, \"name\": {\"label\": \"姓名\", \"meaning\": \"展示姓名，重名时以工号区分\"}, \"head_person_id\": {\"label\": \"直接主管ID\", \"meaning\": \"管理关系，关联person_id，不是HRBP\"}, \"dept_master_id\": {\"label\": \"部门主管ID\", \"meaning\": \"部门主管关联person_id，当前不单独授权\"}, \"dept_hrbp_id\": {\"label\": \"HRBP人员ID\", \"meaning\": \"HRBP服务关系，允许指向本人\"}, \"dept_code\": {\"label\": \"部门编码\", \"meaning\": \"当前部门编码，无历史归属\"}, \"dept_cn_name\": {\"label\": \"部门\", \"meaning\": \"当前部门名称，历史事件也按当前部门分组\"}, \"onboard_date\": {\"label\": \"入职日期\", \"meaning\": \"本次演示采用的入职日期，不等于任职开始日期\"}, \"termin_date\": {\"label\": \"离职日期\", \"meaning\": \"离职当天已不在职，空值表示未离职\"}, \"birth_date\": {\"label\": \"出生日期\", \"meaning\": \"计算快照日周岁的依据，缺失时年龄未知\"}, \"age\": {\"label\": \"年龄\", \"meaning\": \"快照日的周岁，30至40含两个边界\"}, \"school_name\": {\"label\": \"学校\", \"meaning\": \"宽表当前教育记录的院校，无完整多段教育历史\"}, \"first_major\": {\"label\": \"专业\", \"meaning\": \"当前教育记录第一专业\"}, \"diploma_code_desc\": {\"label\": \"学历\", \"meaning\": \"高中及以下、专科、本科、硕士研究生、博士研究生；硕士及以上包括博士\"}, \"degree_code_desc\": {\"label\": \"学位\", \"meaning\": \"无学位、学士、硕士、博士；与学历分开\"}, \"full_time_flag\": {\"label\": \"是否全日制\", \"meaning\": \"是、否或未知\"}, \"education_expired_date\": {\"label\": \"毕业时间\", \"meaning\": \"演示假设等同教育结束日期，真实源待确认\"}, \"hire_type_code_desc\": {\"label\": \"招聘类型\", \"meaning\": \"校园招聘或社会招聘；未知不判为校园招聘\"}, \"labour_type_code_desc\": {\"label\": \"用工类型\", \"meaning\": \"正式、外包、实习\"}, \"position_code_desc\": {\"label\": \"岗位\", \"meaning\": \"当前岗位名称，无前一岗位历史\"}, \"current_employment_start_date\": {\"label\": \"当前任职开始日期\", \"meaning\": \"仅当前任职开始，不表示完整调岗事件\"}, \"confirmation_date\": {\"label\": \"转正日期\", \"meaning\": \"实际已转正日期，不是预计日期\"}, \"formalize_flag\": {\"label\": \"是否已转正\", \"meaning\": \"是或否，需与转正日期一致\"}, \"contract_type_code_desc\": {\"label\": \"合同类型\", \"meaning\": \"合同类型说明，独立字段权限组\"}, \"contract_end_date\": {\"label\": \"合同到期日期\", \"meaning\": \"允许查询未来到期日期，空值不视为即将到期\"}}\n指标索引：{\"count\": {\"label\": \"人数\", \"definition\": \"符合当前人群与筛选条件的去重员工人数\"}, \"hires\": {\"label\": \"入职人数\", \"definition\": \"期间入职人数，不要求现在仍在职\"}, \"departures\": {\"label\": \"离职人数\", \"definition\": \"期间离职人数\"}, \"net_change\": {\"label\": \"净增人数\", \"definition\": \"期间入职减离职\"}, \"masters_count\": {\"label\": \"硕士及以上人数\", \"definition\": \"当前学历为硕士研究生或博士研究生人数\"}, \"masters_ratio\": {\"label\": \"硕士及以上占比\", \"definition\": \"硕士及以上人数/同组全部人群；未知学历计入分母\"}, \"doctors_count\": {\"label\": \"博士学位人数\", \"definition\": \"当前已取得博士学位人数\"}, \"school_985_count\": {\"label\": \"985人数\", \"definition\": \"当前教育院校在演示985字典中的人数\"}, \"school_211_count\": {\"label\": \"211人数\", \"definition\": \"当前教育院校在演示211字典中的人数，包含985\"}, \"school_985_ratio\": {\"label\": \"985占比\", \"definition\": \"985人数/同组全部人群，未知院校仍计入分母\"}, \"school_211_ratio\": {\"label\": \"211占比\", \"definition\": \"211人数/同组全部人群，不能与985相加\"}, \"outsource_count\": {\"label\": \"外包人数\", \"definition\": \"用工类型为外包人数\"}, \"outsource_ratio\": {\"label\": \"外包占比\", \"definition\": \"外包人数/同组全部人群\"}, \"avg_age\": {\"label\": \"平均年龄\", \"definition\": \"快照日有效周岁平均值，未知不入平均，另给有效样本数\"}, \"avg_confirmation_days\": {\"label\": \"平均转正用时\", \"definition\": \"有效转正日期减入职日期的平均天数\"}}\n本次已披露详情：[{\"id\": \"metric.count\", \"key\": \"count\", \"label\": \"人数\", \"unit\": \"人\", \"fields\": [\"people.person_id\"], \"definition\": \"符合当前人群与筛选条件的去重员工人数\", \"aliases\": [\"人数\"], \"null_rule\": \"比例分母含未知；平均数排除未知，零分母返回空值。\", \"rounding\": \"四舍五入保留2位小数\", \"scope_rule\": \"当前授权范围与问题条件取交集后计算\"}]\n分组维度：{\"dept_cn_name\": \"部门\", \"diploma_code_desc\": \"学历\", \"full_time_flag\": \"是否全日制\", \"school_name\": \"学校\", \"labour_type_code_desc\": \"用工类型\", \"hire_type_code_desc\": \"招聘类型\", \"position_code_desc\": \"岗位\", \"relation\": \"汇报关系\", \"onboard_month\": \"入职月份\", \"termin_month\": \"离职月份\", \"event_month\": \"事件月份\", \"confirmation_month\": \"转正月份\"}\n可选择的部门：[\"可信与AI实验室\", \"平台研发部\", \"智能产品部\", \"装备业务四部人力资源部\"]\n前次成功计划（追问时继承未改变条件）：null\n确定性时间解释：{\"start_date\": \"2026-08-28\", \"end_date\": \"2026-09-11\"}\n明确条件：[]\n规则：\n1. kind=aggregate统计，kind=people明细；缺少口径kind=inspect，inspect_ids最多6个索引ID（people.字段、metric.指标），最多2轮；不支持或有歧义kind=clarify并说明message。不得忽略不能表达的条件。\n2. scope=all是当前全部授权，绝不是扩大权限；直属及间接用reports且排除本人；只直属direct，只间接indirect；本人服务HRBP用scope=hrbp，通过下属HRBP查看用scope=inherited_hrbp。禁止使用dept_hrbp_id=self作为过滤，self不是人员主键；范围由scope表达。直属与间接分别展示group_by包含relation。默认在职population=active；入离职期间人数/明细用all，不要求现在仍在职；今年已转正用confirmed。\n3. 日期用YYYY-MM-DD。date_field入职onboard_date、离职termin_date、合同到期contract_end_date、实际转正confirmation_date、当前任职current_employment_start_date。入职+离职+净增用employment_events及hires,departures,net_change三个指标。月份用与日期对应的onboard_month/termin_month/event_month/confirmation_month，配合dept_cn_name最多2个维度。没有期间时日期字段和起止为null。\n4. 按部门、每个部门、两个部门对比用group_by=[\"dept_cn_name\"]，部门仅填写明确名称，学校/专业多值OR用in，一个字段多条件与其他字段AND。不要为“各部门”填写全部部门列表。\n5. “硕士及以上”筛选diploma_code_desc gte 硕士研究生；全日制full_time_flag eq 是；校招hire_type_code_desc eq 校园招聘；年龄区间gte/lte含边界，值均字符串。学位博士是degree_code_desc，不是学历。博士学位人数用doctors_count，自动检查毕业时间。仅目前学历记录，非完整历史。\n6. 比例使用metrics中现有ratio指标，不能同时用对应条件筛掉分母；985、211同时查询给school_985_count,school_211_count,school_985_ratio,school_211_ratio。硕士及以上人数+占比给count,masters_count,masters_ratio。外包比例及人数总数给count,outsource_count,outsource_ratio。\n7. 人员明细columns只包含问题点名的字段，按提问顺序；专业first_major，毕业时间education_expired_date，部门dept_cn_name。排序order_by包含field和direction asc/desc；未要求排序则空列表。统计不带多余columns条件。零月份服务端补齐。\n8. 追问给出完整新计划，继承前次人群、部门、时间和未修改筛选；“把学校改成”必须替换原school_name条件。没有前次上下文时不能猜“这些人”。所有教育条件作用同一当前记录。\n9. 不能查不存在的薪酬、考勤、绩效或历史汇报线；拒绝写入、删除、自由SQL及绕过权限。不要将无法回答的问题换成人数。\n10. 必须明确kind与metrics（统计）或columns（明细）；page=1,page_size=50；最多5指标、12明细字段、12筛选。不填person_id权限集合，由后端强制处理。"
+              },
+              {
+                "role": "user",
+                "content": "过去15天，平台研发部和智能产品部分别入职、离职多少人，净增多少？"
+              }
+            ]
+          },
+          "output": {
+            "request": {
+              "model": "hr-qwen",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "你是HR查询计划器，只生成JSON，禁止SQL。/no_think\n一名员工一条当前记录，字段表为people。合成数据截止日2026-09-11，时区Asia/Shanghai。\n字段索引：{\"person_id\": {\"label\": \"人员ID\", \"meaning\": \"人员主键，非工号，员工唯一记录\"}, \"employee_no\": {\"label\": \"工号\", \"meaning\": \"字符串标识，保留前导零\"}, \"name\": {\"label\": \"姓名\", \"meaning\": \"展示姓名，重名时以工号区分\"}, \"head_person_id\": {\"label\": \"直接主管ID\", \"meaning\": \"管理关系，关联person_id，不是HRBP\"}, \"dept_master_id\": {\"label\": \"部门主管ID\", \"meaning\": \"部门主管关联person_id，当前不单独授权\"}, \"dept_hrbp_id\": {\"label\": \"HRBP人员ID\", \"meaning\": \"HRBP服务关系，允许指向本人\"}, \"dept_code\": {\"label\": \"部门编码\", \"meaning\": \"当前部门编码，无历史归属\"}, \"dept_cn_name\": {\"label\": \"部门\", \"meaning\": \"当前部门名称，历史事件也按当前部门分组\"}, \"onboard_date\": {\"label\": \"入职日期\", \"meaning\": \"本次演示采用的入职日期，不等于任职开始日期\"}, \"termin_date\": {\"label\": \"离职日期\", \"meaning\": \"离职当天已不在职，空值表示未离职\"}, \"birth_date\": {\"label\": \"出生日期\", \"meaning\": \"计算快照日周岁的依据，缺失时年龄未知\"}, \"age\": {\"label\": \"年龄\", \"meaning\": \"快照日的周岁，30至40含两个边界\"}, \"school_name\": {\"label\": \"学校\", \"meaning\": \"宽表当前教育记录的院校，无完整多段教育历史\"}, \"first_major\": {\"label\": \"专业\", \"meaning\": \"当前教育记录第一专业\"}, \"diploma_code_desc\": {\"label\": \"学历\", \"meaning\": \"高中及以下、专科、本科、硕士研究生、博士研究生；硕士及以上包括博士\"}, \"degree_code_desc\": {\"label\": \"学位\", \"meaning\": \"无学位、学士、硕士、博士；与学历分开\"}, \"full_time_flag\": {\"label\": \"是否全日制\", \"meaning\": \"是、否或未知\"}, \"education_expired_date\": {\"label\": \"毕业时间\", \"meaning\": \"演示假设等同教育结束日期，真实源待确认\"}, \"hire_type_code_desc\": {\"label\": \"招聘类型\", \"meaning\": \"校园招聘或社会招聘；未知不判为校园招聘\"}, \"labour_type_code_desc\": {\"label\": \"用工类型\", \"meaning\": \"正式、外包、实习\"}, \"position_code_desc\": {\"label\": \"岗位\", \"meaning\": \"当前岗位名称，无前一岗位历史\"}, \"current_employment_start_date\": {\"label\": \"当前任职开始日期\", \"meaning\": \"仅当前任职开始，不表示完整调岗事件\"}, \"confirmation_date\": {\"label\": \"转正日期\", \"meaning\": \"实际已转正日期，不是预计日期\"}, \"formalize_flag\": {\"label\": \"是否已转正\", \"meaning\": \"是或否，需与转正日期一致\"}, \"contract_type_code_desc\": {\"label\": \"合同类型\", \"meaning\": \"合同类型说明，独立字段权限组\"}, \"contract_end_date\": {\"label\": \"合同到期日期\", \"meaning\": \"允许查询未来到期日期，空值不视为即将到期\"}}\n指标索引：{\"count\": {\"label\": \"人数\", \"definition\": \"符合当前人群与筛选条件的去重员工人数\"}, \"hires\": {\"label\": \"入职人数\", \"definition\": \"期间入职人数，不要求现在仍在职\"}, \"departures\": {\"label\": \"离职人数\", \"definition\": \"期间离职人数\"}, \"net_change\": {\"label\": \"净增人数\", \"definition\": \"期间入职减离职\"}, \"masters_count\": {\"label\": \"硕士及以上人数\", \"definition\": \"当前学历为硕士研究生或博士研究生人数\"}, \"masters_ratio\": {\"label\": \"硕士及以上占比\", \"definition\": \"硕士及以上人数/同组全部人群；未知学历计入分母\"}, \"doctors_count\": {\"label\": \"博士学位人数\", \"definition\": \"当前已取得博士学位人数\"}, \"school_985_count\": {\"label\": \"985人数\", \"definition\": \"当前教育院校在演示985字典中的人数\"}, \"school_211_count\": {\"label\": \"211人数\", \"definition\": \"当前教育院校在演示211字典中的人数，包含985\"}, \"school_985_ratio\": {\"label\": \"985占比\", \"definition\": \"985人数/同组全部人群，未知院校仍计入分母\"}, \"school_211_ratio\": {\"label\": \"211占比\", \"definition\": \"211人数/同组全部人群，不能与985相加\"}, \"outsource_count\": {\"label\": \"外包人数\", \"definition\": \"用工类型为外包人数\"}, \"outsource_ratio\": {\"label\": \"外包占比\", \"definition\": \"外包人数/同组全部人群\"}, \"avg_age\": {\"label\": \"平均年龄\", \"definition\": \"快照日有效周岁平均值，未知不入平均，另给有效样本数\"}, \"avg_confirmation_days\": {\"label\": \"平均转正用时\", \"definition\": \"有效转正日期减入职日期的平均天数\"}}\n本次已披露详情：[{\"id\": \"metric.count\", \"key\": \"count\", \"label\": \"人数\", \"unit\": \"人\", \"fields\": [\"people.person_id\"], \"definition\": \"符合当前人群与筛选条件的去重员工人数\", \"aliases\": [\"人数\"], \"null_rule\": \"比例分母含未知；平均数排除未知，零分母返回空值。\", \"rounding\": \"四舍五入保留2位小数\", \"scope_rule\": \"当前授权范围与问题条件取交集后计算\"}]\n分组维度：{\"dept_cn_name\": \"部门\", \"diploma_code_desc\": \"学历\", \"full_time_flag\": \"是否全日制\", \"school_name\": \"学校\", \"labour_type_code_desc\": \"用工类型\", \"hire_type_code_desc\": \"招聘类型\", \"position_code_desc\": \"岗位\", \"relation\": \"汇报关系\", \"onboard_month\": \"入职月份\", \"termin_month\": \"离职月份\", \"event_month\": \"事件月份\", \"confirmation_month\": \"转正月份\"}\n可选择的部门：[\"可信与AI实验室\", \"平台研发部\", \"智能产品部\", \"装备业务四部人力资源部\"]\n前次成功计划（追问时继承未改变条件）：null\n确定性时间解释：{\"start_date\": \"2026-08-28\", \"end_date\": \"2026-09-11\"}\n明确条件：[]\n规则：\n1. kind=aggregate统计，kind=people明细；缺少口径kind=inspect，inspect_ids最多6个索引ID（people.字段、metric.指标），最多2轮；不支持或有歧义kind=clarify并说明message。不得忽略不能表达的条件。\n2. scope=all是当前全部授权，绝不是扩大权限；直属及间接用reports且排除本人；只直属direct，只间接indirect；本人服务HRBP用scope=hrbp，通过下属HRBP查看用scope=inherited_hrbp。禁止使用dept_hrbp_id=self作为过滤，self不是人员主键；范围由scope表达。直属与间接分别展示group_by包含relation。默认在职population=active；入离职期间人数/明细用all，不要求现在仍在职；今年已转正用confirmed。\n3. 日期用YYYY-MM-DD。date_field入职onboard_date、离职termin_date、合同到期contract_end_date、实际转正confirmation_date、当前任职current_employment_start_date。入职+离职+净增用employment_events及hires,departures,net_change三个指标。月份用与日期对应的onboard_month/termin_month/event_month/confirmation_month，配合dept_cn_name最多2个维度。没有期间时日期字段和起止为null。\n4. 按部门、每个部门、两个部门对比用group_by=[\"dept_cn_name\"]，部门仅填写明确名称，学校/专业多值OR用in，一个字段多条件与其他字段AND。不要为“各部门”填写全部部门列表。\n5. “硕士及以上”筛选diploma_code_desc gte 硕士研究生；全日制full_time_flag eq 是；校招hire_type_code_desc eq 校园招聘；年龄区间gte/lte含边界，值均字符串。学位博士是degree_code_desc，不是学历。博士学位人数用doctors_count，自动检查毕业时间。仅目前学历记录，非完整历史。\n6. 比例使用metrics中现有ratio指标，不能同时用对应条件筛掉分母；985、211同时查询给school_985_count,school_211_count,school_985_ratio,school_211_ratio。硕士及以上人数+占比给count,masters_count,masters_ratio。外包比例及人数总数给count,outsource_count,outsource_ratio。\n7. 人员明细columns只包含问题点名的字段，按提问顺序；专业first_major，毕业时间education_expired_date，部门dept_cn_name。排序order_by包含field和direction asc/desc；未要求排序则空列表。统计不带多余columns条件。零月份服务端补齐。\n8. 追问给出完整新计划，继承前次人群、部门、时间和未修改筛选；“把学校改成”必须替换原school_name条件。没有前次上下文时不能猜“这些人”。所有教育条件作用同一当前记录。\n9. 不能查不存在的薪酬、考勤、绩效或历史汇报线；拒绝写入、删除、自由SQL及绕过权限。不要将无法回答的问题换成人数。\n10. 必须明确kind与metrics（统计）或columns（明细）；page=1,page_size=50；最多5指标、12明细字段、12筛选。不填person_id权限集合，由后端强制处理。"
+                },
+                {
+                  "role": "user",
+                  "content": "过去15天，平台研发部和智能产品部分别入职、离职多少人，净增多少？"
+                }
+              ],
+              "temperature": 0,
+              "max_tokens": 1600,
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              },
+              "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                  "name": "hr_v2_plan",
+                  "schema": {
+                    "$defs": {
+                      "Filter": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "field": {
+                            "enum": [
+                              "person_id",
+                              "employee_no",
+                              "name",
+                              "head_person_id",
+                              "dept_master_id",
+                              "dept_hrbp_id",
+                              "dept_code",
+                              "dept_cn_name",
+                              "onboard_date",
+                              "termin_date",
+                              "birth_date",
+                              "age",
+                              "school_name",
+                              "first_major",
+                              "diploma_code_desc",
+                              "degree_code_desc",
+                              "full_time_flag",
+                              "education_expired_date",
+                              "hire_type_code_desc",
+                              "labour_type_code_desc",
+                              "position_code_desc",
+                              "current_employment_start_date",
+                              "confirmation_date",
+                              "formalize_flag",
+                              "contract_type_code_desc",
+                              "contract_end_date"
+                            ],
+                            "title": "Field",
+                            "type": "string"
+                          },
+                          "op": {
+                            "default": "eq",
+                            "enum": [
+                              "eq",
+                              "in",
+                              "gte",
+                              "lte",
+                              "contains",
+                              "not_null"
+                            ],
+                            "title": "Op",
+                            "type": "string"
+                          },
+                          "values": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "maxItems": 10,
+                            "title": "Values",
+                            "type": "array"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "op",
+                          "values"
+                        ],
+                        "title": "Filter",
+                        "type": "object"
+                      },
+                      "Order": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "field": {
+                            "maxLength": 50,
+                            "title": "Field",
+                            "type": "string"
+                          },
+                          "direction": {
+                            "default": "asc",
+                            "enum": [
+                              "asc",
+                              "desc"
+                            ],
+                            "title": "Direction",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "direction"
+                        ],
+                        "title": "Order",
+                        "type": "object"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "default": "aggregate",
+                        "enum": [
+                          "aggregate",
+                          "people",
+                          "clarify",
+                          "inspect"
+                        ],
+                        "title": "Kind",
+                        "type": "string"
+                      },
+                      "scope": {
+                        "default": "all",
+                        "enum": [
+                          "all",
+                          "reports",
+                          "direct",
+                          "indirect",
+                          "hrbp",
+                          "inherited_hrbp",
+                          "self"
+                        ],
+                        "title": "Scope",
+                        "type": "string"
+                      },
+                      "population": {
+                        "default": "active",
+                        "enum": [
+                          "active",
+                          "all",
+                          "confirmed"
+                        ],
+                        "title": "Population",
+                        "type": "string"
+                      },
+                      "departments": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 8,
+                        "title": "Departments",
+                        "type": "array"
+                      },
+                      "filters": {
+                        "items": {
+                          "$ref": "#/$defs/Filter"
+                        },
+                        "maxItems": 12,
+                        "title": "Filters",
+                        "type": "array"
+                      },
+                      "date_field": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "onboard_date",
+                              "termin_date",
+                              "contract_end_date",
+                              "confirmation_date",
+                              "current_employment_start_date",
+                              "employment_events"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Date Field"
+                      },
+                      "start_date": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Start Date"
+                      },
+                      "end_date": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "End Date"
+                      },
+                      "group_by": {
+                        "items": {
+                          "enum": [
+                            "dept_cn_name",
+                            "diploma_code_desc",
+                            "full_time_flag",
+                            "school_name",
+                            "labour_type_code_desc",
+                            "hire_type_code_desc",
+                            "position_code_desc",
+                            "relation",
+                            "onboard_month",
+                            "termin_month",
+                            "event_month",
+                            "confirmation_month"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 2,
+                        "title": "Group By",
+                        "type": "array"
+                      },
+                      "metrics": {
+                        "items": {
+                          "enum": [
+                            "count",
+                            "hires",
+                            "departures",
+                            "net_change",
+                            "masters_count",
+                            "masters_ratio",
+                            "doctors_count",
+                            "school_985_count",
+                            "school_211_count",
+                            "school_985_ratio",
+                            "school_211_ratio",
+                            "outsource_count",
+                            "outsource_ratio",
+                            "avg_age",
+                            "avg_confirmation_days"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 5,
+                        "minItems": 1,
+                        "title": "Metrics",
+                        "type": "array"
+                      },
+                      "columns": {
+                        "items": {
+                          "enum": [
+                            "person_id",
+                            "employee_no",
+                            "name",
+                            "head_person_id",
+                            "dept_master_id",
+                            "dept_hrbp_id",
+                            "dept_code",
+                            "dept_cn_name",
+                            "onboard_date",
+                            "termin_date",
+                            "birth_date",
+                            "age",
+                            "school_name",
+                            "first_major",
+                            "diploma_code_desc",
+                            "degree_code_desc",
+                            "full_time_flag",
+                            "education_expired_date",
+                            "hire_type_code_desc",
+                            "labour_type_code_desc",
+                            "position_code_desc",
+                            "current_employment_start_date",
+                            "confirmation_date",
+                            "formalize_flag",
+                            "contract_type_code_desc",
+                            "contract_end_date"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 12,
+                        "title": "Columns",
+                        "type": "array"
+                      },
+                      "order_by": {
+                        "items": {
+                          "$ref": "#/$defs/Order"
+                        },
+                        "maxItems": 2,
+                        "title": "Order By",
+                        "type": "array"
+                      },
+                      "page": {
+                        "default": 1,
+                        "maximum": 10000,
+                        "minimum": 1,
+                        "title": "Page",
+                        "type": "integer"
+                      },
+                      "page_size": {
+                        "default": 50,
+                        "maximum": 200,
+                        "minimum": 1,
+                        "title": "Page Size",
+                        "type": "integer"
+                      },
+                      "message": {
+                        "anyOf": [
+                          {
+                            "maxLength": 400,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Message"
+                      },
+                      "inspect_ids": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 6,
+                        "title": "Inspect Ids",
+                        "type": "array"
+                      }
+                    },
+                    "title": "Plan",
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "scope",
+                      "population",
+                      "departments",
+                      "filters",
+                      "date_field",
+                      "start_date",
+                      "end_date",
+                      "group_by",
+                      "metrics",
+                      "columns",
+                      "order_by",
+                      "page",
+                      "page_size",
+                      "message",
+                      "inspect_ids"
+                    ]
+                  }
+                }
+              }
+            },
+            "candidate": {
+              "kind": "aggregate",
+              "scope": "all",
+              "population": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": [],
+              "date_field": null,
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11",
+              "group_by": [
+                "dept_cn_name"
+              ],
+              "metrics": [
+                "hires",
+                "departures",
+                "net_change"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "usage": {
+              "prompt_tokens": 2238,
+              "completion_tokens": 132,
+              "total_tokens": 2370,
+              "completion_tokens_details": {
+                "reasoning_tokens": 131
+              }
+            },
+            "finish_reason": "stop"
+          },
+          "duration_ms": 5939.89
+        },
+        {
+          "name": "明确条件绑定（规则补齐）",
+          "input": {
+            "raw_candidate": {
+              "kind": "aggregate",
+              "scope": "all",
+              "population": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": [],
+              "date_field": null,
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11",
+              "group_by": [
+                "dept_cn_name"
+              ],
+              "metrics": [
+                "hires",
+                "departures",
+                "net_change"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "changes": [
+              {
+                "field": "date_field",
+                "model": null,
+                "bound": "employment_events"
+              }
+            ],
+            "bound_candidate": {
+              "kind": "aggregate",
+              "scope": "all",
+              "population": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": [],
+              "date_field": "employment_events",
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11",
+              "group_by": [
+                "dept_cn_name"
+              ],
+              "metrics": [
+                "hires",
+                "departures",
+                "net_change"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "model_raw_correct": false
+          },
+          "duration_ms": 0.05
+        },
+        {
+          "name": "提问条件对齐",
+          "input": {
+            "question": "过去15天，平台研发部和智能产品部分别入职、离职多少人，净增多少？",
+            "plan": {
+              "kind": "aggregate",
+              "scope": "all",
+              "population": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": [],
+              "date_field": "employment_events",
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11",
+              "group_by": [
+                "dept_cn_name"
+              ],
+              "metrics": [
+                "hires",
+                "departures",
+                "net_change"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "required_filters": [],
+            "named_departments": [
+              "平台研发部",
+              "智能产品部"
+            ],
+            "checked": true
+          },
+          "duration_ms": 0.4
+        },
+        {
+          "name": "结构、口径与字段权限校验",
+          "input": {
+            "candidate": {
+              "kind": "aggregate",
+              "scope": "all",
+              "population": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": [],
+              "date_field": "employment_events",
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11",
+              "group_by": [
+                "dept_cn_name"
+              ],
+              "metrics": [
+                "hires",
+                "departures",
+                "net_change"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "valid": true,
+            "next": "execute"
+          },
+          "duration_ms": 0.42
+        },
+        {
+          "name": "重新鉴权与只读SQL执行",
+          "input": {
+            "plan": {
+              "kind": "aggregate",
+              "scope": "all",
+              "population": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": [],
+              "date_field": "employment_events",
+              "start_date": "2026-08-28",
+              "end_date": "2026-09-11",
+              "group_by": [
+                "dept_cn_name"
+              ],
+              "metrics": [
+                "hires",
+                "departures",
+                "net_change"
+              ],
+              "columns": [],
+              "order_by": [],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "policy_version": 1
+          },
+          "output": {
+            "sql": "SELECT COALESCE(\"dept_cn_name\", '未知') AS dept_cn_name, COALESCE(SUM(\"is_hire\"), 0) AS hires, COALESCE(SUM(\"is_exit\"), 0) AS departures, COALESCE(SUM(\"is_hire\"), 0) - COALESCE(SUM(\"is_exit\"), 0) AS net_change \nFROM v2_api.events_public \nWHERE (_viewer_id = 18) AND ((TRUE) AND (\"dept_cn_name\" IN (e'平台研发部', e'智能产品部')) AND (\"event_day\" BETWEEN e'2026-08-28' AND e'2026-09-11')) GROUP BY COALESCE(\"dept_cn_name\", '未知') \n LIMIT 1001;\n\n",
+            "parameters": {
+              "snapshot": "2026-09-11",
+              "start": "2026-08-28",
+              "end": "2026-09-11",
+              "scope": "all",
+              "departments": [
+                "平台研发部",
+                "智能产品部"
+              ],
+              "filters": []
+            },
+            "rows": [
+              {
+                "dept_cn_name": "平台研发部",
+                "hires": 1,
+                "departures": 0,
+                "net_change": 1
+              },
+              {
+                "dept_cn_name": "智能产品部",
+                "hires": 2,
+                "departures": 0,
+                "net_change": 2
+              }
+            ],
+            "totals": {
+              "hires": 3,
+              "departures": 0,
+              "net_change": 3
+            },
+            "total_rows": 2,
+            "duration_ms": 203.38,
+            "scope_count": 239,
+            "execution_backend": "superset",
+            "source_queries": [
+              "SELECT superset_user_id AS superset_user_id, persona_id AS persona_id, person_id AS person_id, role_key AS role_key, policy_version AS policy_version, rules_json AS rules_json, as_of AS as_of, data_fingerprint AS data_fingerprint, graph_valid AS graph_valid \nFROM v2_api.context \nWHERE (superset_user_id = 18) GROUP BY superset_user_id, persona_id, person_id, role_key, policy_version, rules_json, as_of, data_fingerprint, graph_valid \n LIMIT 2;\n\n",
+              "SELECT person_id AS person_id, employee_no AS employee_no, name AS name, head_person_id AS head_person_id, dept_master_id AS dept_master_id, dept_hrbp_id AS dept_hrbp_id, dept_code AS dept_code, dept_cn_name AS dept_cn_name, onboard_date AS onboard_date, termin_date AS termin_date, birth_date AS birth_date, age AS age, school_name AS school_name, first_major AS first_major, diploma_code_desc AS diploma_code_desc, degree_code_desc AS degree_code_desc, full_time_flag AS full_time_flag, education_expired_date AS education_expired_date, hire_type_code_desc AS hire_type_code_desc, labour_type_code_desc AS labour_type_code_desc, position_code_desc AS position_code_desc, current_employment_start_date AS current_employment_start_date, confirmation_date AS confirmation_date, formalize_flag AS formalize_flag, contract_type_code_desc AS contract_type_code_desc, contract_end_date AS contract_end_date, _viewer_id AS _viewer_id, _depth AS _depth, _reports AS _reports, _hrbp AS _hrbp, _inherited AS _inherited, _origins AS _origins \nFROM v2_api.people_contract \nWHERE (_viewer_id = 18) GROUP BY person_id, employee_no, name, head_person_id, dept_master_id, dept_hrbp_id, dept_code, dept_cn_name, onboard_date, termin_date, birth_date, age, school_name, first_major, diploma_code_desc, degree_code_desc, full_time_flag, education_expired_date, hire_type_code_desc, labour_type_code_desc, position_code_desc, current_employment_start_date, confirmation_date, formalize_flag, contract_type_code_desc, contract_end_date, _viewer_id, _depth, _reports, _hrbp, _inherited, _origins \n LIMIT 1000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id \nFROM v2_api.people_public \nWHERE (_viewer_id = 18) GROUP BY person_id, _viewer_id \n LIMIT 1000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id, event_day AS event_day, is_hire AS is_hire, is_exit AS is_exit \nFROM v2_api.events_public \nWHERE (_viewer_id = 18) GROUP BY person_id, _viewer_id, event_day, is_hire, is_exit \n LIMIT 2000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id, event_day AS event_day, is_hire AS is_hire, is_exit AS is_exit \nFROM v2_api.events_contract \nWHERE (_viewer_id = 18) GROUP BY person_id, _viewer_id, event_day, is_hire, is_exit \n LIMIT 2000;\n\n",
+              "SELECT COALESCE(\"dept_cn_name\", '未知') AS dept_cn_name, COALESCE(SUM(\"is_hire\"), 0) AS hires, COALESCE(SUM(\"is_exit\"), 0) AS departures, COALESCE(SUM(\"is_hire\"), 0) - COALESCE(SUM(\"is_exit\"), 0) AS net_change \nFROM v2_api.events_public \nWHERE (_viewer_id = 18) AND ((TRUE) AND (\"dept_cn_name\" IN (e'平台研发部', e'智能产品部')) AND (\"event_day\" BETWEEN e'2026-08-28' AND e'2026-09-11')) GROUP BY COALESCE(\"dept_cn_name\", '未知') \n LIMIT 1001;\n\n",
+              "SELECT COALESCE(SUM(\"is_hire\"), 0) AS hires, COALESCE(SUM(\"is_exit\"), 0) AS departures, COALESCE(SUM(\"is_hire\"), 0) - COALESCE(SUM(\"is_exit\"), 0) AS net_change \nFROM v2_api.events_public \nWHERE (_viewer_id = 18) AND ((TRUE) AND (\"dept_cn_name\" IN (e'平台研发部', e'智能产品部')) AND (\"event_day\" BETWEEN e'2026-08-28' AND e'2026-09-11')) \n LIMIT 1001;\n\n"
+            ]
+          },
+          "duration_ms": 1961.96
+        },
+        {
+          "name": "结果组织",
+          "input": {
+            "status": "success",
+            "totals": {
+              "hires": 3,
+              "departures": 0,
+              "net_change": 3
+            }
+          },
+          "output": {
+            "summary": "在当前授权范围内，期间 2026-08-28 至 2026-09-11，入职人数 3 人；离职人数 0 人；净增人数 3 人。 共 2 个分组，合计按完整人群重新计算。 数据截止 2026-09-11；组织采用当前部门。",
+            "numeric_source": "执行结果单元格，确定性模板，无模型自由补写数字"
+          },
+          "duration_ms": 0.0
+        }
+      ]
+    },
+    {
+      "id": "HR-16",
+      "passed": true,
+      "elapsed_s": 11.16,
+      "status": "success",
+      "question": "未来90天合同到期的在职员工有哪些？按到期日排序，列出姓名、部门、合同类型和到期日期。",
+      "expected_plan": {
+        "kind": "people",
+        "columns": [
+          "name",
+          "dept_cn_name",
+          "contract_type_code_desc",
+          "contract_end_date"
+        ],
+        "date_field": "contract_end_date",
+        "start_date": "2026-09-12",
+        "end_date": "2026-12-10",
+        "order_by": [
+          {
+            "field": "contract_end_date",
+            "direction": "asc"
+          }
+        ]
+      },
+      "actual_plan": {
+        "kind": "people",
+        "scope": "all",
+        "population": "active",
+        "departments": [],
+        "filters": [],
+        "date_field": "contract_end_date",
+        "start_date": "2026-09-12",
+        "end_date": "2026-12-10",
+        "group_by": [],
+        "metrics": [
+          "count"
+        ],
+        "columns": [
+          "name",
+          "dept_cn_name",
+          "contract_type_code_desc",
+          "contract_end_date"
+        ],
+        "order_by": [
+          {
+            "field": "contract_end_date",
+            "direction": "asc"
+          }
+        ],
+        "page": 1,
+        "page_size": 50,
+        "message": null,
+        "inspect_ids": []
+      },
+      "expected": {
+        "rows": [
+          {
+            "name": "模拟员工213",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-12"
+          },
+          {
+            "name": "模拟员工179",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-14"
+          },
+          {
+            "name": "模拟员工042",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-15"
+          },
+          {
+            "name": "模拟员工282",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-15"
+          },
+          {
+            "name": "模拟员工145",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-16"
+          },
+          {
+            "name": "平台主管（模拟）",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-17"
+          },
+          {
+            "name": "模拟员工248",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-17"
+          },
+          {
+            "name": "模拟员工214",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-19"
+          },
+          {
+            "name": "模拟员工077",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-20"
+          },
+          {
+            "name": "模拟员工180",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-21"
+          },
+          {
+            "name": "模拟员工043",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-22"
+          },
+          {
+            "name": "模拟员工283",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-22"
+          },
+          {
+            "name": "产品主管（模拟）",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-24"
+          },
+          {
+            "name": "模拟员工249",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-24"
+          },
+          {
+            "name": "模拟员工112",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-25"
+          },
+          {
+            "name": "模拟员工215",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-26"
+          },
+          {
+            "name": "模拟员工078",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-27"
+          },
+          {
+            "name": "模拟员工044",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-29"
+          },
+          {
+            "name": "模拟员工284",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-29"
+          },
+          {
+            "name": "模拟员工147",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-30"
+          },
+          {
+            "name": "模拟员工250",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-01"
+          },
+          {
+            "name": "模拟员工113",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-02"
+          },
+          {
+            "name": "模拟员工079",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-04"
+          },
+          {
+            "name": "模拟员工182",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-05"
+          },
+          {
+            "name": "模拟员工045",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-06"
+          },
+          {
+            "name": "模拟员工148",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-07"
+          },
+          {
+            "name": "模拟员工217",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-10"
+          },
+          {
+            "name": "模拟员工080",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-11"
+          },
+          {
+            "name": "模拟员工183",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-12"
+          },
+          {
+            "name": "模拟员工149",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-14"
+          },
+          {
+            "name": "模拟员工012",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-15"
+          },
+          {
+            "name": "模拟员工252",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-15"
+          },
+          {
+            "name": "模拟员工115",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-16"
+          },
+          {
+            "name": "模拟员工218",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-17"
+          },
+          {
+            "name": "模拟员工184",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-19"
+          },
+          {
+            "name": "模拟员工047",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-20"
+          },
+          {
+            "name": "模拟员工287",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-20"
+          },
+          {
+            "name": "模拟员工150",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-21"
+          },
+          {
+            "name": "模拟员工013",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-22"
+          },
+          {
+            "name": "模拟员工253",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-22"
+          },
+          {
+            "name": "模拟员工219",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-24"
+          },
+          {
+            "name": "模拟员工082",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-25"
+          },
+          {
+            "name": "模拟员工185",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-26"
+          },
+          {
+            "name": "模拟员工048",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-27"
+          },
+          {
+            "name": "模拟员工288",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-27"
+          },
+          {
+            "name": "模拟员工014",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-29"
+          },
+          {
+            "name": "模拟员工254",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-29"
+          },
+          {
+            "name": "模拟员工117",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-30"
+          },
+          {
+            "name": "模拟员工220",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-31"
+          },
+          {
+            "name": "模拟员工083",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-01"
+          },
+          {
+            "name": "模拟员工049",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-03"
+          },
+          {
+            "name": "模拟员工015",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-05"
+          },
+          {
+            "name": "模拟员工118",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-06"
+          },
+          {
+            "name": "模拟员工084",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-08"
+          },
+          {
+            "name": "模拟员工050",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-10"
+          },
+          {
+            "name": "模拟员工290",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-10"
+          },
+          {
+            "name": "模拟员工222",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-14"
+          },
+          {
+            "name": "模拟员工188",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-16"
+          },
+          {
+            "name": "模拟员工154",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-18"
+          },
+          {
+            "name": "模拟员工017",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-19"
+          },
+          {
+            "name": "模拟员工257",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-19"
+          },
+          {
+            "name": "模拟员工120",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-20"
+          },
+          {
+            "name": "模拟员工223",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-21"
+          },
+          {
+            "name": "模拟员工189",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-23"
+          },
+          {
+            "name": "模拟员工052",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-24"
+          },
+          {
+            "name": "模拟员工292",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-24"
+          },
+          {
+            "name": "模拟员工155",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-25"
+          },
+          {
+            "name": "模拟员工018",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-26"
+          },
+          {
+            "name": "模拟员工258",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-26"
+          },
+          {
+            "name": "模拟员工224",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-28"
+          },
+          {
+            "name": "模拟员工087",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-29"
+          },
+          {
+            "name": "模拟员工053",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-01"
+          },
+          {
+            "name": "模拟员工293",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-01"
+          },
+          {
+            "name": "模拟员工259",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-03"
+          },
+          {
+            "name": "模拟员工122",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-04"
+          },
+          {
+            "name": "模拟员工225",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-05"
+          },
+          {
+            "name": "模拟员工088",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-06"
+          },
+          {
+            "name": "模拟员工054",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-08"
+          },
+          {
+            "name": "模拟员工294",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-08"
+          },
+          {
+            "name": "模拟员工157",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-09"
+          },
+          {
+            "name": "模拟员工020",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-10"
+          },
+          {
+            "name": "模拟员工260",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-10"
+          }
+        ],
+        "totals": {
+          "count": 82
+        }
+      },
+      "actual": {
+        "rows": [
+          {
+            "name": "模拟员工213",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-12"
+          },
+          {
+            "name": "模拟员工179",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-14"
+          },
+          {
+            "name": "模拟员工042",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-15"
+          },
+          {
+            "name": "模拟员工282",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-15"
+          },
+          {
+            "name": "模拟员工145",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-16"
+          },
+          {
+            "name": "平台主管（模拟）",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-17"
+          },
+          {
+            "name": "模拟员工248",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-17"
+          },
+          {
+            "name": "模拟员工214",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-19"
+          },
+          {
+            "name": "模拟员工077",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-20"
+          },
+          {
+            "name": "模拟员工180",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-21"
+          },
+          {
+            "name": "模拟员工043",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-22"
+          },
+          {
+            "name": "模拟员工283",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-22"
+          },
+          {
+            "name": "产品主管（模拟）",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-24"
+          },
+          {
+            "name": "模拟员工249",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-24"
+          },
+          {
+            "name": "模拟员工112",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-25"
+          },
+          {
+            "name": "模拟员工215",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-26"
+          },
+          {
+            "name": "模拟员工078",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-27"
+          },
+          {
+            "name": "模拟员工044",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-29"
+          },
+          {
+            "name": "模拟员工284",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-29"
+          },
+          {
+            "name": "模拟员工147",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-09-30"
+          },
+          {
+            "name": "模拟员工250",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-01"
+          },
+          {
+            "name": "模拟员工113",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-02"
+          },
+          {
+            "name": "模拟员工079",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-04"
+          },
+          {
+            "name": "模拟员工182",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-05"
+          },
+          {
+            "name": "模拟员工045",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-06"
+          },
+          {
+            "name": "模拟员工148",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-07"
+          },
+          {
+            "name": "模拟员工217",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-10"
+          },
+          {
+            "name": "模拟员工080",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-11"
+          },
+          {
+            "name": "模拟员工183",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-12"
+          },
+          {
+            "name": "模拟员工149",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-14"
+          },
+          {
+            "name": "模拟员工012",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-15"
+          },
+          {
+            "name": "模拟员工252",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-15"
+          },
+          {
+            "name": "模拟员工115",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-16"
+          },
+          {
+            "name": "模拟员工218",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-17"
+          },
+          {
+            "name": "模拟员工184",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-19"
+          },
+          {
+            "name": "模拟员工047",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-20"
+          },
+          {
+            "name": "模拟员工287",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-20"
+          },
+          {
+            "name": "模拟员工150",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-21"
+          },
+          {
+            "name": "模拟员工013",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-22"
+          },
+          {
+            "name": "模拟员工253",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-22"
+          },
+          {
+            "name": "模拟员工219",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-24"
+          },
+          {
+            "name": "模拟员工082",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-25"
+          },
+          {
+            "name": "模拟员工185",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-26"
+          },
+          {
+            "name": "模拟员工048",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-27"
+          },
+          {
+            "name": "模拟员工288",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-27"
+          },
+          {
+            "name": "模拟员工014",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-29"
+          },
+          {
+            "name": "模拟员工254",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-29"
+          },
+          {
+            "name": "模拟员工117",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-30"
+          },
+          {
+            "name": "模拟员工220",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-10-31"
+          },
+          {
+            "name": "模拟员工083",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-01"
+          },
+          {
+            "name": "模拟员工049",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-03"
+          },
+          {
+            "name": "模拟员工015",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-05"
+          },
+          {
+            "name": "模拟员工118",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-06"
+          },
+          {
+            "name": "模拟员工084",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-08"
+          },
+          {
+            "name": "模拟员工050",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-10"
+          },
+          {
+            "name": "模拟员工290",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-10"
+          },
+          {
+            "name": "模拟员工222",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-14"
+          },
+          {
+            "name": "模拟员工188",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-16"
+          },
+          {
+            "name": "模拟员工154",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-18"
+          },
+          {
+            "name": "模拟员工017",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-19"
+          },
+          {
+            "name": "模拟员工257",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-19"
+          },
+          {
+            "name": "模拟员工120",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-20"
+          },
+          {
+            "name": "模拟员工223",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-21"
+          },
+          {
+            "name": "模拟员工189",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-23"
+          },
+          {
+            "name": "模拟员工052",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-24"
+          },
+          {
+            "name": "模拟员工292",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-24"
+          },
+          {
+            "name": "模拟员工155",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-25"
+          },
+          {
+            "name": "模拟员工018",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-26"
+          },
+          {
+            "name": "模拟员工258",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-26"
+          },
+          {
+            "name": "模拟员工224",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-28"
+          },
+          {
+            "name": "模拟员工087",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-11-29"
+          },
+          {
+            "name": "模拟员工053",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-01"
+          },
+          {
+            "name": "模拟员工293",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-01"
+          },
+          {
+            "name": "模拟员工259",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-03"
+          },
+          {
+            "name": "模拟员工122",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-04"
+          },
+          {
+            "name": "模拟员工225",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-05"
+          },
+          {
+            "name": "模拟员工088",
+            "dept_cn_name": "智能产品部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-06"
+          },
+          {
+            "name": "模拟员工054",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-08"
+          },
+          {
+            "name": "模拟员工294",
+            "dept_cn_name": "可信与AI实验室",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-08"
+          },
+          {
+            "name": "模拟员工157",
+            "dept_cn_name": "平台研发部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-09"
+          },
+          {
+            "name": "模拟员工020",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-10"
+          },
+          {
+            "name": "模拟员工260",
+            "dept_cn_name": "装备业务四部人力资源部",
+            "contract_type_code_desc": "固定期限",
+            "contract_end_date": "2026-12-10"
+          }
+        ],
+        "totals": {
+          "count": 82
+        }
+      },
+      "message": null,
+      "model_attempts": 1,
+      "rule_bindings": 1,
+      "raw_candidates": [
+        {
+          "kind": "people",
+          "scope": "all",
+          "population": "active",
+          "departments": [],
+          "filters": [
+            {
+              "field": "contract_end_date",
+              "op": "gte",
+              "values": [
+                "2026-09-12"
+              ]
+            },
+            {
+              "field": "contract_end_date",
+              "op": "lte",
+              "values": [
+                "2026-12-10"
+              ]
+            }
+          ],
+          "date_field": null,
+          "start_date": null,
+          "end_date": null,
+          "group_by": [],
+          "metrics": [
+            "count"
+          ],
+          "columns": [
+            "name",
+            "dept_cn_name",
+            "contract_type_code_desc",
+            "contract_end_date"
+          ],
+          "order_by": [
+            {
+              "field": "contract_end_date",
+              "direction": "asc"
+            }
+          ],
+          "page": 1,
+          "page_size": 50,
+          "message": null,
+          "inspect_ids": []
+        }
+      ],
+      "trace": [
+        {
+          "name": "身份与历史校验",
+          "input": {
+            "persona": "hr_lead",
+            "previous_id": null
+          },
+          "output": {
+            "policy_version": 1,
+            "previous_plan": null,
+            "visible_count": 239
+          },
+          "duration_ms": 579.65
+        },
+        {
+          "name": "目录检索与初步披露",
+          "input": {
+            "question": "未来90天合同到期的在职员工有哪些？按到期日排序，列出姓名、部门、合同类型和到期日期。",
+            "catalog_version": "v2-semantics-1"
+          },
+          "output": {
+            "index": [
+              {
+                "id": "people.person_id",
+                "label": "人员ID",
+                "aliases": [
+                  "人员主键",
+                  "人员标识"
+                ]
+              },
+              {
+                "id": "people.employee_no",
+                "label": "工号",
+                "aliases": [
+                  "员工编号",
+                  "工号"
+                ]
+              },
+              {
+                "id": "people.name",
+                "label": "姓名",
+                "aliases": [
+                  "名字",
+                  "员工姓名"
+                ]
+              },
+              {
+                "id": "people.head_person_id",
+                "label": "直接主管ID",
+                "aliases": [
+                  "直属领导",
+                  "汇报给",
+                  "直接上级"
+                ]
+              },
+              {
+                "id": "people.dept_master_id",
+                "label": "部门主管ID",
+                "aliases": [
+                  "部门负责人"
+                ]
+              },
+              {
+                "id": "people.dept_hrbp_id",
+                "label": "HRBP人员ID",
+                "aliases": [
+                  "人力BP",
+                  "服务HRBP",
+                  "HR业务伙伴"
+                ]
+              },
+              {
+                "id": "people.dept_code",
+                "label": "部门编码",
+                "aliases": [
+                  "部门编码"
+                ]
+              },
+              {
+                "id": "people.dept_cn_name",
+                "label": "部门",
+                "aliases": [
+                  "部门名称",
+                  "组织",
+                  "团队"
+                ]
+              },
+              {
+                "id": "people.onboard_date",
+                "label": "入职日期",
+                "aliases": [
+                  "入司时间",
+                  "入职时间",
+                  "新入职"
+                ]
+              },
+              {
+                "id": "people.termin_date",
+                "label": "离职日期",
+                "aliases": [
+                  "离司时间",
+                  "离职时间"
+                ]
+              },
+              {
+                "id": "people.birth_date",
+                "label": "出生日期",
+                "aliases": [
+                  "生日"
+                ]
+              },
+              {
+                "id": "people.age",
+                "label": "年龄",
+                "aliases": [
+                  "周岁",
+                  "岁数"
+                ]
+              },
+              {
+                "id": "people.school_name",
+                "label": "学校",
+                "aliases": [
+                  "院校",
+                  "毕业学校",
+                  "母校"
+                ]
+              },
+              {
+                "id": "people.first_major",
+                "label": "专业",
+                "aliases": [
+                  "第一专业",
+                  "所学专业"
+                ]
+              },
+              {
+                "id": "people.diploma_code_desc",
+                "label": "学历",
+                "aliases": [
+                  "文化程度",
+                  "学历背景"
+                ]
+              },
+              {
+                "id": "people.degree_code_desc",
+                "label": "学位",
+                "aliases": [
+                  "学位",
+                  "博士学位"
+                ]
+              },
+              {
+                "id": "people.full_time_flag",
+                "label": "是否全日制",
+                "aliases": [
+                  "学习形式",
+                  "全日制"
+                ]
+              },
+              {
+                "id": "people.education_expired_date",
+                "label": "毕业时间",
+                "aliases": [
+                  "毕业日期",
+                  "教育结束时间"
+                ]
+              },
+              {
+                "id": "people.hire_type_code_desc",
+                "label": "招聘类型",
+                "aliases": [
+                  "校招",
+                  "社招",
+                  "招聘来源"
+                ]
+              },
+              {
+                "id": "people.labour_type_code_desc",
+                "label": "用工类型",
+                "aliases": [
+                  "外包",
+                  "用工性质"
+                ]
+              },
+              {
+                "id": "people.position_code_desc",
+                "label": "岗位",
+                "aliases": [
+                  "职位",
+                  "现岗位"
+                ]
+              },
+              {
+                "id": "people.current_employment_start_date",
+                "label": "当前任职开始日期",
+                "aliases": [
+                  "当前任职时间",
+                  "现岗位起始日"
+                ]
+              },
+              {
+                "id": "people.confirmation_date",
+                "label": "转正日期",
+                "aliases": [
+                  "实际转正日"
+                ]
+              },
+              {
+                "id": "people.formalize_flag",
+                "label": "是否已转正",
+                "aliases": [
+                  "转正状态"
+                ]
+              },
+              {
+                "id": "people.contract_type_code_desc",
+                "label": "合同类型",
+                "aliases": [
+                  "合同性质"
+                ]
+              },
+              {
+                "id": "people.contract_end_date",
+                "label": "合同到期日期",
+                "aliases": [
+                  "合同截止日",
+                  "合同到期时间"
+                ]
+              },
+              {
+                "id": "metric.count",
+                "label": "人数",
+                "aliases": [
+                  "人数"
+                ]
+              },
+              {
+                "id": "metric.hires",
+                "label": "入职人数",
+                "aliases": [
+                  "入职人数"
+                ]
+              },
+              {
+                "id": "metric.departures",
+                "label": "离职人数",
+                "aliases": [
+                  "离职人数"
+                ]
+              },
+              {
+                "id": "metric.net_change",
+                "label": "净增人数",
+                "aliases": [
+                  "净增人数"
+                ]
+              },
+              {
+                "id": "metric.masters_count",
+                "label": "硕士及以上人数",
+                "aliases": [
+                  "硕士及以上人数"
+                ]
+              },
+              {
+                "id": "metric.masters_ratio",
+                "label": "硕士及以上占比",
+                "aliases": [
+                  "硕士及以上占比"
+                ]
+              },
+              {
+                "id": "metric.doctors_count",
+                "label": "博士学位人数",
+                "aliases": [
+                  "博士学位人数"
+                ]
+              },
+              {
+                "id": "metric.school_985_count",
+                "label": "985人数",
+                "aliases": [
+                  "985人数"
+                ]
+              },
+              {
+                "id": "metric.school_211_count",
+                "label": "211人数",
+                "aliases": [
+                  "211人数"
+                ]
+              },
+              {
+                "id": "metric.school_985_ratio",
+                "label": "985占比",
+                "aliases": [
+                  "985占比"
+                ]
+              },
+              {
+                "id": "metric.school_211_ratio",
+                "label": "211占比",
+                "aliases": [
+                  "211占比"
+                ]
+              },
+              {
+                "id": "metric.outsource_count",
+                "label": "外包人数",
+                "aliases": [
+                  "外包人数"
+                ]
+              },
+              {
+                "id": "metric.outsource_ratio",
+                "label": "外包占比",
+                "aliases": [
+                  "外包占比"
+                ]
+              },
+              {
+                "id": "metric.avg_age",
+                "label": "平均年龄",
+                "aliases": [
+                  "平均年龄"
+                ]
+              },
+              {
+                "id": "metric.avg_confirmation_days",
+                "label": "平均转正用时",
+                "aliases": [
+                  "平均转正用时"
+                ]
+              }
+            ],
+            "documents": [
+              {
+                "id": "metric.count",
+                "key": "count",
+                "label": "人数",
+                "unit": "人",
+                "fields": [
+                  "people.person_id"
+                ],
+                "definition": "符合当前人群与筛选条件的去重员工人数",
+                "aliases": [
+                  "人数"
+                ],
+                "null_rule": "比例分母含未知；平均数排除未知，零分母返回空值。",
+                "rounding": "四舍五入保留2位小数",
+                "scope_rule": "当前授权范围与问题条件取交集后计算"
+              },
+              {
+                "id": "people.contract_type_code_desc",
+                "key": "contract_type_code_desc",
+                "table_id": "people",
+                "label": "合同类型",
+                "group": "contract",
+                "aliases": [
+                  "合同性质"
+                ],
+                "description": "合同类型说明，独立字段权限组",
+                "not_meaning": "不代表其他未提供的历史记录或业务事实。",
+                "type": "string",
+                "nullable": true
+              },
+              {
+                "id": "people.dept_cn_name",
+                "key": "dept_cn_name",
+                "table_id": "people",
+                "label": "部门",
+                "group": "basic",
+                "aliases": [
+                  "部门名称",
+                  "组织",
+                  "团队"
+                ],
+                "description": "当前部门名称，历史事件也按当前部门分组",
+                "not_meaning": "不是入职或离职当时的部门；本数据不保留任职历史。",
+                "type": "string",
+                "nullable": true
+              },
+              {
+                "id": "people.name",
+                "key": "name",
+                "table_id": "people",
+                "label": "姓名",
+                "group": "basic",
+                "aliases": [
+                  "名字",
+                  "员工姓名"
+                ],
+                "description": "展示姓名，重名时以工号区分",
+                "not_meaning": "不代表其他未提供的历史记录或业务事实。",
+                "type": "string",
+                "nullable": false
+              }
+            ],
+            "date_hints": {
+              "start_date": "2026-09-12",
+              "end_date": "2026-12-10"
+            }
+          },
+          "duration_ms": 0.22
+        },
+        {
+          "name": "模型生成计划",
+          "input": {
+            "attempt": 1,
+            "messages": [
+              {
+                "role": "system",
+                "content": "你是HR查询计划器，只生成JSON，禁止SQL。/no_think\n一名员工一条当前记录，字段表为people。合成数据截止日2026-09-11，时区Asia/Shanghai。\n字段索引：{\"person_id\": {\"label\": \"人员ID\", \"meaning\": \"人员主键，非工号，员工唯一记录\"}, \"employee_no\": {\"label\": \"工号\", \"meaning\": \"字符串标识，保留前导零\"}, \"name\": {\"label\": \"姓名\", \"meaning\": \"展示姓名，重名时以工号区分\"}, \"head_person_id\": {\"label\": \"直接主管ID\", \"meaning\": \"管理关系，关联person_id，不是HRBP\"}, \"dept_master_id\": {\"label\": \"部门主管ID\", \"meaning\": \"部门主管关联person_id，当前不单独授权\"}, \"dept_hrbp_id\": {\"label\": \"HRBP人员ID\", \"meaning\": \"HRBP服务关系，允许指向本人\"}, \"dept_code\": {\"label\": \"部门编码\", \"meaning\": \"当前部门编码，无历史归属\"}, \"dept_cn_name\": {\"label\": \"部门\", \"meaning\": \"当前部门名称，历史事件也按当前部门分组\"}, \"onboard_date\": {\"label\": \"入职日期\", \"meaning\": \"本次演示采用的入职日期，不等于任职开始日期\"}, \"termin_date\": {\"label\": \"离职日期\", \"meaning\": \"离职当天已不在职，空值表示未离职\"}, \"birth_date\": {\"label\": \"出生日期\", \"meaning\": \"计算快照日周岁的依据，缺失时年龄未知\"}, \"age\": {\"label\": \"年龄\", \"meaning\": \"快照日的周岁，30至40含两个边界\"}, \"school_name\": {\"label\": \"学校\", \"meaning\": \"宽表当前教育记录的院校，无完整多段教育历史\"}, \"first_major\": {\"label\": \"专业\", \"meaning\": \"当前教育记录第一专业\"}, \"diploma_code_desc\": {\"label\": \"学历\", \"meaning\": \"高中及以下、专科、本科、硕士研究生、博士研究生；硕士及以上包括博士\"}, \"degree_code_desc\": {\"label\": \"学位\", \"meaning\": \"无学位、学士、硕士、博士；与学历分开\"}, \"full_time_flag\": {\"label\": \"是否全日制\", \"meaning\": \"是、否或未知\"}, \"education_expired_date\": {\"label\": \"毕业时间\", \"meaning\": \"演示假设等同教育结束日期，真实源待确认\"}, \"hire_type_code_desc\": {\"label\": \"招聘类型\", \"meaning\": \"校园招聘或社会招聘；未知不判为校园招聘\"}, \"labour_type_code_desc\": {\"label\": \"用工类型\", \"meaning\": \"正式、外包、实习\"}, \"position_code_desc\": {\"label\": \"岗位\", \"meaning\": \"当前岗位名称，无前一岗位历史\"}, \"current_employment_start_date\": {\"label\": \"当前任职开始日期\", \"meaning\": \"仅当前任职开始，不表示完整调岗事件\"}, \"confirmation_date\": {\"label\": \"转正日期\", \"meaning\": \"实际已转正日期，不是预计日期\"}, \"formalize_flag\": {\"label\": \"是否已转正\", \"meaning\": \"是或否，需与转正日期一致\"}, \"contract_type_code_desc\": {\"label\": \"合同类型\", \"meaning\": \"合同类型说明，独立字段权限组\"}, \"contract_end_date\": {\"label\": \"合同到期日期\", \"meaning\": \"允许查询未来到期日期，空值不视为即将到期\"}}\n指标索引：{\"count\": {\"label\": \"人数\", \"definition\": \"符合当前人群与筛选条件的去重员工人数\"}, \"hires\": {\"label\": \"入职人数\", \"definition\": \"期间入职人数，不要求现在仍在职\"}, \"departures\": {\"label\": \"离职人数\", \"definition\": \"期间离职人数\"}, \"net_change\": {\"label\": \"净增人数\", \"definition\": \"期间入职减离职\"}, \"masters_count\": {\"label\": \"硕士及以上人数\", \"definition\": \"当前学历为硕士研究生或博士研究生人数\"}, \"masters_ratio\": {\"label\": \"硕士及以上占比\", \"definition\": \"硕士及以上人数/同组全部人群；未知学历计入分母\"}, \"doctors_count\": {\"label\": \"博士学位人数\", \"definition\": \"当前已取得博士学位人数\"}, \"school_985_count\": {\"label\": \"985人数\", \"definition\": \"当前教育院校在演示985字典中的人数\"}, \"school_211_count\": {\"label\": \"211人数\", \"definition\": \"当前教育院校在演示211字典中的人数，包含985\"}, \"school_985_ratio\": {\"label\": \"985占比\", \"definition\": \"985人数/同组全部人群，未知院校仍计入分母\"}, \"school_211_ratio\": {\"label\": \"211占比\", \"definition\": \"211人数/同组全部人群，不能与985相加\"}, \"outsource_count\": {\"label\": \"外包人数\", \"definition\": \"用工类型为外包人数\"}, \"outsource_ratio\": {\"label\": \"外包占比\", \"definition\": \"外包人数/同组全部人群\"}, \"avg_age\": {\"label\": \"平均年龄\", \"definition\": \"快照日有效周岁平均值，未知不入平均，另给有效样本数\"}, \"avg_confirmation_days\": {\"label\": \"平均转正用时\", \"definition\": \"有效转正日期减入职日期的平均天数\"}}\n本次已披露详情：[{\"id\": \"metric.count\", \"key\": \"count\", \"label\": \"人数\", \"unit\": \"人\", \"fields\": [\"people.person_id\"], \"definition\": \"符合当前人群与筛选条件的去重员工人数\", \"aliases\": [\"人数\"], \"null_rule\": \"比例分母含未知；平均数排除未知，零分母返回空值。\", \"rounding\": \"四舍五入保留2位小数\", \"scope_rule\": \"当前授权范围与问题条件取交集后计算\"}, {\"id\": \"people.contract_type_code_desc\", \"key\": \"contract_type_code_desc\", \"table_id\": \"people\", \"label\": \"合同类型\", \"group\": \"contract\", \"aliases\": [\"合同性质\"], \"description\": \"合同类型说明，独立字段权限组\", \"not_meaning\": \"不代表其他未提供的历史记录或业务事实。\", \"type\": \"string\", \"nullable\": true}, {\"id\": \"people.dept_cn_name\", \"key\": \"dept_cn_name\", \"table_id\": \"people\", \"label\": \"部门\", \"group\": \"basic\", \"aliases\": [\"部门名称\", \"组织\", \"团队\"], \"description\": \"当前部门名称，历史事件也按当前部门分组\", \"not_meaning\": \"不是入职或离职当时的部门；本数据不保留任职历史。\", \"type\": \"string\", \"nullable\": true}, {\"id\": \"people.name\", \"key\": \"name\", \"table_id\": \"people\", \"label\": \"姓名\", \"group\": \"basic\", \"aliases\": [\"名字\", \"员工姓名\"], \"description\": \"展示姓名，重名时以工号区分\", \"not_meaning\": \"不代表其他未提供的历史记录或业务事实。\", \"type\": \"string\", \"nullable\": false}]\n分组维度：{\"dept_cn_name\": \"部门\", \"diploma_code_desc\": \"学历\", \"full_time_flag\": \"是否全日制\", \"school_name\": \"学校\", \"labour_type_code_desc\": \"用工类型\", \"hire_type_code_desc\": \"招聘类型\", \"position_code_desc\": \"岗位\", \"relation\": \"汇报关系\", \"onboard_month\": \"入职月份\", \"termin_month\": \"离职月份\", \"event_month\": \"事件月份\", \"confirmation_month\": \"转正月份\"}\n可选择的部门：[\"可信与AI实验室\", \"平台研发部\", \"智能产品部\", \"装备业务四部人力资源部\"]\n前次成功计划（追问时继承未改变条件）：null\n确定性时间解释：{\"start_date\": \"2026-09-12\", \"end_date\": \"2026-12-10\"}\n明确条件：[]\n规则：\n1. kind=aggregate统计，kind=people明细；缺少口径kind=inspect，inspect_ids最多6个索引ID（people.字段、metric.指标），最多2轮；不支持或有歧义kind=clarify并说明message。不得忽略不能表达的条件。\n2. scope=all是当前全部授权，绝不是扩大权限；直属及间接用reports且排除本人；只直属direct，只间接indirect；本人服务HRBP用scope=hrbp，通过下属HRBP查看用scope=inherited_hrbp。禁止使用dept_hrbp_id=self作为过滤，self不是人员主键；范围由scope表达。直属与间接分别展示group_by包含relation。默认在职population=active；入离职期间人数/明细用all，不要求现在仍在职；今年已转正用confirmed。\n3. 日期用YYYY-MM-DD。date_field入职onboard_date、离职termin_date、合同到期contract_end_date、实际转正confirmation_date、当前任职current_employment_start_date。入职+离职+净增用employment_events及hires,departures,net_change三个指标。月份用与日期对应的onboard_month/termin_month/event_month/confirmation_month，配合dept_cn_name最多2个维度。没有期间时日期字段和起止为null。\n4. 按部门、每个部门、两个部门对比用group_by=[\"dept_cn_name\"]，部门仅填写明确名称，学校/专业多值OR用in，一个字段多条件与其他字段AND。不要为“各部门”填写全部部门列表。\n5. “硕士及以上”筛选diploma_code_desc gte 硕士研究生；全日制full_time_flag eq 是；校招hire_type_code_desc eq 校园招聘；年龄区间gte/lte含边界，值均字符串。学位博士是degree_code_desc，不是学历。博士学位人数用doctors_count，自动检查毕业时间。仅目前学历记录，非完整历史。\n6. 比例使用metrics中现有ratio指标，不能同时用对应条件筛掉分母；985、211同时查询给school_985_count,school_211_count,school_985_ratio,school_211_ratio。硕士及以上人数+占比给count,masters_count,masters_ratio。外包比例及人数总数给count,outsource_count,outsource_ratio。\n7. 人员明细columns只包含问题点名的字段，按提问顺序；专业first_major，毕业时间education_expired_date，部门dept_cn_name。排序order_by包含field和direction asc/desc；未要求排序则空列表。统计不带多余columns条件。零月份服务端补齐。\n8. 追问给出完整新计划，继承前次人群、部门、时间和未修改筛选；“把学校改成”必须替换原school_name条件。没有前次上下文时不能猜“这些人”。所有教育条件作用同一当前记录。\n9. 不能查不存在的薪酬、考勤、绩效或历史汇报线；拒绝写入、删除、自由SQL及绕过权限。不要将无法回答的问题换成人数。\n10. 必须明确kind与metrics（统计）或columns（明细）；page=1,page_size=50；最多5指标、12明细字段、12筛选。不填person_id权限集合，由后端强制处理。"
+              },
+              {
+                "role": "user",
+                "content": "未来90天合同到期的在职员工有哪些？按到期日排序，列出姓名、部门、合同类型和到期日期。"
+              }
+            ]
+          },
+          "output": {
+            "request": {
+              "model": "hr-qwen",
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "你是HR查询计划器，只生成JSON，禁止SQL。/no_think\n一名员工一条当前记录，字段表为people。合成数据截止日2026-09-11，时区Asia/Shanghai。\n字段索引：{\"person_id\": {\"label\": \"人员ID\", \"meaning\": \"人员主键，非工号，员工唯一记录\"}, \"employee_no\": {\"label\": \"工号\", \"meaning\": \"字符串标识，保留前导零\"}, \"name\": {\"label\": \"姓名\", \"meaning\": \"展示姓名，重名时以工号区分\"}, \"head_person_id\": {\"label\": \"直接主管ID\", \"meaning\": \"管理关系，关联person_id，不是HRBP\"}, \"dept_master_id\": {\"label\": \"部门主管ID\", \"meaning\": \"部门主管关联person_id，当前不单独授权\"}, \"dept_hrbp_id\": {\"label\": \"HRBP人员ID\", \"meaning\": \"HRBP服务关系，允许指向本人\"}, \"dept_code\": {\"label\": \"部门编码\", \"meaning\": \"当前部门编码，无历史归属\"}, \"dept_cn_name\": {\"label\": \"部门\", \"meaning\": \"当前部门名称，历史事件也按当前部门分组\"}, \"onboard_date\": {\"label\": \"入职日期\", \"meaning\": \"本次演示采用的入职日期，不等于任职开始日期\"}, \"termin_date\": {\"label\": \"离职日期\", \"meaning\": \"离职当天已不在职，空值表示未离职\"}, \"birth_date\": {\"label\": \"出生日期\", \"meaning\": \"计算快照日周岁的依据，缺失时年龄未知\"}, \"age\": {\"label\": \"年龄\", \"meaning\": \"快照日的周岁，30至40含两个边界\"}, \"school_name\": {\"label\": \"学校\", \"meaning\": \"宽表当前教育记录的院校，无完整多段教育历史\"}, \"first_major\": {\"label\": \"专业\", \"meaning\": \"当前教育记录第一专业\"}, \"diploma_code_desc\": {\"label\": \"学历\", \"meaning\": \"高中及以下、专科、本科、硕士研究生、博士研究生；硕士及以上包括博士\"}, \"degree_code_desc\": {\"label\": \"学位\", \"meaning\": \"无学位、学士、硕士、博士；与学历分开\"}, \"full_time_flag\": {\"label\": \"是否全日制\", \"meaning\": \"是、否或未知\"}, \"education_expired_date\": {\"label\": \"毕业时间\", \"meaning\": \"演示假设等同教育结束日期，真实源待确认\"}, \"hire_type_code_desc\": {\"label\": \"招聘类型\", \"meaning\": \"校园招聘或社会招聘；未知不判为校园招聘\"}, \"labour_type_code_desc\": {\"label\": \"用工类型\", \"meaning\": \"正式、外包、实习\"}, \"position_code_desc\": {\"label\": \"岗位\", \"meaning\": \"当前岗位名称，无前一岗位历史\"}, \"current_employment_start_date\": {\"label\": \"当前任职开始日期\", \"meaning\": \"仅当前任职开始，不表示完整调岗事件\"}, \"confirmation_date\": {\"label\": \"转正日期\", \"meaning\": \"实际已转正日期，不是预计日期\"}, \"formalize_flag\": {\"label\": \"是否已转正\", \"meaning\": \"是或否，需与转正日期一致\"}, \"contract_type_code_desc\": {\"label\": \"合同类型\", \"meaning\": \"合同类型说明，独立字段权限组\"}, \"contract_end_date\": {\"label\": \"合同到期日期\", \"meaning\": \"允许查询未来到期日期，空值不视为即将到期\"}}\n指标索引：{\"count\": {\"label\": \"人数\", \"definition\": \"符合当前人群与筛选条件的去重员工人数\"}, \"hires\": {\"label\": \"入职人数\", \"definition\": \"期间入职人数，不要求现在仍在职\"}, \"departures\": {\"label\": \"离职人数\", \"definition\": \"期间离职人数\"}, \"net_change\": {\"label\": \"净增人数\", \"definition\": \"期间入职减离职\"}, \"masters_count\": {\"label\": \"硕士及以上人数\", \"definition\": \"当前学历为硕士研究生或博士研究生人数\"}, \"masters_ratio\": {\"label\": \"硕士及以上占比\", \"definition\": \"硕士及以上人数/同组全部人群；未知学历计入分母\"}, \"doctors_count\": {\"label\": \"博士学位人数\", \"definition\": \"当前已取得博士学位人数\"}, \"school_985_count\": {\"label\": \"985人数\", \"definition\": \"当前教育院校在演示985字典中的人数\"}, \"school_211_count\": {\"label\": \"211人数\", \"definition\": \"当前教育院校在演示211字典中的人数，包含985\"}, \"school_985_ratio\": {\"label\": \"985占比\", \"definition\": \"985人数/同组全部人群，未知院校仍计入分母\"}, \"school_211_ratio\": {\"label\": \"211占比\", \"definition\": \"211人数/同组全部人群，不能与985相加\"}, \"outsource_count\": {\"label\": \"外包人数\", \"definition\": \"用工类型为外包人数\"}, \"outsource_ratio\": {\"label\": \"外包占比\", \"definition\": \"外包人数/同组全部人群\"}, \"avg_age\": {\"label\": \"平均年龄\", \"definition\": \"快照日有效周岁平均值，未知不入平均，另给有效样本数\"}, \"avg_confirmation_days\": {\"label\": \"平均转正用时\", \"definition\": \"有效转正日期减入职日期的平均天数\"}}\n本次已披露详情：[{\"id\": \"metric.count\", \"key\": \"count\", \"label\": \"人数\", \"unit\": \"人\", \"fields\": [\"people.person_id\"], \"definition\": \"符合当前人群与筛选条件的去重员工人数\", \"aliases\": [\"人数\"], \"null_rule\": \"比例分母含未知；平均数排除未知，零分母返回空值。\", \"rounding\": \"四舍五入保留2位小数\", \"scope_rule\": \"当前授权范围与问题条件取交集后计算\"}, {\"id\": \"people.contract_type_code_desc\", \"key\": \"contract_type_code_desc\", \"table_id\": \"people\", \"label\": \"合同类型\", \"group\": \"contract\", \"aliases\": [\"合同性质\"], \"description\": \"合同类型说明，独立字段权限组\", \"not_meaning\": \"不代表其他未提供的历史记录或业务事实。\", \"type\": \"string\", \"nullable\": true}, {\"id\": \"people.dept_cn_name\", \"key\": \"dept_cn_name\", \"table_id\": \"people\", \"label\": \"部门\", \"group\": \"basic\", \"aliases\": [\"部门名称\", \"组织\", \"团队\"], \"description\": \"当前部门名称，历史事件也按当前部门分组\", \"not_meaning\": \"不是入职或离职当时的部门；本数据不保留任职历史。\", \"type\": \"string\", \"nullable\": true}, {\"id\": \"people.name\", \"key\": \"name\", \"table_id\": \"people\", \"label\": \"姓名\", \"group\": \"basic\", \"aliases\": [\"名字\", \"员工姓名\"], \"description\": \"展示姓名，重名时以工号区分\", \"not_meaning\": \"不代表其他未提供的历史记录或业务事实。\", \"type\": \"string\", \"nullable\": false}]\n分组维度：{\"dept_cn_name\": \"部门\", \"diploma_code_desc\": \"学历\", \"full_time_flag\": \"是否全日制\", \"school_name\": \"学校\", \"labour_type_code_desc\": \"用工类型\", \"hire_type_code_desc\": \"招聘类型\", \"position_code_desc\": \"岗位\", \"relation\": \"汇报关系\", \"onboard_month\": \"入职月份\", \"termin_month\": \"离职月份\", \"event_month\": \"事件月份\", \"confirmation_month\": \"转正月份\"}\n可选择的部门：[\"可信与AI实验室\", \"平台研发部\", \"智能产品部\", \"装备业务四部人力资源部\"]\n前次成功计划（追问时继承未改变条件）：null\n确定性时间解释：{\"start_date\": \"2026-09-12\", \"end_date\": \"2026-12-10\"}\n明确条件：[]\n规则：\n1. kind=aggregate统计，kind=people明细；缺少口径kind=inspect，inspect_ids最多6个索引ID（people.字段、metric.指标），最多2轮；不支持或有歧义kind=clarify并说明message。不得忽略不能表达的条件。\n2. scope=all是当前全部授权，绝不是扩大权限；直属及间接用reports且排除本人；只直属direct，只间接indirect；本人服务HRBP用scope=hrbp，通过下属HRBP查看用scope=inherited_hrbp。禁止使用dept_hrbp_id=self作为过滤，self不是人员主键；范围由scope表达。直属与间接分别展示group_by包含relation。默认在职population=active；入离职期间人数/明细用all，不要求现在仍在职；今年已转正用confirmed。\n3. 日期用YYYY-MM-DD。date_field入职onboard_date、离职termin_date、合同到期contract_end_date、实际转正confirmation_date、当前任职current_employment_start_date。入职+离职+净增用employment_events及hires,departures,net_change三个指标。月份用与日期对应的onboard_month/termin_month/event_month/confirmation_month，配合dept_cn_name最多2个维度。没有期间时日期字段和起止为null。\n4. 按部门、每个部门、两个部门对比用group_by=[\"dept_cn_name\"]，部门仅填写明确名称，学校/专业多值OR用in，一个字段多条件与其他字段AND。不要为“各部门”填写全部部门列表。\n5. “硕士及以上”筛选diploma_code_desc gte 硕士研究生；全日制full_time_flag eq 是；校招hire_type_code_desc eq 校园招聘；年龄区间gte/lte含边界，值均字符串。学位博士是degree_code_desc，不是学历。博士学位人数用doctors_count，自动检查毕业时间。仅目前学历记录，非完整历史。\n6. 比例使用metrics中现有ratio指标，不能同时用对应条件筛掉分母；985、211同时查询给school_985_count,school_211_count,school_985_ratio,school_211_ratio。硕士及以上人数+占比给count,masters_count,masters_ratio。外包比例及人数总数给count,outsource_count,outsource_ratio。\n7. 人员明细columns只包含问题点名的字段，按提问顺序；专业first_major，毕业时间education_expired_date，部门dept_cn_name。排序order_by包含field和direction asc/desc；未要求排序则空列表。统计不带多余columns条件。零月份服务端补齐。\n8. 追问给出完整新计划，继承前次人群、部门、时间和未修改筛选；“把学校改成”必须替换原school_name条件。没有前次上下文时不能猜“这些人”。所有教育条件作用同一当前记录。\n9. 不能查不存在的薪酬、考勤、绩效或历史汇报线；拒绝写入、删除、自由SQL及绕过权限。不要将无法回答的问题换成人数。\n10. 必须明确kind与metrics（统计）或columns（明细）；page=1,page_size=50；最多5指标、12明细字段、12筛选。不填person_id权限集合，由后端强制处理。"
+                },
+                {
+                  "role": "user",
+                  "content": "未来90天合同到期的在职员工有哪些？按到期日排序，列出姓名、部门、合同类型和到期日期。"
+                }
+              ],
+              "temperature": 0,
+              "max_tokens": 1600,
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              },
+              "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                  "name": "hr_v2_plan",
+                  "schema": {
+                    "$defs": {
+                      "Filter": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "field": {
+                            "enum": [
+                              "person_id",
+                              "employee_no",
+                              "name",
+                              "head_person_id",
+                              "dept_master_id",
+                              "dept_hrbp_id",
+                              "dept_code",
+                              "dept_cn_name",
+                              "onboard_date",
+                              "termin_date",
+                              "birth_date",
+                              "age",
+                              "school_name",
+                              "first_major",
+                              "diploma_code_desc",
+                              "degree_code_desc",
+                              "full_time_flag",
+                              "education_expired_date",
+                              "hire_type_code_desc",
+                              "labour_type_code_desc",
+                              "position_code_desc",
+                              "current_employment_start_date",
+                              "confirmation_date",
+                              "formalize_flag",
+                              "contract_type_code_desc",
+                              "contract_end_date"
+                            ],
+                            "title": "Field",
+                            "type": "string"
+                          },
+                          "op": {
+                            "default": "eq",
+                            "enum": [
+                              "eq",
+                              "in",
+                              "gte",
+                              "lte",
+                              "contains",
+                              "not_null"
+                            ],
+                            "title": "Op",
+                            "type": "string"
+                          },
+                          "values": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "maxItems": 10,
+                            "title": "Values",
+                            "type": "array"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "op",
+                          "values"
+                        ],
+                        "title": "Filter",
+                        "type": "object"
+                      },
+                      "Order": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "field": {
+                            "maxLength": 50,
+                            "title": "Field",
+                            "type": "string"
+                          },
+                          "direction": {
+                            "default": "asc",
+                            "enum": [
+                              "asc",
+                              "desc"
+                            ],
+                            "title": "Direction",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "direction"
+                        ],
+                        "title": "Order",
+                        "type": "object"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "default": "aggregate",
+                        "enum": [
+                          "aggregate",
+                          "people",
+                          "clarify",
+                          "inspect"
+                        ],
+                        "title": "Kind",
+                        "type": "string"
+                      },
+                      "scope": {
+                        "default": "all",
+                        "enum": [
+                          "all",
+                          "reports",
+                          "direct",
+                          "indirect",
+                          "hrbp",
+                          "inherited_hrbp",
+                          "self"
+                        ],
+                        "title": "Scope",
+                        "type": "string"
+                      },
+                      "population": {
+                        "default": "active",
+                        "enum": [
+                          "active",
+                          "all",
+                          "confirmed"
+                        ],
+                        "title": "Population",
+                        "type": "string"
+                      },
+                      "departments": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 8,
+                        "title": "Departments",
+                        "type": "array"
+                      },
+                      "filters": {
+                        "items": {
+                          "$ref": "#/$defs/Filter"
+                        },
+                        "maxItems": 12,
+                        "title": "Filters",
+                        "type": "array"
+                      },
+                      "date_field": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "onboard_date",
+                              "termin_date",
+                              "contract_end_date",
+                              "confirmation_date",
+                              "current_employment_start_date",
+                              "employment_events"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Date Field"
+                      },
+                      "start_date": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Start Date"
+                      },
+                      "end_date": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "End Date"
+                      },
+                      "group_by": {
+                        "items": {
+                          "enum": [
+                            "dept_cn_name",
+                            "diploma_code_desc",
+                            "full_time_flag",
+                            "school_name",
+                            "labour_type_code_desc",
+                            "hire_type_code_desc",
+                            "position_code_desc",
+                            "relation",
+                            "onboard_month",
+                            "termin_month",
+                            "event_month",
+                            "confirmation_month"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 2,
+                        "title": "Group By",
+                        "type": "array"
+                      },
+                      "metrics": {
+                        "items": {
+                          "enum": [
+                            "count",
+                            "hires",
+                            "departures",
+                            "net_change",
+                            "masters_count",
+                            "masters_ratio",
+                            "doctors_count",
+                            "school_985_count",
+                            "school_211_count",
+                            "school_985_ratio",
+                            "school_211_ratio",
+                            "outsource_count",
+                            "outsource_ratio",
+                            "avg_age",
+                            "avg_confirmation_days"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 5,
+                        "minItems": 1,
+                        "title": "Metrics",
+                        "type": "array"
+                      },
+                      "columns": {
+                        "items": {
+                          "enum": [
+                            "person_id",
+                            "employee_no",
+                            "name",
+                            "head_person_id",
+                            "dept_master_id",
+                            "dept_hrbp_id",
+                            "dept_code",
+                            "dept_cn_name",
+                            "onboard_date",
+                            "termin_date",
+                            "birth_date",
+                            "age",
+                            "school_name",
+                            "first_major",
+                            "diploma_code_desc",
+                            "degree_code_desc",
+                            "full_time_flag",
+                            "education_expired_date",
+                            "hire_type_code_desc",
+                            "labour_type_code_desc",
+                            "position_code_desc",
+                            "current_employment_start_date",
+                            "confirmation_date",
+                            "formalize_flag",
+                            "contract_type_code_desc",
+                            "contract_end_date"
+                          ],
+                          "type": "string"
+                        },
+                        "maxItems": 12,
+                        "title": "Columns",
+                        "type": "array"
+                      },
+                      "order_by": {
+                        "items": {
+                          "$ref": "#/$defs/Order"
+                        },
+                        "maxItems": 2,
+                        "title": "Order By",
+                        "type": "array"
+                      },
+                      "page": {
+                        "default": 1,
+                        "maximum": 10000,
+                        "minimum": 1,
+                        "title": "Page",
+                        "type": "integer"
+                      },
+                      "page_size": {
+                        "default": 50,
+                        "maximum": 200,
+                        "minimum": 1,
+                        "title": "Page Size",
+                        "type": "integer"
+                      },
+                      "message": {
+                        "anyOf": [
+                          {
+                            "maxLength": 400,
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "default": null,
+                        "title": "Message"
+                      },
+                      "inspect_ids": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "maxItems": 6,
+                        "title": "Inspect Ids",
+                        "type": "array"
+                      }
+                    },
+                    "title": "Plan",
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "scope",
+                      "population",
+                      "departments",
+                      "filters",
+                      "date_field",
+                      "start_date",
+                      "end_date",
+                      "group_by",
+                      "metrics",
+                      "columns",
+                      "order_by",
+                      "page",
+                      "page_size",
+                      "message",
+                      "inspect_ids"
+                    ]
+                  }
+                }
+              }
+            },
+            "candidate": {
+              "kind": "people",
+              "scope": "all",
+              "population": "active",
+              "departments": [],
+              "filters": [
+                {
+                  "field": "contract_end_date",
+                  "op": "gte",
+                  "values": [
+                    "2026-09-12"
+                  ]
+                },
+                {
+                  "field": "contract_end_date",
+                  "op": "lte",
+                  "values": [
+                    "2026-12-10"
+                  ]
+                }
+              ],
+              "date_field": null,
+              "start_date": null,
+              "end_date": null,
+              "group_by": [],
+              "metrics": [
+                "count"
+              ],
+              "columns": [
+                "name",
+                "dept_cn_name",
+                "contract_type_code_desc",
+                "contract_end_date"
+              ],
+              "order_by": [
+                {
+                  "field": "contract_end_date",
+                  "direction": "asc"
+                }
+              ],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "usage": {
+              "prompt_tokens": 2511,
+              "completion_tokens": 181,
+              "total_tokens": 2692,
+              "completion_tokens_details": {
+                "reasoning_tokens": 180
+              }
+            },
+            "finish_reason": "stop"
+          },
+          "duration_ms": 7730.52
+        },
+        {
+          "name": "明确条件绑定（规则补齐）",
+          "input": {
+            "raw_candidate": {
+              "kind": "people",
+              "scope": "all",
+              "population": "active",
+              "departments": [],
+              "filters": [
+                {
+                  "field": "contract_end_date",
+                  "op": "gte",
+                  "values": [
+                    "2026-09-12"
+                  ]
+                },
+                {
+                  "field": "contract_end_date",
+                  "op": "lte",
+                  "values": [
+                    "2026-12-10"
+                  ]
+                }
+              ],
+              "date_field": null,
+              "start_date": null,
+              "end_date": null,
+              "group_by": [],
+              "metrics": [
+                "count"
+              ],
+              "columns": [
+                "name",
+                "dept_cn_name",
+                "contract_type_code_desc",
+                "contract_end_date"
+              ],
+              "order_by": [
+                {
+                  "field": "contract_end_date",
+                  "direction": "asc"
+                }
+              ],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "changes": [
+              {
+                "field": "filters",
+                "model": [
+                  {
+                    "field": "contract_end_date",
+                    "op": "gte",
+                    "values": [
+                      "2026-09-12"
+                    ]
+                  },
+                  {
+                    "field": "contract_end_date",
+                    "op": "lte",
+                    "values": [
+                      "2026-12-10"
+                    ]
+                  }
+                ],
+                "bound": []
+              },
+              {
+                "field": "date_field",
+                "model": null,
+                "bound": "contract_end_date"
+              },
+              {
+                "field": "start_date",
+                "model": null,
+                "bound": "2026-09-12"
+              },
+              {
+                "field": "end_date",
+                "model": null,
+                "bound": "2026-12-10"
+              }
+            ],
+            "bound_candidate": {
+              "kind": "people",
+              "scope": "all",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": "contract_end_date",
+              "start_date": "2026-09-12",
+              "end_date": "2026-12-10",
+              "group_by": [],
+              "metrics": [
+                "count"
+              ],
+              "columns": [
+                "name",
+                "dept_cn_name",
+                "contract_type_code_desc",
+                "contract_end_date"
+              ],
+              "order_by": [
+                {
+                  "field": "contract_end_date",
+                  "direction": "asc"
+                }
+              ],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "model_raw_correct": false
+          },
+          "duration_ms": 0.12
+        },
+        {
+          "name": "提问条件对齐",
+          "input": {
+            "question": "未来90天合同到期的在职员工有哪些？按到期日排序，列出姓名、部门、合同类型和到期日期。",
+            "plan": {
+              "kind": "people",
+              "scope": "all",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": "contract_end_date",
+              "start_date": "2026-09-12",
+              "end_date": "2026-12-10",
+              "group_by": [],
+              "metrics": [
+                "count"
+              ],
+              "columns": [
+                "name",
+                "dept_cn_name",
+                "contract_type_code_desc",
+                "contract_end_date"
+              ],
+              "order_by": [
+                {
+                  "field": "contract_end_date",
+                  "direction": "asc"
+                }
+              ],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "required_filters": [],
+            "named_departments": [],
+            "checked": true
+          },
+          "duration_ms": 0.31
+        },
+        {
+          "name": "结构、口径与字段权限校验",
+          "input": {
+            "candidate": {
+              "kind": "people",
+              "scope": "all",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": "contract_end_date",
+              "start_date": "2026-09-12",
+              "end_date": "2026-12-10",
+              "group_by": [],
+              "metrics": [
+                "count"
+              ],
+              "columns": [
+                "name",
+                "dept_cn_name",
+                "contract_type_code_desc",
+                "contract_end_date"
+              ],
+              "order_by": [
+                {
+                  "field": "contract_end_date",
+                  "direction": "asc"
+                }
+              ],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            }
+          },
+          "output": {
+            "valid": true,
+            "next": "execute"
+          },
+          "duration_ms": 0.34
+        },
+        {
+          "name": "重新鉴权与只读SQL执行",
+          "input": {
+            "plan": {
+              "kind": "people",
+              "scope": "all",
+              "population": "active",
+              "departments": [],
+              "filters": [],
+              "date_field": "contract_end_date",
+              "start_date": "2026-09-12",
+              "end_date": "2026-12-10",
+              "group_by": [],
+              "metrics": [
+                "count"
+              ],
+              "columns": [
+                "name",
+                "dept_cn_name",
+                "contract_type_code_desc",
+                "contract_end_date"
+              ],
+              "order_by": [
+                {
+                  "field": "contract_end_date",
+                  "direction": "asc"
+                }
+              ],
+              "page": 1,
+              "page_size": 50,
+              "message": null,
+              "inspect_ids": []
+            },
+            "policy_version": 1
+          },
+          "output": {
+            "sql": "SELECT name AS name, dept_cn_name AS dept_cn_name, contract_type_code_desc AS contract_type_code_desc, contract_end_date AS contract_end_date, person_id AS person_id \nFROM v2_api.people_contract \nWHERE (_viewer_id = 18) AND ((TRUE) AND (\"onboard_date\" <= e'2026-09-11' AND (\"termin_date\" IS NULL OR \"termin_date\" > e'2026-09-11')) AND (\"contract_end_date\" BETWEEN e'2026-09-12' AND e'2026-12-10')) GROUP BY name, dept_cn_name, contract_type_code_desc, contract_end_date, person_id ORDER BY person_id ASC \n LIMIT 1001;\n\n",
+            "parameters": {
+              "snapshot": "2026-09-11",
+              "start": "2026-09-12",
+              "end": "2026-12-10",
+              "scope": "all",
+              "departments": [],
+              "filters": []
+            },
+            "rows": [
+              {
+                "name": "模拟员工213",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-12"
+              },
+              {
+                "name": "模拟员工179",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-14"
+              },
+              {
+                "name": "模拟员工042",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-15"
+              },
+              {
+                "name": "模拟员工282",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-15"
+              },
+              {
+                "name": "模拟员工145",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-16"
+              },
+              {
+                "name": "平台主管（模拟）",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-17"
+              },
+              {
+                "name": "模拟员工248",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-17"
+              },
+              {
+                "name": "模拟员工214",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-19"
+              },
+              {
+                "name": "模拟员工077",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-20"
+              },
+              {
+                "name": "模拟员工180",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-21"
+              },
+              {
+                "name": "模拟员工043",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-22"
+              },
+              {
+                "name": "模拟员工283",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-22"
+              },
+              {
+                "name": "产品主管（模拟）",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-24"
+              },
+              {
+                "name": "模拟员工249",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-24"
+              },
+              {
+                "name": "模拟员工112",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-25"
+              },
+              {
+                "name": "模拟员工215",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-26"
+              },
+              {
+                "name": "模拟员工078",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-27"
+              },
+              {
+                "name": "模拟员工044",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-29"
+              },
+              {
+                "name": "模拟员工284",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-29"
+              },
+              {
+                "name": "模拟员工147",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-09-30"
+              },
+              {
+                "name": "模拟员工250",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-01"
+              },
+              {
+                "name": "模拟员工113",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-02"
+              },
+              {
+                "name": "模拟员工079",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-04"
+              },
+              {
+                "name": "模拟员工182",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-05"
+              },
+              {
+                "name": "模拟员工045",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-06"
+              },
+              {
+                "name": "模拟员工148",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-07"
+              },
+              {
+                "name": "模拟员工217",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-10"
+              },
+              {
+                "name": "模拟员工080",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-11"
+              },
+              {
+                "name": "模拟员工183",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-12"
+              },
+              {
+                "name": "模拟员工149",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-14"
+              },
+              {
+                "name": "模拟员工012",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-15"
+              },
+              {
+                "name": "模拟员工252",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-15"
+              },
+              {
+                "name": "模拟员工115",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-16"
+              },
+              {
+                "name": "模拟员工218",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-17"
+              },
+              {
+                "name": "模拟员工184",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-19"
+              },
+              {
+                "name": "模拟员工047",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-20"
+              },
+              {
+                "name": "模拟员工287",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-20"
+              },
+              {
+                "name": "模拟员工150",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-21"
+              },
+              {
+                "name": "模拟员工013",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-22"
+              },
+              {
+                "name": "模拟员工253",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-22"
+              },
+              {
+                "name": "模拟员工219",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-24"
+              },
+              {
+                "name": "模拟员工082",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-25"
+              },
+              {
+                "name": "模拟员工185",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-26"
+              },
+              {
+                "name": "模拟员工048",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-27"
+              },
+              {
+                "name": "模拟员工288",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-27"
+              },
+              {
+                "name": "模拟员工014",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-29"
+              },
+              {
+                "name": "模拟员工254",
+                "dept_cn_name": "可信与AI实验室",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-29"
+              },
+              {
+                "name": "模拟员工117",
+                "dept_cn_name": "平台研发部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-30"
+              },
+              {
+                "name": "模拟员工220",
+                "dept_cn_name": "装备业务四部人力资源部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-10-31"
+              },
+              {
+                "name": "模拟员工083",
+                "dept_cn_name": "智能产品部",
+                "contract_type_code_desc": "固定期限",
+                "contract_end_date": "2026-11-01"
+              }
+            ],
+            "totals": {
+              "count": 82
+            },
+            "total_rows": 82,
+            "duration_ms": 191.84,
+            "scope_count": 239,
+            "execution_backend": "superset",
+            "source_queries": [
+              "SELECT superset_user_id AS superset_user_id, persona_id AS persona_id, person_id AS person_id, role_key AS role_key, policy_version AS policy_version, rules_json AS rules_json, as_of AS as_of, data_fingerprint AS data_fingerprint, graph_valid AS graph_valid \nFROM v2_api.context \nWHERE (superset_user_id = 18) GROUP BY superset_user_id, persona_id, person_id, role_key, policy_version, rules_json, as_of, data_fingerprint, graph_valid \n LIMIT 2;\n\n",
+              "SELECT person_id AS person_id, employee_no AS employee_no, name AS name, head_person_id AS head_person_id, dept_master_id AS dept_master_id, dept_hrbp_id AS dept_hrbp_id, dept_code AS dept_code, dept_cn_name AS dept_cn_name, onboard_date AS onboard_date, termin_date AS termin_date, birth_date AS birth_date, age AS age, school_name AS school_name, first_major AS first_major, diploma_code_desc AS diploma_code_desc, degree_code_desc AS degree_code_desc, full_time_flag AS full_time_flag, education_expired_date AS education_expired_date, hire_type_code_desc AS hire_type_code_desc, labour_type_code_desc AS labour_type_code_desc, position_code_desc AS position_code_desc, current_employment_start_date AS current_employment_start_date, confirmation_date AS confirmation_date, formalize_flag AS formalize_flag, contract_type_code_desc AS contract_type_code_desc, contract_end_date AS contract_end_date, _viewer_id AS _viewer_id, _depth AS _depth, _reports AS _reports, _hrbp AS _hrbp, _inherited AS _inherited, _origins AS _origins \nFROM v2_api.people_contract \nWHERE (_viewer_id = 18) GROUP BY person_id, employee_no, name, head_person_id, dept_master_id, dept_hrbp_id, dept_code, dept_cn_name, onboard_date, termin_date, birth_date, age, school_name, first_major, diploma_code_desc, degree_code_desc, full_time_flag, education_expired_date, hire_type_code_desc, labour_type_code_desc, position_code_desc, current_employment_start_date, confirmation_date, formalize_flag, contract_type_code_desc, contract_end_date, _viewer_id, _depth, _reports, _hrbp, _inherited, _origins \n LIMIT 1000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id \nFROM v2_api.people_public \nWHERE (_viewer_id = 18) GROUP BY person_id, _viewer_id \n LIMIT 1000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id, event_day AS event_day, is_hire AS is_hire, is_exit AS is_exit \nFROM v2_api.events_public \nWHERE (_viewer_id = 18) GROUP BY person_id, _viewer_id, event_day, is_hire, is_exit \n LIMIT 2000;\n\n",
+              "SELECT person_id AS person_id, _viewer_id AS _viewer_id, event_day AS event_day, is_hire AS is_hire, is_exit AS is_exit \nFROM v2_api.events_contract \nWHERE (_viewer_id = 18) GROUP BY person_id, _viewer_id, event_day, is_hire, is_exit \n LIMIT 2000;\n\n",
+              "SELECT name AS name, dept_cn_name AS dept_cn_name, contract_type_code_desc AS contract_type_code_desc, contract_end_date AS contract_end_date, person_id AS person_id \nFROM v2_api.people_contract \nWHERE (_viewer_id = 18) AND ((TRUE) AND (\"onboard_date\" <= e'2026-09-11' AND (\"termin_date\" IS NULL OR \"termin_date\" > e'2026-09-11')) AND (\"contract_end_date\" BETWEEN e'2026-09-12' AND e'2026-12-10')) GROUP BY name, dept_cn_name, contract_type_code_desc, contract_end_date, person_id ORDER BY person_id ASC \n LIMIT 1001;\n\n",
+              "SELECT COUNT(DISTINCT \"person_id\") AS count \nFROM v2_api.people_contract \nWHERE (_viewer_id = 18) AND ((TRUE) AND (\"onboard_date\" <= e'2026-09-11' AND (\"termin_date\" IS NULL OR \"termin_date\" > e'2026-09-11')) AND (\"contract_end_date\" BETWEEN e'2026-09-12' AND e'2026-12-10')) \n LIMIT 1001;\n\n"
+            ]
+          },
+          "duration_ms": 2041.39
+        },
+        {
+          "name": "结果组织",
+          "input": {
+            "status": "success",
+            "totals": {
+              "count": 82
+            }
+          },
+          "output": {
+            "summary": "在当前授权范围内，期间 2026-09-12 至 2026-12-10，共找到 82 名符合条件的员工。当前显示 50 条。 数据截止 2026-09-11；组织采用当前部门。",
+            "numeric_source": "执行结果单元格，确定性模板，无模型自由补写数字"
+          },
+          "duration_ms": 0.0
+        }
+      ]
+    }
+  ],
+  "pressure": [
+    {
+      "uptime": " 7:26  up 16 days, 45 mins, 4 users, load averages: 3.62 3.33 3.13\n",
+      "memory_pressure": "The system has 68719476736 (4194304 pages with a page size of 16384).\n\nStats: \nPages free: 62182 \nPages purgeable: 6866 \nPages purged: 3700714 \n\nSwap I/O:\nSwapins: 8625 \nSwapouts: 155156 \n\nPage Q counts:\nPages active: 955506 \nPages inactive: 909414 \nPages speculative: 47745 \nPages throttled: 0 \nPages wired down: 1580879 \n\nCompressor Stats:\nPages used by compressor: 585101 \nPages decompressed: 7090781 \nPages compressed: 10568333 \n\nFile I/O:\nPageins: 45089472 \nPageouts: 2369480 \n\nSystem-wide memory free percentage: 47%\n",
+      "pmset": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n"
+    }
+  ],
+  "data_fingerprint": "275ac36cf0526ec6fd37c6dc6ea2d5ea9dba7333e4493f52f27dcbd444b4d228",
+  "passed": 3,
+  "total": 3,
+  "completed_at": "2026-09-19T23:26:56.549448+00:00"
+}

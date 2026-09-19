@@ -1,0 +1,121 @@
+{
+  "tested_at": "2026-09-19T23:26:12.392139+00:00",
+  "passed": true,
+  "check_count": 28,
+  "checks": [
+    {
+      "name": "切换身份 manager",
+      "passed": true
+    },
+    {
+      "name": "PG业务策略关闭管理线后人数变1",
+      "passed": true
+    },
+    {
+      "name": "旧历史随PG策略失效",
+      "passed": true
+    },
+    {
+      "name": "关系页随策略收缩",
+      "passed": true
+    },
+    {
+      "name": "核验不会泄露旧人群",
+      "passed": true
+    },
+    {
+      "name": "直接改Superset RLS使Agent只返回冯基魁",
+      "passed": true
+    },
+    {
+      "name": "RLS变化后历史失效",
+      "passed": true
+    },
+    {
+      "name": "切换身份 hr_lead",
+      "passed": true
+    },
+    {
+      "name": "HR合同快照未变时公共RLS仍限制新查询",
+      "passed": true
+    },
+    {
+      "name": "HR公共RLS变化后旧公共历史失效",
+      "passed": true
+    },
+    {
+      "name": "HR公共RLS变化后历史列表移除旧记录",
+      "passed": true
+    },
+    {
+      "name": "仅撤销事件数据集时旧事件历史不能旁路",
+      "passed": true
+    },
+    {
+      "name": "仅撤销事件数据集时历史列表关闭",
+      "passed": true
+    },
+    {
+      "name": "仅撤销事件数据集时新事件查询拒绝",
+      "passed": true
+    },
+    {
+      "name": "仅收窄事件RLS时新事件查询返回零事件",
+      "passed": true
+    },
+    {
+      "name": "仅收窄事件RLS时旧事件历史失效",
+      "passed": true
+    },
+    {
+      "name": "仅收窄事件RLS时旧公共历史也失效",
+      "passed": true
+    },
+    {
+      "name": "切换身份 employee",
+      "passed": true
+    },
+    {
+      "name": "revoke_public 查询拒绝",
+      "passed": true
+    },
+    {
+      "name": "revoke_public 历史不能旁路",
+      "passed": true
+    },
+    {
+      "name": "unmap_employee 查询拒绝",
+      "passed": true
+    },
+    {
+      "name": "unmap_employee 历史不能旁路",
+      "passed": true
+    },
+    {
+      "name": "cycle 查询拒绝",
+      "passed": true
+    },
+    {
+      "name": "cycle 历史不能旁路",
+      "passed": true
+    },
+    {
+      "name": "orphan 查询拒绝",
+      "passed": true
+    },
+    {
+      "name": "orphan 历史不能旁路",
+      "passed": true
+    },
+    {
+      "name": "撤回故障后恢复本人一人",
+      "passed": true
+    },
+    {
+      "name": "角色数据RLS精确恢复",
+      "passed": true
+    }
+  ],
+  "restored": true,
+  "scope": "真实Superset、PostgreSQL与V2 HTTP API；无模型调用"
+}

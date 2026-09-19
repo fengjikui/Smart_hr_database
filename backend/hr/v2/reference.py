@@ -48,10 +48,12 @@ def independent_scope(p, plan, rows, policy):
     return scopes[plan.scope], depths
 
 
-def calculate(p, plan):
-    source = store.people()
+def calculate(p, plan, *, source=None, scope=None):
+    # 在线核验可传入 Superset 已授权快照：参考计算不能成为全量数据泄露的旁路。
+    # 离线集成验收仍用默认的独立 BFS 验证完整权限名单。
+    source = store.people() if source is None else source
     snapshot = date.fromisoformat(store.AS_OF)
-    visible, depths = independent_scope(p, plan, source, store.policy())
+    visible, depths = independent_scope(p, plan, source, store.policy()) if scope is None else scope
     records = []
     for original in source:
         row = dict(original)

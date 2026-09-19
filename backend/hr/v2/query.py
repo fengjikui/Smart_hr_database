@@ -7,7 +7,7 @@ from datetime import date, timedelta
 
 from fastapi import HTTPException
 
-from . import auth, store
+from . import auth, store, superset_source
 from .schema import DIMENSIONS, FIELDS, LEVELS, METRICS, SCHOOLS
 
 
@@ -43,7 +43,7 @@ def validate(p, plan):
         raise HTTPException(422, plan.message or "请完善问题")
     if not dependencies(plan) <= auth.allowed_fields(p):
         raise HTTPException(403, "当前角色没有这些字段或指标的权限")
-    if plan.kind == "people" and not store.policy()["roles"][p["role"]]["details"]:
+    if plan.kind == "people" and not auth.policy(p)["roles"][p["role"]]["details"]:
         raise HTTPException(403, "当前角色未开放明细查询")
     if plan.date_field and plan.date_field != "contract_end_date" and plan.end_date > store.AS_OF:
         raise HTTPException(422, "该事实日期不能晚于数据截止日；合同到期可查询未来")
@@ -66,7 +66,7 @@ def validate(p, plan):
         raise HTTPException(422, "入离职指标必须使用全部状态，避免漏掉目前已离职的员工")
     ids, grant = auth.scoped(p, plan.scope)
     if plan.departments:
-        rows = store.people()
+        rows = auth.people(p)
         accessible = {r["dept_cn_name"] for r in rows if r["person_id"] in ids}
         if not set(plan.departments) <= accessible:
             raise HTTPException(403, "所选部门不可用或超出当前授权范围")
@@ -271,6 +271,10 @@ def fill_zeros(rows, plan, departments):
 
 
 def execute(p, plan):
+    if superset_source.enabled():
+        from .superset_query import execute as execute_superset
+
+        return execute_superset(p, plan)
     started = time.perf_counter()
     c = Compiler(p, plan)
     sql, total_sql, domain_sql = c.compile()

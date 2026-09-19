@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from fastapi import HTTPException, Request
 from pydantic import Field
 
-from . import store
+from . import store, superset_source
 from .schema import FIELDS, Strict
 
 COOKIE = "hr_v2_session"
@@ -77,6 +77,8 @@ def refresh(p):
 
 
 def grants(p, config=None, rows=None):
+    if superset_source.enabled() and config is None and rows is None:
+        return superset_source.snapshot(p)["grant"]
     config = config or store.policy()
     rows = rows if rows is not None else store.people()
     lookup = {r["person_id"]: r for r in rows}
@@ -147,7 +149,7 @@ def scoped(p, scope="all", config=None, rows=None):
     if scope == "all":
         return grant["ids"], grant
     if scope == "self":
-        return [p["person_id"]], grant
+        return [p["person_id"]] if p["person_id"] in grant["ids"] else [], grant
     if scope in ("reports", "hrbp", "inherited_hrbp"):
         return grant[scope], grant
     return [
@@ -158,11 +160,16 @@ def scoped(p, scope="all", config=None, rows=None):
 
 
 def allowed_fields(p, config=None):
+    if superset_source.enabled() and config is None:
+        return superset_source.snapshot(p)["fields"]
     rules = (config or store.policy())["roles"][p["role"]]
     return {name for name, info in FIELDS.items() if info[1] in rules["field_groups"]}
 
 
 def fingerprint(p):
+    if superset_source.enabled():
+        # 历史读取、模型前后、结果返回前均重新查询，撤权不能靠旧会话缓存绕过。
+        return superset_source.snapshot(p, refresh=True)["fingerprint"]
     payload = {
         "persona": p["id"],
         "role": p["role"],
@@ -173,26 +180,45 @@ def fingerprint(p):
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
+def policy(p):
+    """业务配置唯一来源随执行后端选择，不混用两份授权配置。"""
+    if superset_source.enabled():
+        snap = superset_source.snapshot(p)
+        return {"version": snap["grant"]["policy_version"], "assumption": True,
+                "roles": {p["role"]: snap["rules"]}}
+    return store.policy()
+
+
+def people(p):
+    """Superset 模式下连候选部门/关系说明也只能来自当前用户可读的人群。"""
+    if superset_source.enabled():
+        return superset_source.snapshot(p)["rows"]
+    return store.people()
+
+
 def public(p):
     grant = grants(p)
-    rules = store.policy()["roles"][p["role"]]
+    rules = policy(p)["roles"][p["role"]]
 
     def active(r):
         return r["onboard_date"] <= store.AS_OF and (not r["termin_date"] or r["termin_date"] > store.AS_OF)
 
-    rows = [r for r in store.people() if r["person_id"] in grant["ids"]]
+    rows = [r for r in people(p) if r["person_id"] in grant["ids"]]
     return {
         **{k: p[k] for k in ["id", "person_id", "name", "role", "label"]},
         "csrf": p.get("csrf"),
         "count": sum(active(r) for r in rows),
         "candidate_count": len(rows),
         "policy_version": grant["policy_version"],
-        "can_configure": p["id"] == "admin",
+        "can_configure": p["id"] == "admin" and not superset_source.enabled(),
+        "authorization_backend": "superset" if superset_source.enabled() else "local",
         "rules": rules,
     }
 
 
 def policy_preview(p, body):
+    if superset_source.enabled():
+        raise HTTPException(409, "Superset 模式请在 Superset 配置角色/RLS，在 PostgreSQL 配置业务关系；本地规则编辑已停用")
     if p["id"] != "admin":
         raise HTTPException(403, "仅演示配置管理员可以配置规则")
     current = store.policy()
