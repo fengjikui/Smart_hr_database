@@ -6,6 +6,8 @@
 
 ## 启动
 
+手工学习请先读 [从零实操](docs/HANDS_ON.md)，进度记在 [学习记录](docs/LEARNING_LOG.md)。本机有 `manual-learning.json` 标记时，下面的一键初始化和工作台启动会被阻止；这是为了保留你亲手建库、配置权限的过程。
+
 依赖：Node.js 24、Python 3.13、uv，以及 Docker/Compose。模型在本机 LM Studio，默认兼容接口 `http://127.0.0.1:1234/v1`、模型标识 `hr-qwen`。
 
 ```bash
@@ -31,6 +33,8 @@ npm run demo
 
 | 文档 | 内容 |
 |---|---|
+| [从零实操](docs/HANDS_ON.md) | 分阶段路线、当前一步、重置范围与学习期间启动方式 |
+| [学习记录](docs/LEARNING_LOG.md) | 实际操作结果、问题、回答与踩坑；随学习追加 |
 | [代码目录与整体逻辑](docs/PROJECT_CODE_GUIDE.md) | 文件职责、一次问数的完整过程、权限、前端状态和接口 |
 | [字段与指标字典](docs/DATA_DICTIONARY.md) | 当前 26 字段、15 指标、别名、含义边界、20 个问题 |
 | [Superset 实施讲义](docs/SUPERSET_SETUP.md) | 数据生成/导入、连接、7 个用户、8 个角色、3 条 RLS、Agent 接入 |

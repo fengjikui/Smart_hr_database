@@ -12,6 +12,10 @@ compose() {
 }
 case "${1:-status}" in
   up)
+    if [[ -f "$lab_root/.local/application/manual-learning.json" ]]; then
+      echo "正在手工学习，禁止自动初始化。已有平台需要恢复运行时，请用 services.sh resume。"
+      exit 1
+    fi
     python3 "$lab_root/prepare.py"
     cd "$lab_root/../.."
     uv run python integrations/superset/export.py
@@ -22,11 +26,12 @@ case "${1:-status}" in
     uv run python integrations/superset/run.py setup
     ;;
   status) compose ps -a ;;
+  resume) compose start postgres superset ;;
   logs) compose logs --tail 60 ;;
   stop) compose stop ;;
   validate)
     cd "$lab_root/../.."
     uv run python scripts/validate_superset.py
     ;;
-  *) echo "Usage: $0 {up|status|logs|stop|validate}"; exit 2 ;;
+  *) echo "Usage: $0 {up|resume|status|logs|stop|validate}"; exit 2 ;;
 esac

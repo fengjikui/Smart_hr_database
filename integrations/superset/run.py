@@ -80,6 +80,8 @@ def write_database_credentials():
 
 
 def setup(sync_data=False):
+    if (LOCAL / "manual-learning.json").exists():
+        raise SystemExit("正在手工学习，禁止自动建库/导入。请按 docs/HANDS_ON.md 逐步操作。")
     fixture = export_data()
     write_credentials(fixture)
     write_database_credentials()

@@ -294,6 +294,8 @@ def prepare_superset(sync_data=False):
 
 
 if __name__ == "__main__":
+    if (LOCAL / "manual-learning.json").exists():
+        raise SystemExit("正在手工学习，禁止自动初始化。请按 docs/HANDS_ON.md 操作。")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sync-data", action="store_true")
     args = parser.parse_args()

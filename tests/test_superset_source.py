@@ -10,6 +10,19 @@ from backend.hr import auth, store
 from backend.hr import superset_source as source
 
 
+def test_manual_learning_rejects_stale_manifest(tmp_path, monkeypatch):
+    """即使残留旧对象 ID，学习模式也不得据此登录业务账号查询。"""
+    monkeypatch.setenv("HR_SUPERSET_DIR", str(tmp_path))
+    (tmp_path / "manifest.json").write_text('{"principals": {}}')
+    (tmp_path / "manual-learning.json").write_text('{"state":"ready"}')
+    with pytest.raises(HTTPException) as error:
+        source.manifest()
+    assert error.value.status_code == 503
+    assert "手工重建" in error.value.detail
+    (tmp_path / "manual-learning.json").unlink()
+    assert source.manifest() == {"principals": {}}
+
+
 @pytest.fixture
 def remote(monkeypatch, request):
     key = getattr(request, "param", "employee")

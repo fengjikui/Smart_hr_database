@@ -35,6 +35,8 @@ def local_dir():
 
 
 def read_local(name):
+    if (local_dir() / "manual-learning.json").exists():
+        raise HTTPException(503, "正在手工重建 Superset，请按实操手册完成配置后再接入 Agent")
     try:
         return json.loads((local_dir() / name).read_text())
     except (OSError, ValueError) as exc:

@@ -44,7 +44,7 @@ Smart_hr_database/
 ├── evaluation/                  # cases/plans/golden/paraphrases，当前验收资料
 ├── tests/                       # 当前业务与迁移回归
 ├── scripts/                     # 启动、验收、文档校验、状态迁移与打包
-├── docs/                        # 仅保留当前说明
+├── docs/                        # 当前说明；HANDS_ON 为实操路线，LEARNING_LOG 记录学习进度
 ├── .github/workflows/           # 代码检查、真实 Superset 验证、打包
 ├── data/                        # 本机数据，Git 忽略
 └── reports/                     # 本次验证生成的证据，Git 忽略
