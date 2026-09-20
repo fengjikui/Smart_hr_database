@@ -24,11 +24,9 @@ jobs:
           python-version: '3.13'
       - run: uv sync --frozen
       - run: npm ci
-      - run: uv run python -m backend.hr.seed
-      - run: uv run ruff check backend tests scripts
+      - run: uv run ruff check backend tests scripts integrations/superset
       - run: uv run pytest -q --junitxml=reports/junit.xml
-      - run: uv run python scripts/document_semantics.py --check
-      - run: uv run python scripts/evaluate_semantics.py
+      - run: uv run python scripts/document_catalog.py --check
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build

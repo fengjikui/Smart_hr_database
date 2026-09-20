@@ -1,5 +1,5 @@
-// 根路径保留 V1 多表 HR 工作台。当前宽表/Superset 演示走 /demo，即 V2 入口。
-import Workspace from '@/components/hr/workspace';
-export default function Home() {
-  return <Workspace />;
+// 工作台首页入口：页面只装配工作台，身份、聊天与表格状态在 components/workspace 中管理。
+import HRWorkspace from '@/components/workspace/workspace';
+export default function Page() {
+  return <HRWorkspace />;
 }

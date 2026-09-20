@@ -1,0 +1,966 @@
+/* 工作台样式，统一使用 d- 前缀限定工作台样式。
+   本文件负责身份侧栏、聊天、条件编辑器和结果表；独立调试页布局另见 debug-workspace.css。 */
+.d-app {
+  --d-red: #a32b36;
+  --d-text: #28313a;
+  --d-muted: #64717d;
+  --d-paper: oklch(0.992 0.003 20);
+  --d-rail: oklch(0.967 0.004 20);
+  --d-chat-tint: oklch(0.947 0.014 20);
+  --d-soft: oklch(0.972 0.013 20);
+  --d-border: oklch(0.882 0.028 20);
+  background: #f6f7f9;
+  min-height: 100vh;
+  color: var(--d-text);
+  font-size: 14px;
+  line-height: 1.65;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+}
+.d-app * {
+  box-sizing: border-box;
+}
+.d-app button,
+.d-app input,
+.d-app select,
+.d-app textarea {
+  font: inherit;
+}
+.d-app button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid #d9dee4;
+  border-radius: 10px;
+  background: white;
+  color: var(--d-text);
+  cursor: pointer;
+}
+.d-app button:hover {
+  background: #f3f4f6;
+  border-color: #b8c1cb;
+}
+.d-app button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.d-app :focus-visible {
+  outline: 2px solid var(--d-red);
+  outline-offset: 3px;
+}
+.d-app input:not([type='checkbox']),
+.d-app select,
+.d-app textarea {
+  border: 1px solid #d4dbe2;
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: white;
+  color: var(--d-text);
+  min-height: 36px;
+  max-width: 100%;
+}
+.d-app input[type='checkbox'] {
+  accent-color: var(--d-red);
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.d-app label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--d-muted);
+}
+.d-app h1 {
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+  margin: 0;
+}
+.d-app h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 14px 0;
+}
+.d-app h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.d-app p {
+  margin: 8px 0;
+}
+.d-app .d-primary {
+  background: var(--d-red);
+  border-color: var(--d-red);
+  color: white;
+}
+.d-app .d-primary:hover {
+  background: #88232c;
+}
+.d-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-decoration: none;
+}
+.d-brand > span {
+  font-size: 24px;
+  font-weight: 750;
+  color: var(--d-red);
+  letter-spacing: 3px;
+}
+.d-brand small {
+  color: var(--d-muted);
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+.d-shell {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  height: 100dvh;
+  overflow: hidden;
+}
+.d-sidebar {
+  border-right: 1px solid oklch(0.9 0.005 20);
+  background: var(--d-rail);
+  padding: 22px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 22px;
+}
+.d-sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 8px;
+}
+.d-app .d-mobile-menu,
+.d-app .d-mobile-close,
+.d-app .d-sidebar-backdrop {
+  display: none;
+}
+.d-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.d-sidebar nav button {
+  background: transparent;
+  border-color: transparent;
+  justify-content: flex-start;
+  padding: 11px 15px;
+  color: #586675;
+}
+.d-debug-nav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 15px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #586675;
+  text-decoration: none;
+}
+.d-debug-nav:hover {
+  background: var(--d-soft);
+}
+.d-run-debug-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--d-red);
+  margin: 14px 12px 14px 0;
+  text-decoration: none;
+}
+.d-run-debug-link:hover {
+  text-decoration: underline;
+}
+.d-sidebar nav button.active {
+  color: var(--d-red);
+  background: #f7e9eb;
+  font-weight: 600;
+}
+.d-app .d-new {
+  border-color: #c99499;
+  color: var(--d-red);
+  width: 100%;
+  flex-shrink: 0;
+}
+.d-account {
+  margin-top: auto;
+  border-top: 1px solid oklch(0.887 0.007 20);
+  padding: 15px 4px 0;
+  flex-shrink: 0;
+}
+.d-account > label {
+  margin-bottom: 7px;
+}
+.d-app .d-account select {
+  width: 100%;
+  background: var(--d-paper);
+  font-size: 13px;
+  min-height: 40px;
+}
+.d-scope-note,
+.d-account-details {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  gap: 4px;
+  color: var(--d-muted);
+  padding-top: 9px;
+}
+.d-account .d-scope-note details {
+  border: 0;
+  padding: 4px 0 0;
+}
+.d-account summary {
+  font-size: 11px;
+  font-weight: 400;
+}
+.d-account-details {
+  padding-top: 8px;
+  gap: 5px;
+}
+.d-account-details a {
+  text-decoration: underline;
+}
+.d-model-ok {
+  color: var(--d-red);
+}
+.d-main {
+  padding: 30px clamp(20px, 3vw, 48px);
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.d-main-chat {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--d-paper);
+}
+/* 对话记录独立滚动，输入区留在底部；消息内容不会撑高整个页面外壳。 */
+.d-chat-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 36px clamp(24px, 4vw, 64px) 16px;
+  scrollbar-gutter: stable;
+}
+.d-chat-scroll > div {
+  max-width: 1120px;
+  margin-inline: auto;
+  scroll-margin-top: 32px;
+}
+.d-chat-exchange {
+  margin-bottom: 40px;
+}
+.d-assistant-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--d-muted);
+  font-size: 12px;
+  margin: 8px 0 12px;
+}
+.d-assistant-label svg {
+  color: var(--d-red);
+}
+.d-chat-exchange .d-result {
+  margin-top: 0;
+}
+.d-previous-answer > button,
+.d-collapse-result {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.d-main-chat > .d-error {
+  margin: 12px 24px 0;
+}
+.d-page-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 15px;
+  margin-bottom: 28px;
+}
+.d-eyebrow {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 1.4px;
+  color: #85909d;
+  margin: 0 0 7px !important;
+}
+.d-muted,
+.d-description {
+  color: var(--d-muted);
+  font-size: 12px;
+}
+.d-description {
+  font-size: 14px;
+  max-width: 900px;
+}
+.d-chat-scroll > .d-empty-chat {
+  max-width: 760px;
+  margin: clamp(28px, 8vh, 80px) auto 24px;
+}
+.d-empty-chat h2 {
+  font-size: 26px;
+  margin: 0 0 16px;
+}
+.d-empty-chat > p {
+  color: var(--d-muted);
+  max-width: 65ch;
+}
+.d-suggestions {
+  margin: 26px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.d-app .d-suggestions button {
+  text-align: left;
+  justify-content: space-between;
+  padding: 12px 14px;
+  line-height: 1.7;
+  min-height: 44px;
+  border-color: transparent;
+  background: transparent;
+}
+.d-app .d-suggestions button:hover {
+  background: var(--d-rail);
+}
+.d-suggestions button > span {
+  color: var(--d-muted);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+/* 紧凑输入框与内置发送按钮，实际自适应高度由 Workspace 的 useLayoutEffect 调整。 */
+.d-composer-dock {
+  flex-shrink: 0;
+  padding: 12px clamp(24px, 4vw, 64px) max(20px, env(safe-area-inset-bottom));
+  background: var(--d-paper);
+}
+.d-composer {
+  border: 1px solid var(--d-border);
+  background: var(--d-paper);
+  border-radius: 24px;
+  padding: 6px;
+  margin: 0 auto;
+  max-width: 1120px;
+  box-shadow:
+    0 8px 24px oklch(0.32 0.025 20 / 0.07),
+    0 2px 5px oklch(0.32 0.025 20 / 0.05);
+  transition:
+    border-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+.d-composer:focus-within {
+  border-color: var(--d-red);
+  box-shadow:
+    0 8px 26px oklch(0.32 0.04 20 / 0.09),
+    0 0 0 2px oklch(0.6 0.1 20 / 0.08);
+}
+.d-input-surface {
+  position: relative;
+}
+.d-app .d-composer textarea {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  resize: none;
+  min-height: 48px;
+  max-height: 104px;
+  background: transparent;
+  font-size: 15px;
+  line-height: 24px;
+  padding: 12px 54px 12px 14px;
+}
+.d-app .d-composer textarea:focus-visible {
+  outline: none;
+}
+.d-app .d-composer textarea::placeholder {
+  color: #81828a;
+  opacity: 1;
+  font-size: 13px;
+}
+.d-app .d-send {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--d-paper);
+}
+.d-app .d-send:disabled {
+  opacity: 0.35;
+}
+.d-composer-hint {
+  position: absolute;
+  right: 52px;
+  top: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--d-muted);
+  white-space: pre;
+  pointer-events: none;
+}
+.d-app .d-context button {
+  width: 24px;
+  min-height: 24px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+}
+.d-context {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 2px 8px 4px;
+  background: transparent;
+  border-radius: 8px;
+  gap: 10px;
+}
+.d-context > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.d-context button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.d-user-question {
+  width: fit-content;
+  max-width: 85%;
+  margin: 0 0 28px auto;
+  padding: 12px 18px;
+  background: var(--d-chat-tint);
+  border-radius: 16px;
+  overflow-wrap: anywhere;
+}
+.d-user-question p {
+  font-size: 15px;
+  margin: 0;
+  white-space: pre-wrap;
+}
+.d-answer {
+  font-size: 16px;
+  line-height: 1.9;
+  max-width: 1100px;
+}
+.d-result {
+  margin: 24px 0;
+}
+.d-effective {
+  border-radius: 12px;
+  margin: 16px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 15px;
+  background: var(--d-soft);
+  border: 1px solid var(--d-border);
+  font-size: 12px;
+  color: #81323c;
+}
+.d-effective svg {
+  flex: none;
+  margin-top: 3px;
+}
+.d-effective > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+.d-result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0 10px;
+  flex-wrap: wrap;
+}
+.d-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.d-result-toolbar .d-actions {
+  margin-left: auto;
+}
+/* 表格容器尺寸只决定展示区域，数据分页/筛选由 grid.tsx 的数据源协议处理。 */
+.d-grid {
+  border-radius: 12px;
+  overflow: hidden;
+  height: 475px;
+  width: 100%;
+  background: white;
+}
+.d-drill-cell {
+  color: #9d2732;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.d-builder {
+  border: 1px solid #dfe4e9;
+  border-radius: 14px;
+  background: white;
+  padding: 20px;
+  margin: 22px 0;
+}
+.d-control-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.d-control-row label {
+  min-width: 150px;
+}
+.d-grow {
+  flex: 1;
+}
+.d-app details {
+  border-top: 1px solid #e3e7eb;
+  padding: 12px 0;
+}
+.d-app summary {
+  cursor: pointer;
+  color: #526272;
+  font-size: 13px;
+  font-weight: 550;
+}
+.d-app .d-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  padding: 12px 0;
+}
+.d-app .d-checks label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 12px;
+  gap: 7px;
+  color: #40515f;
+}
+.d-metric-choices {
+  border-top: 1px dashed #e2e5e9;
+}
+.d-filter-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.d-filter {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 8px;
+  background: #f5edef;
+  color: #8e2d38;
+  border: 1px solid #ead5d8;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.d-app .d-filter button {
+  border: none;
+  background: none;
+  padding: 0;
+  min-height: 20px;
+}
+.d-verified {
+  border-radius: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--d-border);
+  background: var(--d-soft);
+  margin: 15px 0;
+  font-size: 12px;
+}
+.d-verified strong {
+  color: var(--d-red);
+}
+.d-error,
+.d-clarify {
+  border-radius: 12px;
+  border: 1px solid #e8c6c9;
+  background: #fcf0f1;
+  padding: 16px 20px;
+  margin: 16px 0;
+  color: #92333c;
+}
+.d-error > button {
+  margin-left: 20px;
+}
+.d-working {
+  color: #92333c;
+  background: #f9eef0;
+  padding: 10px 15px;
+}
+.d-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+}
+.d-chart-head label {
+  flex-direction: row;
+  align-items: center;
+}
+.d-chart {
+  height: 300px;
+  background: white;
+  margin: 10px 0;
+  padding: 12px 12px 0;
+}
+.d-debug pre,
+.d-clarify pre,
+.d-verified pre {
+  border-radius: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 420px;
+  overflow: auto;
+  background: #f0f3f6;
+  border: 1px solid #dde3e9;
+  padding: 14px;
+  font-size: 11px;
+}
+.d-debug > details {
+  margin-left: 16px;
+}
+.d-footnote {
+  color: #7b8794;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.d-placeholder {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--d-muted);
+  border: 1px dashed #cad2dc;
+  background: #fbfcfd;
+}
+.d-path-example {
+  border: 1px solid var(--d-border);
+  border-radius: 12px;
+  padding: 14px 20px;
+  background: #f3ecee;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 22px 0;
+  font-size: 13px;
+}
+.d-policy {
+  margin-top: 35px;
+}
+.d-scroll {
+  border-radius: 12px;
+  overflow: auto;
+  width: 100%;
+  background: white;
+  border: 1px solid #dfe4e9;
+}
+.d-app table {
+  border-collapse: collapse;
+  min-width: 760px;
+  width: 100%;
+  font-size: 12px;
+}
+.d-app th {
+  background: #f0f3f6;
+  color: #5d6975;
+  text-align: left;
+  padding: 13px;
+  white-space: nowrap;
+}
+.d-app td {
+  padding: 13px;
+  border-top: 1px solid #e6e9ed;
+  vertical-align: top;
+}
+.d-catalog td:first-child {
+  min-width: 220px;
+}
+.d-catalog code {
+  font-size: 10px;
+  display: block;
+  color: #7d8996;
+  word-break: break-all;
+}
+.d-catalog small {
+  display: block;
+  color: var(--d-muted);
+  margin-top: 5px;
+}
+.d-case-list {
+  margin-top: 24px;
+  border-top: 1px solid #dce2e7;
+}
+.d-case-list article {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 22px 0;
+  border-bottom: 1px solid #dce2e7;
+  align-items: start;
+}
+.d-case-list h2 {
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0 0 8px;
+}
+.d-case-id {
+  color: var(--d-red);
+  font-family: ui-monospace, monospace;
+}
+.d-case-id small {
+  display: block;
+  font-family: system-ui, sans-serif;
+  color: var(--d-muted);
+  font-size: 11px;
+  margin-top: 4px;
+}
+.d-case-list li {
+  list-style: disc;
+  margin-left: 20px;
+  color: var(--d-muted);
+  font-size: 12px;
+}
+.d-history {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+.d-app .d-history button {
+  padding: 18px;
+  text-align: left;
+  justify-content: flex-start;
+  gap: 18px;
+}
+.d-history button > span:nth-child(2) {
+  flex: 1;
+}
+.d-history small {
+  display: block;
+  color: var(--d-muted);
+  font-size: 11px;
+  margin-top: 6px;
+}
+.d-loading {
+  padding: 80px;
+  text-align: center;
+  color: var(--d-muted);
+}
+.d-sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+@media (max-width: 1000px) {
+  .d-shell {
+    grid-template-columns: 208px minmax(0, 1fr);
+  }
+  .d-sidebar {
+    padding: 20px 12px 14px;
+    gap: 18px;
+  }
+  .d-main:not(.d-main-chat) {
+    padding: 25px 20px;
+  }
+  .d-chat-scroll {
+    padding-inline: 24px;
+  }
+  .d-composer-dock {
+    padding-inline: 24px;
+  }
+  .d-shortcut-hint {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  /* 小屏侧栏切换为抽屉，键盘焦点管理与 Escape 行为在 Workspace 中实现。 */
+  .d-shell {
+    display: block;
+  }
+  .d-main {
+    height: 100dvh;
+  }
+  .d-main:not(.d-main-chat) {
+    padding: 64px 14px 22px;
+  }
+  .d-app .d-mobile-menu {
+    display: inline-flex;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    z-index: 10;
+    background: var(--d-paper);
+  }
+  .d-sidebar {
+    display: none;
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(280px, 85vw);
+    height: 100dvh;
+    z-index: 30;
+  }
+  .d-sidebar.is-open {
+    display: flex;
+  }
+  .d-app .d-mobile-close {
+    display: inline-flex;
+    background: transparent;
+    padding: 6px;
+  }
+  .d-app .d-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+    background: oklch(0.2 0.01 20 / 0.3);
+    z-index: 20;
+  }
+  .d-chat-scroll {
+    padding: 68px 14px 12px;
+  }
+  .d-chat-scroll > div {
+    scroll-margin-top: 68px;
+  }
+  .d-chat-scroll > .d-empty-chat {
+    margin-top: 28px;
+  }
+  .d-empty-chat h2 {
+    font-size: 23px;
+  }
+  .d-composer-dock {
+    padding: 8px 12px max(12px, env(safe-area-inset-bottom));
+  }
+  .d-composer {
+    padding: 6px;
+    border-radius: 22px;
+  }
+  .d-app .d-composer textarea {
+    font-size: 14px;
+    padding-left: 12px;
+  }
+  .d-app .d-composer textarea::placeholder {
+    font-size: 11px;
+  }
+  .d-user-question {
+    max-width: 94%;
+    padding: 10px 14px;
+  }
+  .d-app h1 {
+    font-size: 21px;
+  }
+  .d-page-title {
+    margin-bottom: 20px;
+  }
+  .d-grid {
+    height: 410px;
+  }
+  .d-control-row label {
+    min-width: 130px;
+    flex: 1;
+  }
+  .d-control-row {
+    gap: 10px;
+  }
+  .d-builder {
+    padding: 14px;
+  }
+  .d-result-toolbar .d-actions {
+    margin-left: 0;
+  }
+  .d-case-list article {
+    grid-template-columns: 55px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .d-case-list article > button {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .d-context {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+  .d-context > span {
+    max-width: 100%;
+  }
+  .d-main-chat > .d-error {
+    margin-top: 62px;
+  }
+}
+@media (max-height: 650px) and (min-width: 701px) {
+  .d-sidebar {
+    gap: 12px;
+    padding-block: 12px;
+  }
+  .d-sidebar-brand {
+    padding-bottom: 0;
+  }
+  .d-sidebar nav button {
+    padding-block: 8px;
+  }
+}
+
+.d-app output.d-verified,
+.d-app output.d-loading,
+.d-app output.d-working {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 尊重系统减少动态效果偏好，不影响查询或状态更新逻辑。 */
+  .d-composer {
+    transition: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .d-local-hint {
+    display: none;
+  }
+  .d-composer-hint {
+    font-size: 10px;
+  }
+}

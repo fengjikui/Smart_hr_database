@@ -1,0 +1,56 @@
+name: Validate Superset integration
+on:
+  push:
+    paths: ['integrations/superset/**', 'backend/hr/**', 'scripts/validate_superset.py', 'scripts/validate_revocation.py', '.github/workflows/superset.yml']
+  pull_request:
+    paths: ['integrations/superset/**', 'backend/hr/**', 'scripts/validate_superset.py', 'scripts/validate_revocation.py', '.github/workflows/superset.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: superset-lab-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  permissions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HR_DOCKER_HOST: unix:///var/run/docker.sock
+      COMPOSE_PARALLEL_LIMIT: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check integrations/superset
+      - run: bash integrations/superset/services.sh up
+      - name: Wait for Superset
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8088/health; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Check storage and physical permissions
+        run: uv run python integrations/superset/run.py verify-storage
+      - name: Validate queries and access paths
+        run: uv run python scripts/validate_superset.py
+      - name: Validate revocation and restore configuration
+        run: uv run python scripts/validate_revocation.py
+      - name: Show service diagnostics on failure
+        if: failure()
+        run: bash integrations/superset/services.sh logs
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: superset-permission-validation
+          path: |
+            integrations/superset/.local/application/storage-verification.json
+            reports/superset-integration.json
+            reports/superset-revocation.json
+          include-hidden-files: true
+      - name: Clean up lab
+        if: always()
+        run: bash integrations/superset/services.sh stop

@@ -1,0 +1,291 @@
+{
+  "version": "v2-paraphrase-1",
+  "status": "passed_coverage_after_targeted_retest",
+  "cases": [
+    {
+      "id": "HR-01-A",
+      "base_id": "HR-01",
+      "question": "请把我的在职直属下属、间接下属按部门分开统计，直属和间接都要区分，并给出总计。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-01-A"
+    },
+    {
+      "id": "HR-01-B",
+      "base_id": "HR-01",
+      "question": "我这条管理线中，直属和间接下属各部门的在职人数是多少？直属和间接分别展示。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-01-B"
+    },
+    {
+      "id": "HR-02-A",
+      "base_id": "HR-02",
+      "question": "我服务的部门里，目前有多少员工在职，其中硕士及以上有多少，占比多少？逐部门列出来。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-02-A"
+    },
+    {
+      "id": "HR-02-B",
+      "base_id": "HR-02",
+      "question": "作为HRBP，我服务的各个部门分别统计在职人数、硕士及以上人数以及占比。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-02-B"
+    },
+    {
+      "id": "HR-03-A",
+      "base_id": "HR-03",
+      "question": "通过下属HRBP继承的服务范围里，各部门当前在职员工分别多少人？",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-03-A"
+    },
+    {
+      "id": "HR-03-B",
+      "base_id": "HR-03",
+      "question": "我通过下属HRBP获得服务权限的员工，按部门统计当前在职人数。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-03-B"
+    },
+    {
+      "id": "HR-04-A",
+      "base_id": "HR-04",
+      "question": "上周入职的同事，给我工号、姓名、学校、专业、年龄、毕业时间，入职日期降序。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-04-A"
+    },
+    {
+      "id": "HR-04-B",
+      "base_id": "HR-04",
+      "question": "列出上周入职员工的工号、姓名、学校、专业、年龄和毕业时间，按入职时间由近到远排序。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-04-B"
+    },
+    {
+      "id": "HR-05-A",
+      "base_id": "HR-05",
+      "question": "最近15天平台研发部、智能产品部各自的入职人数、离职人数和净增人数是多少？",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-05-A"
+    },
+    {
+      "id": "HR-05-B",
+      "base_id": "HR-05",
+      "question": "过去15天，按部门对比平台研发部和智能产品部的入职、离职、净增人数。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-05-B"
+    },
+    {
+      "id": "HR-06-A",
+      "base_id": "HR-06",
+      "question": "今年4月至7月，每个月各个部门有多少人离职？没有离职的月份也列出来。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-06-A"
+    },
+    {
+      "id": "HR-06-B",
+      "base_id": "HR-06",
+      "question": "请按部门、离职月份两个维度，统计今年4月至7月离职人数。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-06-B"
+    },
+    {
+      "id": "HR-07-A",
+      "base_id": "HR-07",
+      "question": "今年4月至7月，按月列出平台研发部、智能产品部的入职人数、离职人数和净增人数。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-07-A"
+    },
+    {
+      "id": "HR-07-B",
+      "base_id": "HR-07",
+      "question": "平台研发部和智能产品部今年4月至7月每月各入职多少、离职多少、净增多少？",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-07-B"
+    },
+    {
+      "id": "HR-08-A",
+      "base_id": "HR-08",
+      "question": "上季度入职的人里面，当前已拿到博士学位的员工人数是多少？各部门分别统计。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-retest.json#HR-08-A"
+    },
+    {
+      "id": "HR-08-B",
+      "base_id": "HR-08",
+      "question": "请统计上季度入职且目前已取得博士学位的人数，按当前部门展示。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-retest.json#HR-08-B"
+    },
+    {
+      "id": "HR-09-A",
+      "base_id": "HR-09",
+      "question": "平台研发部和智能产品部的在职员工，985和211毕业人数各是多少，分别占本部门在职人数的多少？",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-09-A"
+    },
+    {
+      "id": "HR-09-B",
+      "base_id": "HR-09",
+      "question": "对比平台研发部、智能产品部当前在职人员的985人数、211人数、985占比、211占比。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-09-B"
+    },
+    {
+      "id": "HR-10-A",
+      "base_id": "HR-10",
+      "question": "清华或北大毕业且目前在职的人，每个部门分别有几位？",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-10-A"
+    },
+    {
+      "id": "HR-10-B",
+      "base_id": "HR-10",
+      "question": "按部门数一数现在在职、学校为北京大学或清华大学的员工。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-10-B"
+    },
+    {
+      "id": "HR-11-A",
+      "base_id": "HR-11",
+      "question": "授权范围内当前在职员工，按学历、是否全日制两个维度列人数交叉表。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-11-A"
+    },
+    {
+      "id": "HR-11-B",
+      "base_id": "HR-11",
+      "question": "把我能查看的在职人数按照学历和是否全日制分组统计。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-11-B"
+    },
+    {
+      "id": "HR-12-A",
+      "base_id": "HR-12",
+      "question": "列出平台研发部在职、30到40岁、第一专业是软件工程或计算机科学与技术的员工姓名、专业、学历、年龄。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-12-A"
+    },
+    {
+      "id": "HR-12-B",
+      "base_id": "HR-12",
+      "question": "平台研发部在职员工中，30至40岁且第一专业为计算机科学与技术或软件工程的有哪些？显示姓名、专业、学历和年龄。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-12-B"
+    },
+    {
+      "id": "HR-13-A",
+      "base_id": "HR-13",
+      "question": "今年校招入职、目前学历为硕士及以上且全日制的员工，显示姓名、部门、学校、入职日期。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-13-A"
+    },
+    {
+      "id": "HR-13-B",
+      "base_id": "HR-13",
+      "question": "列出今年校园招聘入职，目前学历为硕士及以上且全日制人员的姓名、部门、学校和入职日期。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-13-B"
+    },
+    {
+      "id": "HR-14-A",
+      "base_id": "HR-14",
+      "question": "各部门当前在职员工总共多少，外包有多少，外包占比多少？",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-14-A"
+    },
+    {
+      "id": "HR-14-B",
+      "base_id": "HR-14",
+      "question": "请按部门列在职总人数、外包人数及外包占在职人员的比例。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-14-B"
+    },
+    {
+      "id": "HR-15-A",
+      "base_id": "HR-15",
+      "question": "平台研发部、智能产品部现在在职人数多少？平均年龄多少？硕士及以上占比多少？按部门对比。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-15-A"
+    },
+    {
+      "id": "HR-15-B",
+      "base_id": "HR-15",
+      "question": "请对比平台研发部与智能产品部的当前在职人数、平均年龄、硕士及以上比例。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-15-B"
+    },
+    {
+      "id": "HR-16-A",
+      "base_id": "HR-16",
+      "question": "未来90天内合同到期的在职员工，显示姓名、部门、合同类型、合同到期日期，按到期日期升序。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-16-A"
+    },
+    {
+      "id": "HR-16-B",
+      "base_id": "HR-16",
+      "question": "哪些在职员工的合同未来90天到期？列姓名、部门、合同类型、到期日，从早到晚排序。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-16-B"
+    },
+    {
+      "id": "HR-17-A",
+      "base_id": "HR-17",
+      "question": "今年已经转正的人员，按部门列人数及从入职到转正的平均天数。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-17-A"
+    },
+    {
+      "id": "HR-17-B",
+      "base_id": "HR-17",
+      "question": "各部门今年已转正多少人？计算这些人从入职到转正的平均用时天数。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-retest.json#HR-17-B"
+    },
+    {
+      "id": "HR-18-A",
+      "base_id": "HR-18",
+      "question": "过去30天当前任职开始的在职员工，显示姓名、部门、岗位和当前任职开始日期。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-18-A"
+    },
+    {
+      "id": "HR-18-B",
+      "base_id": "HR-18",
+      "question": "找出当前任职开始日期在最近30天内的在职员工，列姓名、部门、岗位、当前任职开始日期。",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-18-B"
+    },
+    {
+      "id": "HR-19-A",
+      "base_id": "HR-19",
+      "question": "刚才清华或北大毕业的这些人，只看硕士及以上且全日制的，再按部门统计人数。",
+      "previous_case_id": "HR-10-A",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-19-A"
+    },
+    {
+      "id": "HR-19-B",
+      "base_id": "HR-19",
+      "question": "在刚才的这些人里，只看硕士及以上、全日制员工，部门分组保持不变，统计人数。",
+      "previous_case_id": "HR-10-B",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-19-B"
+    },
+    {
+      "id": "HR-20-A",
+      "base_id": "HR-20",
+      "question": "把学校改成浙江大学，其他条件不变，显示姓名、部门、学校、学历、专业。",
+      "previous_case_id": "HR-19-A",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-20-A"
+    },
+    {
+      "id": "HR-20-B",
+      "base_id": "HR-20",
+      "question": "其他条件不变，只把学校换为浙江大学，列出姓名、部门、学校、学历和专业。",
+      "previous_case_id": "HR-19-B",
+      "status": "passed",
+      "evidence": "reports/paraphrases-pass1.json#HR-20-B"
+    }
+  ],
+  "method": "首次完整40条通过37条；修复后针对3条失败项复测全部通过，非修复后完整40条重跑"
+}

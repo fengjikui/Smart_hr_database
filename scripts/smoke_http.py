@@ -1,4 +1,4 @@
-"""Check the production frontend proxy and authorization over real HTTP."""
+"""HTTP smoke for the built 当前 frontend proxy; no inference or policy mutations."""
 
 import argparse
 import json
@@ -7,175 +7,71 @@ from pathlib import Path
 import httpx
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--url", default="http://127.0.0.1:3000")
-    parser.add_argument("--model", action="store_true")
-    parser.add_argument("--output")
-    args = parser.parse_args()
+def main(base_url):
     checks = []
-    # LangGraph brings optional zstandard into the environment. HTTPX 0.28's
-    # decoder fails on some streamed multi-frame SSR responses; negotiate gzip.
     with httpx.Client(
-        base_url=args.url, timeout=100, trust_env=False, headers={"Accept-Encoding": "gzip, deflate"}
+        base_url=base_url, trust_env=False, timeout=15, headers={"Accept-Encoding": "identity"}
     ) as client:
+
+        def login(role):
+            response = client.post("/api/session", json={"persona_id": role})
+            response.raise_for_status()
+            boot = client.get("/api/bootstrap")
+            boot.raise_for_status()
+            client.headers["X-CSRF-Token"] = boot.json()["principal"]["csrf"]
+            return boot.json()
+
+        boot = login("hr_lead")
+        assert len(boot["catalog"]["fields"]) == 26
+        assert boot["principal"]["count"] == 226
+        checks.append("26字段目录及默认HR权限")
+        plan = {
+            "kind": "people",
+            "columns": ["employee_no", "name", "school_name"],
+            "filters": [{"field": "school_name", "op": "contains", "values": ["清华"]}],
+            "page_size": 10,
+        }
+        r = client.post("/api/query", json=plan)
+        r.raise_for_status()
+        data = r.json()
+        assert data["total_rows"] == 41 and len(data["rows"]) == 10
+        assert set(data["rows"][0]) == set(plan["columns"])
+        checks.append("列筛选覆盖全部41人而非当前10条")
+        v = client.post("/api/verify", json=plan)
+        v.raise_for_status()
+        assert v.json()["passed"] and v.json()["compared_rows"] == 41
+        checks.append("完整41行独立对账")
+        assert client.post("/api/query", json={"sql": "SELECT * FROM people"}).status_code == 422
+        checks.append("自由SQL拒绝")
+        boot = login("employee")
+        assert boot["principal"]["count"] == 1
+        assert not any(f["key"] == "contract_end_date" for f in boot["catalog"]["fields"])
+        r = client.post("/api/query", json={"kind": "people", "columns": ["employee_no", "name"]})
+        r.raise_for_status()
+        assert r.json()["rows"] == [{"employee_no": "00031266", "name": "冯基魁"}]
+        assert client.post("/api/export", json={}).status_code == 403
+        checks.append("员工仅本人且无合同/导出权限")
+        old_page = client.get("/demo")
+        assert old_page.status_code == 308 and old_page.headers["location"].endswith("/")
+        old_debug = client.get("/demo/debug?run=missing-record")
+        assert old_debug.status_code == 308 and "/debug?run=missing-record" in old_debug.headers["location"]
+        checks.append("旧书签重定向并保留查询记录参数")
         page = client.get("/")
-        assert page.status_code == 200
-        for header in ["x-content-type-options", "x-frame-options", "content-security-policy"]:
-            assert header in page.headers, f"Missing page header: {header}"
-        assert client.get("/api/bootstrap").status_code == 401
-        checks.append("production HTML and security headers; API authentication")
-        for persona, expected in [("ceo", 459), ("rd", 168), ("employee", 1)]:
-            login = client.post("/api/demo/session", json={"persona_id": persona})
-            assert login.status_code == 200, login.text
-            boot = client.get("/api/bootstrap").json()
-            csrf = boot["principal"]["csrf"]
-            plan = {"kind": "metric", "metric": "headcount", "period": "as_of"}
-            assert client.post("/api/query", json=plan).status_code == 403
-            response = client.post("/api/query", json=plan, headers={"X-CSRF-Token": csrf})
-            assert response.status_code == 200, response.text
-            assert response.json()["rows"][0]["value"] == expected, response.text
-            checks.append(f"{persona}: {expected} authorized active employees; CSRF enforced")
-            dictionary = client.get("/api/data-dictionary")
-            assert dictionary.status_code == (200 if persona == "ceo" else 403)
-            semantic = client.get("/api/semantics").json()
-            workflow = client.get("/api/workflow").json()
-            assert workflow["framework"] == "LangGraph"
-            assert workflow["limits"]["metadata_expansions"] == 2
-            assert workflow["external_tracing"] is False
-            degree = client.get("/api/semantics/documents/employee_education.degree").json()
-            assert degree["id"] == "employee_education.degree"
-            assert degree["aliases"] and degree["meaning"] and degree["not_meaning"]
-            assert client.get("/api/semantics/documents/sessions.token_hash").status_code == (
-                200 if persona == "ceo" else 404
-            )
-            checks.append(
-                f"{persona}: semantic definitions and compiled LangGraph available; metadata permissions enforced"
-            )
-            if persona == "ceo":
-                assert semantic["counts"] == {
-                    "table": 35,
-                    "field": 200,
-                    "metric": 32,
-                    "question": 160,
-                    "relationship": 35,
-                }
-                assert semantic["metric_status"] == {"available": 17, "planned": 15}
-                assert dictionary.json()["summary"] == {
-                    "business_tables": 24,
-                    "application_tables": 8,
-                    "semantic_tables": 3,
-                    "fields": 200,
-                    "metrics": 17,
-                }
-                for extra, expected_value in [
-                    ({"department": "平台研发部", "degree": "博士"}, 4),
-                    ({"metric": "hires", "degree": "博士", "period": "last_quarter"}, 3),
-                    ({"schools": ["清华大学", "北京大学"], "education_scope": "any_completed"}, 120),
-                    ({"metric": "education_ratio", "department": "平台研发部", "degree": "硕士"}, 14.75),
-                    ({"metric": "weekend_overtime_hours"}, 124),
-                ]:
-                    result = client.post(
-                        "/api/query",
-                        json={**plan, "period": "this_month", **extra},
-                        headers={"X-CSRF-Token": csrf},
-                    )
-                    assert result.status_code == 200, result.text
-                    assert result.json()["rows"][0]["value"] == expected_value, result.text
-                    assert result.json()["applied_conditions"]
-                changes = client.post(
-                    "/api/query",
-                    json={"metric": "workforce_changes", "dimension": "department", "period": "this_year"},
-                    headers={"X-CSRF-Token": csrf},
-                ).json()
-                assert changes["chart_type"] == "comparison"
-                assert len(changes["rows"]) == 21
-                assert sum(row["hires"] for row in changes["rows"]) == 69
-                assert sum(row["departures"] for row in changes["rows"]) == 21
-                checks.append(
-                    "education, school OR counts, explicit ratio denominator, weekend hours and department hire/departure comparison"
-                )
-            if persona == "rd":
-                assert (
-                    client.post(
-                        "/api/query",
-                        json={"degree": "博士", "department": "企业销售部"},
-                        headers={"X-CSRF-Token": csrf},
-                    ).status_code
-                    == 403
-                )
-            if persona == "employee":
-                row = client.post(
-                    "/api/query",
-                    json={"metric": "education_ratio", "degree": "博士"},
-                    headers={"X-CSRF-Token": csrf},
-                ).json()["rows"][0]
-                assert row["denominator"] == 1
-            blocked = client.post(
-                "/api/chat", json={"question": "查询30岁以上员工人数"}, headers={"X-CSRF-Token": csrf}
-            )
-            assert blocked.status_code == 422
-            run_id = blocked.headers["x-debug-run-id"]
-            debug = client.get(f"/api/debug/runs/{run_id}").json()
-            assert debug["status"] == "blocked"
-            assert [node["key"] for node in debug["nodes"]] == ["request", "authorization", "capability"]
-            assert debug["nodes"][-1]["error"]["status_code"] == 422
-            checks.append(f"{persona}: dictionary role enforced; failed-query trace linked through proxy")
-        salary = client.post("/api/query", json={"metric": "avg_salary"}, headers={"X-CSRF-Token": csrf})
-        assert salary.status_code == 403
-        checks.append("employee cannot access salary aggregate")
-        if args.model:
-            client.post("/api/demo/session", json={"persona_id": "ceo"}).raise_for_status()
-            csrf = client.get("/api/bootstrap").json()["principal"]["csrf"]
-            answer = client.post(
-                "/api/chat",
-                json={"question": "我的直属和间接下属分别有多少人？"},
-                headers={"X-CSRF-Token": csrf},
-            )
-            assert answer.status_code == 200, answer.text
-            result = answer.json()
-            assert result["status"] == "success", result
-            assert {row["value"] for row in result["rows"]} == {5, 453}, result
-            checks.append("real LM Studio through production proxy: 5 direct / 453 indirect")
-            debug = client.get(f"/api/debug/runs/{result['debug_run_id']}").json()
-            nodes = {node["key"]: node for node in debug["nodes"]}
-            assert debug["status"] == "success"
-            assert nodes["model"]["input"]["request"]["model"] == "hr-qwen"
-            assert nodes["model"]["output"]["http_status"] == 200
-            assert nodes["schema"]["output"]["valid"] is True
-            assert nodes["database"]["output"]["row_count"] == 2
-            assert debug["result"]["rows"] == result["rows"]
-            checks.append(
-                "real model input/output, schema validation, SQL rows and final response visible in debug"
-            )
-            for question in ["清华和北大毕业的员工数量", "今年入职的清华大学毕业员工名单"]:
-                response = client.post(
-                    "/api/chat", json={"question": question}, headers={"X-CSRF-Token": csrf}
-                )
-                assert response.status_code == 200, response.text
-                result = response.json()
-                assert result["status"] == "success"
-                if "名单" in question:
-                    assert result["rows"] and all(
-                        "清华大学" in row["matching_education"] for row in result["rows"]
-                    )
-                else:
-                    assert result["rows"][0]["value"] == 120
-                trace = client.get(f"/api/debug/runs/{result['debug_run_id']}").json()
-                assert trace["result"]["rows"] == result["rows"]
-                assert next(n for n in trace["nodes"] if n["key"] == "intent")["output"]["final_plan"][
-                    "schools"
-                ]
-            checks.append(
-                "real model school union count and matching graduation histories survive frontend proxy and node debug"
-            )
-    report = {"passed": True, "mode": "production-http", "live_model": args.model, "checks": checks}
-    filename = "http-smoke.json" if args.model else "http-smoke-ci.json"
-    output = Path(args.output) if args.output else Path(__file__).resolve().parents[1] / "reports" / filename
-    output.parent.mkdir(exist_ok=True)
-    output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
-    print(output.read_text())
+        page.raise_for_status()
+        assert "正在加载身份、权限和数据目录" in page.text
+        checks.append("生产构建页面可访问")
+        debug_page = client.get("/debug?run=missing-record")
+        debug_page.raise_for_status()
+        assert "节点调试 · 澄观 HR" in debug_page.text
+        assert client.get("/api/history/missing-record").status_code == 404
+        checks.append("独立节点调试路由可访问且无效记录不泄露数据")
+    report = {"passed": True, "checks": checks, "base_url": base_url, "model_inference": False}
+    Path("reports").mkdir(exist_ok=True)
+    Path("reports/http.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    print(json.dumps(report, ensure_ascii=False))
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", default="http://127.0.0.1:3000")
+    main(parser.parse_args().base_url)

@@ -1,6 +1,6 @@
 /**
- * 本地演示启动编排：检查端口 → 补齐依赖与 V1 种子 → 检查 LM Studio → 启动前后端。
- * 此脚本不负责部署 PostgreSQL/Superset；demo:superset 通过继承的环境变量切换
+ * 本地演示启动编排：检查端口 → 补齐依赖 → 检查 LM Studio → 启动前后端。
+ * 此脚本不负责部署 PostgreSQL/Superset；demo 通过继承的环境变量切换
  * 后端查询实现。正常停止仅回收 children 中本次创建的前后端进程。
  */
 import { spawn } from 'node:child_process';
@@ -69,9 +69,6 @@ try {
     : 'uv';
   if (!existsSync(join(root, '.venv'))) await run(uv, ['sync', '--frozen']);
   if (!existsSync(join(root, 'node_modules'))) await run('npm', ['ci']);
-  // V1 原版工作台仍需要它自己的演示库；V2 迁移和 Superset 配置另有独立脚本。
-  if (!existsSync(join(root, 'data/hr.sqlite')))
-    await run(uv, ['run', 'python', '-m', 'backend.hr.seed']);
   const lms = existsSync(join(homedir(), '.lmstudio/bin/lms'))
     ? join(homedir(), '.lmstudio/bin/lms')
     : 'lms';

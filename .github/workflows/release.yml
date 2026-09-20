@@ -18,7 +18,6 @@ jobs:
           python-version: '3.13'
       - run: uv sync --frozen
       - run: npm ci
-      - run: uv run python -m backend.hr.seed
       - run: bash scripts/release.sh
       - uses: actions/upload-artifact@v4
         with:

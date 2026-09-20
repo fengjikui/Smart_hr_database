@@ -58,9 +58,15 @@ playwright-report/
 
 /data/backups/
 
-# Isolated Superset lab credentials and runtime outputs
+# Superset 本机凭据与运行产物
 /integrations/superset/.local/
-/integrations/openfga/.local/
 
 # Internal communication material is not part of the public demo repository
 /infomations/
+
+# Validation artifacts are generated from current code, not historical source
+/reports/*
+!/reports/.gitkeep
+
+# All private integration state stays outside Git
+**/.local/

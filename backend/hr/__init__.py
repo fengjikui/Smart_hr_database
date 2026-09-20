@@ -1,1 +1,5 @@
-"""Governed local HR intelligence service."""
+"""当前 HR 问数：最小业务宽表、可切换查询后端、权限约束与独立结果核验。
+
+HTTP 入口在 api；自然语言入口在 graph；确定性查询入口在 query。
+单元测试和评测使用临时状态目录，避免污染正常演示。
+"""

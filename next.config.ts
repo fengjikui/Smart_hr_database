@@ -1,5 +1,12 @@
 import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
+  // 旧书签仅重定向到当前页面，不保留另一套界面实现。
+  async redirects() {
+    return [
+      { source: '/demo', destination: '/', permanent: true },
+      { source: '/demo/debug', destination: '/debug', permanent: true },
+    ];
+  },
   async headers() {
     return ['/', '/:path*'].map((source) => ({
       source,

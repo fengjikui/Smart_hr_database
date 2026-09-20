@@ -2,10 +2,10 @@ name: hr-superset-lab
 x-superset: &superset
   build:
     context: .
-    network: ${HR_LAB_BUILD_NETWORK:-default}
+    network: ${HR_BUILD_NETWORK:-default}
     args:
-      HTTP_PROXY: ${HR_LAB_BUILD_PROXY:-}
-      HTTPS_PROXY: ${HR_LAB_BUILD_PROXY:-}
+      HTTP_PROXY: ${HR_BUILD_PROXY:-}
+      HTTPS_PROXY: ${HR_BUILD_PROXY:-}
   env_file: .local/lab.env
   environment:
     SUPERSET_CONFIG_PATH: /lab/superset_config.py
@@ -34,7 +34,7 @@ services:
     mem_limit: 640m
   init:
     <<: *superset
-    command: ["sh", "-c", "superset db upgrade && superset init && python /lab/bootstrap.py"]
+    command: ["sh", "-c", "superset db upgrade && superset init && python /lab/setup.py"]
     depends_on:
       postgres: {condition: service_healthy}
   superset:

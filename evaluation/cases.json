@@ -1,0 +1,425 @@
+{
+  "version": "validated-1",
+  "status": "passed_live_model_and_independent_reference",
+  "as_of": "2026-09-11",
+  "assumptions": "用户当前理解，仅用于可调整演示，尚未经业务确认",
+  "source_grain": "one_current_row_per_person",
+  "department_attribution": "current_department",
+  "expected_values_status": "固定种子与数据指纹；独立Python参考结果已冻结于evaluation/golden.json，逐题与SQL及真实模型执行结果核对",
+  "cases": [
+    {
+      "id": "HR-01",
+      "status": "passed",
+      "actor": "部门主管",
+      "question": "我的直属和间接下属按部门分别有多少在职人员？同时给出合计。",
+      "required_source_fields": [
+        "person_id",
+        "head_person_id",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "按管理线计算直属与间接，不把 HRBP 服务关系当作直属关系",
+        "按 person_id 去重，不含本人；部门与总计一致"
+      ],
+      "evidence": "reports/model-final.json#HR-01"
+    },
+    {
+      "id": "HR-02",
+      "status": "passed",
+      "actor": "HRBP",
+      "question": "我服务的各部门在职人数、硕士及以上人数和占比分别是多少？",
+      "required_source_fields": [
+        "person_id",
+        "dept_hrbp_id",
+        "dept_code",
+        "dept_cn_name",
+        "diploma_code_desc",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "仅本人的 HRBP 服务范围，不自动扩大为全部可见范围",
+        "分子与分母单列；未知学历计入分母；硕士及以上包括博士"
+      ],
+      "evidence": "reports/model-final.json#HR-02"
+    },
+    {
+      "id": "HR-03",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "我通过下属 HRBP 能查看哪些部门？每个部门有多少在职员工？",
+      "required_source_fields": [
+        "person_id",
+        "head_person_id",
+        "dept_hrbp_id",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "使用下属 HRBP 服务来源筛选并保留可见原因",
+        "同一人员有多条授权路径时只计一次"
+      ],
+      "evidence": "reports/model-final.json#HR-03"
+    },
+    {
+      "id": "HR-04",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "上周入职人员的工号、姓名、学校、专业、年龄和毕业时间分别是什么？按入职时间从新到旧排列。",
+      "required_source_fields": [
+        "person_id",
+        "employee_no",
+        "name",
+        "school_name",
+        "first_major",
+        "birth_date",
+        "age",
+        "education_expired_date",
+        "onboard_date"
+      ],
+      "acceptance_checks": [
+        "上周为上一完整自然周，固定快照下为 2026-08-31 至 2026-09-06",
+        "保留工号前导零；只返回请求字段及必要排序依据",
+        "毕业时间字段采用演示映射假设并标注；未分页完整时说明总数"
+      ],
+      "evidence": "reports/model-final.json#HR-04"
+    },
+    {
+      "id": "HR-05",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "过去15天，平台研发部和智能产品部分别入职、离职多少人，净增多少？",
+      "required_source_fields": [
+        "person_id",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "期间包含快照日共15个自然日，当前固定为 2026-08-28 至 2026-09-11",
+        "多部门取并集后与权限取交集，不能覆盖权限",
+        "入职、离职及净增分别对账，按当前部门归属"
+      ],
+      "evidence": "reports/model-final.json#HR-05"
+    },
+    {
+      "id": "HR-06",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "统计今年4月至7月各部门每个月的离职人数。",
+      "required_source_fields": [
+        "person_id",
+        "dept_code",
+        "dept_cn_name",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "期间为 2026-04-01 至 2026-07-31",
+        "部门与月份双维度；月份按时间排序",
+        "当前部门归属；无事件组合显示0且不漏部门"
+      ],
+      "evidence": "reports/model-final.json#HR-06"
+    },
+    {
+      "id": "HR-07",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "今年4月至7月，平台研发部和智能产品部每月的入职、离职及净增人数对比。",
+      "required_source_fields": [
+        "person_id",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "多部门、多指标、月份组合，分组与汇总全部核对",
+        "明确按当前部门归属，不声称还原历史任职"
+      ],
+      "evidence": "reports/model-final.json#HR-07"
+    },
+    {
+      "id": "HR-08",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "上季度入职的员工中，目前已取得博士学位的有多少？按部门统计。",
+      "required_source_fields": [
+        "person_id",
+        "degree_code_desc",
+        "education_expired_date",
+        "onboard_date",
+        "termin_date",
+        "dept_code",
+        "dept_cn_name"
+      ],
+      "acceptance_checks": [
+        "入职期间为 2026-04-01 至 2026-06-30，教育条件按当前快照判断",
+        "不将目前博士背景改写成入职当时已取得博士学位",
+        "入职人群不额外要求目前仍在职"
+      ],
+      "evidence": "reports/model-final.json#HR-08"
+    },
+    {
+      "id": "HR-09",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "平台研发部和智能产品部目前985、211毕业员工各有多少，占部门在职人数的比例分别是多少？",
+      "required_source_fields": [
+        "person_id",
+        "school_name",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "院校标签来自独立字典；未知院校计入在职分母",
+        "211包含985，不能相加；逐部门展示各自分子分母",
+        "学校仅指宽表当前这一条教育记录"
+      ],
+      "auxiliary_sources": [
+        "演示院校标签字典：is_985、is_211"
+      ],
+      "evidence": "reports/model-final.json#HR-09"
+    },
+    {
+      "id": "HR-10",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "清华大学或北京大学毕业的在职员工，按部门分别有多少？",
+      "required_source_fields": [
+        "person_id",
+        "school_name",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "学校条件为OR，按 person_id 去重",
+        "限定宽表当前教育记录，不声称检索完整多段教育经历"
+      ],
+      "evidence": "reports/model-final.json#HR-10"
+    },
+    {
+      "id": "HR-11",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "我能查看的在职员工，按学历和是否全日制交叉统计人数。",
+      "required_source_fields": [
+        "person_id",
+        "diploma_code_desc",
+        "full_time_flag",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "两个分类维度，空值归入未知组",
+        "交叉表人数相加等于同范围在职总数"
+      ],
+      "evidence": "reports/model-final.json#HR-11"
+    },
+    {
+      "id": "HR-12",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "平台研发部30至40岁、第一专业为计算机科学与技术或软件工程的在职员工有哪些？列出姓名、专业、学历和年龄。",
+      "required_source_fields": [
+        "person_id",
+        "name",
+        "dept_code",
+        "dept_cn_name",
+        "birth_date",
+        "age",
+        "first_major",
+        "diploma_code_desc",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "年龄含30和40周岁边界，按快照日计算",
+        "专业OR与年龄、部门AND组合；不通过模糊条件扩大人群"
+      ],
+      "evidence": "reports/model-final.json#HR-12"
+    },
+    {
+      "id": "HR-13",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "今年校园招聘入职、目前学历为硕士及以上且全日制的员工，列出姓名、部门、学校和入职日期。",
+      "required_source_fields": [
+        "person_id",
+        "name",
+        "dept_code",
+        "dept_cn_name",
+        "school_name",
+        "diploma_code_desc",
+        "full_time_flag",
+        "hire_type_code_desc",
+        "onboard_date"
+      ],
+      "acceptance_checks": [
+        "招聘类型使用演示字典值；入职时间与教育条件同时生效",
+        "缺失招聘类型不自动判为校园招聘"
+      ],
+      "evidence": "reports/model-final.json#HR-13"
+    },
+    {
+      "id": "HR-14",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "各部门目前外包人员占在职人员的比例是多少？同时展示外包人数和在职总人数。",
+      "required_source_fields": [
+        "person_id",
+        "dept_code",
+        "dept_cn_name",
+        "labour_type_code_desc",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "外包分类使用演示用工类型字典",
+        "分母为同范围全部在职，不能把用工筛选同时加到分母"
+      ],
+      "evidence": "reports/model-final.json#HR-14"
+    },
+    {
+      "id": "HR-15",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "对比平台研发部和智能产品部的在职人数、平均年龄以及硕士及以上比例。",
+      "required_source_fields": [
+        "person_id",
+        "dept_code",
+        "dept_cn_name",
+        "birth_date",
+        "age",
+        "diploma_code_desc",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "多个指标分别定义样本；平均年龄排除未知年龄并显示有效样本量",
+        "学历比例分母保留未知学历；结果带对应单位"
+      ],
+      "evidence": "reports/model-final.json#HR-15"
+    },
+    {
+      "id": "HR-16",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "未来90天合同到期的在职员工有哪些？按到期日排序，列出姓名、部门、合同类型和到期日期。",
+      "required_source_fields": [
+        "person_id",
+        "name",
+        "dept_code",
+        "dept_cn_name",
+        "contract_type_code_desc",
+        "contract_end_date",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "未来90天定义为快照日次日至第90日；合同未来日期不受历史查询截止限制误拦截",
+        "无到期日记录不判定为即将到期；在职条件和角色字段权限生效"
+      ],
+      "evidence": "reports/model-final.json#HR-16"
+    },
+    {
+      "id": "HR-17",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "今年已经转正的员工，各部门有多少人？从入职到转正平均经过多少天？",
+      "required_source_fields": [
+        "person_id",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "confirmation_date",
+        "formalize_flag"
+      ],
+      "acceptance_checks": [
+        "使用转正日期筛选今年，已转正标志与日期一致",
+        "平均天数基于有效日期差；异常日期需标识，不能混入平均值"
+      ],
+      "evidence": "reports/model-final.json#HR-17"
+    },
+    {
+      "id": "HR-18",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "当前任职开始日期在过去30天内的在职员工有哪些？列出姓名、部门、岗位和当前任职开始日期。",
+      "required_source_fields": [
+        "person_id",
+        "name",
+        "dept_code",
+        "dept_cn_name",
+        "position_code_desc",
+        "current_employment_start_date",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "按当前任职开始日期过滤，不误用入职日期",
+        "只能描述当前任职开始情况，不推断变动前岗位或历史调岗轨迹"
+      ],
+      "evidence": "reports/model-final.json#HR-18"
+    },
+    {
+      "id": "HR-19",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "在刚才清华或北大毕业的这些人中，只看硕士及以上、全日制员工，再按部门统计。",
+      "required_source_fields": [
+        "person_id",
+        "school_name",
+        "diploma_code_desc",
+        "full_time_flag",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "继承HR-10学校、在职与授权条件；新增学历、学习形式条件",
+        "可展开查看继承与新增条件，跨身份前次ID拒绝"
+      ],
+      "previous_case_id": "HR-10",
+      "evidence": "reports/model-final.json#HR-19"
+    },
+    {
+      "id": "HR-20",
+      "status": "passed",
+      "actor": "HR主管",
+      "question": "把学校改成浙江大学，其他条件不变，并列出姓名、部门、学校、学历和专业。",
+      "required_source_fields": [
+        "person_id",
+        "name",
+        "school_name",
+        "diploma_code_desc",
+        "full_time_flag",
+        "first_major",
+        "dept_code",
+        "dept_cn_name",
+        "onboard_date",
+        "termin_date"
+      ],
+      "acceptance_checks": [
+        "刷新页面后从HR-19历史恢复再追问",
+        "替换学校条件，保留硕士及以上、全日制、在职条件",
+        "重新鉴权，不直接复用历史人员集合或旧授权结果"
+      ],
+      "previous_case_id": "HR-19",
+      "history_resume": true,
+      "evidence": "reports/model-final.json#HR-20"
+    }
+  ],
+  "validation_report": "reports/model-final.json",
+  "golden": "evaluation/golden.json"
+}

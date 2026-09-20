@@ -1,70 +1,32 @@
-# 项目共用的 FastAPI 进程入口：V1 的 /api/* 路由在本文件，V2 的 /api/v2/* 单独挂载。
-# 两版共享 HTTP 服务不代表共享人员数据、会话、授权规则或查询编译器；不要串用身份对象。
-# 本文件中的 V1 API 读 hr.sqlite/app.sqlite；V2 的存储和 Superset 分支见 v2/。
-import asyncio
-import csv
-import io
-import json
+"""唯一 FastAPI 入口：生命周期、HTTP 安全边界和业务路由装配。"""
+
 import os
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
-from uuid import uuid4
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import config, semantics
-from .agent import answer, model_status
-from .catalog import catalog, publish_catalog, search
-from .data_dictionary import inventory
-from .db import application, business, rows
-from .debug import ensure_schema, list_runs, read_run, recover_interrupted
-from .education import school_directory
-from .models import DashboardRequest, PersonaRequest, QueryPlan, QuestionRequest
-from .query import execute
-from .security import (
-    COOKIE_NAME,
-    SESSION_SECONDS,
-    audit,
-    create_session,
-    get_principal,
-    public_principal,
-    require_csrf,
-    scope_ids,
-)
-from .seed import PERSONAS, generate, upgrade_demo_data
-from .v2.api import router as v2_router
-from .validate import validate
+from . import auth, store, superset_source
+from .routes import router
 
 
 @asynccontextmanager
 async def lifespan(app):
-    # 这是旧版多表样本及语义目录的启动准备；V2 的宽表由自身 store.ensure() 管理。
-    # 仅支持本机 demo 模式，不应把可切换演示身份的入口直接当成企业 SSO。
+    # 可切换身份的演示仅允许在本机使用，生产接入必须另行实现可信 SSO。
     if os.getenv("HR_MODE", "demo") != "demo":
-        raise RuntimeError("当前交付是回环地址演示版。生产 SSO 和数据库隔离尚需按部署文档接入。")
-    if not config.BUSINESS_DB.exists() or not config.APP_DB.exists():
-        generate()
-    upgrade_demo_data()
-    publish_catalog()
-    semantics.publish()
-    ensure_schema()
-    recover_interrupted()
+        raise RuntimeError("当前是本机演示，生产部署需要接入 SSO 与数据库隔离。")
+    superset_source.enabled()  # 拼错后端配置应立即拒绝，不能悄悄改用 SQLite。
+    store.ensure()
     yield
 
 
-app = FastAPI(
-    title="澄观 HR Intelligence",
-    version="0.1.0",
-    lifespan=lifespan,
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json",
-)
+app = FastAPI(title="澄观 HR Intelligence", version="0.1.0", lifespan=lifespan,
+              docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "testserver"])
-app.include_router(v2_router)
+app.include_router(router)
 _limits = defaultdict(deque)
 ALLOWED_ORIGINS = {
     "http://127.0.0.1:3000",
@@ -77,7 +39,7 @@ ALLOWED_ORIGINS = {
 
 @app.middleware("http")
 async def boundaries(request: Request, call_next):
-    # 两版经过相同的来源、请求大小、速率及响应头约束，但使用各自独立的会话 Cookie。
+    # 所有接口统一执行来源、请求大小、速率及响应头约束。
     origin = request.headers.get("origin")
     if origin and origin not in ALLOWED_ORIGINS:
         return JSONResponse({"detail": "来源不受信任。"}, status_code=403)
@@ -88,8 +50,8 @@ async def boundaries(request: Request, call_next):
             return JSONResponse({"detail": "请求体超过大小限制。"}, status_code=413)
     except ValueError:
         return JSONResponse({"detail": "无效请求。"}, status_code=400)
-    cookie_name = "hr_v2_session" if request.url.path.startswith("/api/v2/") else COOKIE_NAME
-    key = (request.cookies.get(cookie_name, "anonymous"), request.url.path in ("/api/chat", "/api/v2/chat"))
+    cookie_name = auth.COOKIE
+    key = (request.cookies.get(cookie_name, "anonymous"), request.url.path == "/api/chat")
     now = time.monotonic()
     queue = _limits[key]
     while queue and queue[0] < now - 60:
@@ -109,272 +71,3 @@ async def boundaries(request: Request, call_next):
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["X-Frame-Options"] = "DENY"
     return response
-
-
-@app.get("/api/health")
-async def health():
-    return {"status": "ok", "mode": "local-demo", "synthetic": True}
-
-
-@app.get("/api/demo/personas")
-def personas():
-    return {
-        "personas": [{k: p[k] for k in ["id", "label", "title", "role"]} for p in PERSONAS],
-        "demo_only": True,
-    }
-
-
-@app.post("/api/demo/session")
-def session(body: PersonaRequest, request: Request, response: Response):
-    # This endpoint deliberately permits role switching ONLY in loopback demo mode.
-    token = create_session(body.persona_id, request.cookies.get(COOKIE_NAME))
-    response.set_cookie(
-        COOKIE_NAME, token, max_age=SESSION_SECONDS, httponly=True, samesite="strict", secure=False, path="/"
-    )
-    return {"ok": True, "demo_only": True}
-
-
-@app.get("/api/bootstrap")
-async def bootstrap(principal=Depends(get_principal)):
-    with business() as db:
-        metadata = dict(db.execute("SELECT key,value FROM dataset_meta"))
-    return {
-        "principal": await asyncio.to_thread(public_principal, principal),
-        "model": await model_status(),
-        "dataset": {
-            "as_of": metadata["as_of"],
-            "calendar_start": metadata["calendar_start"],
-            "synthetic": True,
-        },
-        "catalog_version": catalog()["version"],
-        "personas": personas()["personas"],
-    }
-
-
-@app.get("/api/model")
-async def model(principal=Depends(get_principal)):
-    return await model_status()
-
-
-@app.get("/api/debug/runs")
-def debug_runs(principal=Depends(get_principal)):
-    return {"runs": list_runs(principal), "retention": 50}
-
-
-@app.get("/api/data-dictionary")
-def data_dictionary(principal=Depends(get_principal)):
-    return inventory(principal)
-
-
-@app.get("/api/semantics")
-def semantic_inventory(q: str = Query(default="", max_length=120), principal=Depends(get_principal)):
-    return semantics.inventory(principal, q)
-
-
-@app.get("/api/semantics/documents/{document_id}")
-def semantic_document(document_id: str, principal=Depends(get_principal)):
-    return semantics.read_documents(principal, [document_id])[0]
-
-
-@app.get("/api/workflow")
-def workflow(principal=Depends(get_principal)):
-    from .workflow import descriptor
-
-    return descriptor()
-
-
-@app.get("/api/debug/runs/{run_id}")
-def debug_run(run_id: str, principal=Depends(get_principal)):
-    return read_run(principal, run_id)
-
-
-@app.get("/api/overview")
-def overview(principal=Depends(get_principal)):
-    definitions = [
-        ("headcount", "none", "as_of"),
-        ("attendance_rate", "none", "this_month"),
-        ("approved_overtime_hours", "none", "this_month"),
-        ("abnormal_count", "none", "this_month"),
-        ("headcount", "division", "as_of"),
-        ("headcount", "month", "last_6_months"),
-        ("late_count", "day", "this_month"),
-    ]
-    answers = [
-        execute(principal, QueryPlan(metric=m, dimension=d, period=p), record_audit=False)
-        for m, d, p in definitions
-    ]
-    return {
-        "kpis": answers[:4],
-        "distribution": answers[4],
-        "trend": answers[5],
-        "attendance_trend": answers[6],
-    }
-
-
-@app.post("/api/query")
-def query(plan: QueryPlan, request: Request, principal=Depends(get_principal)):
-    require_csrf(request, principal)
-    return execute(principal, plan)
-
-
-@app.post("/api/chat")
-async def chat(body: QuestionRequest, request: Request, principal=Depends(get_principal)):
-    # 自然语言入口只把已验证身份传给 V1 Agent；客户端问题文本不能指定授权主体。
-    require_csrf(request, principal)
-    return await answer(principal, body.question, body.previous_id)
-
-
-@app.get("/api/catalog")
-def get_catalog(q: str = Query(default="", max_length=80), principal=Depends(get_principal)):
-    with business() as db:
-        schools = school_directory(db)
-    return {
-        "metrics": search(principal, q),
-        "schools": schools,
-        "version": catalog()["version"],
-        "storage": "Git 版本化 JSON → SQLite 指标目录 + FTS5 派生索引",
-    }
-
-
-@app.get("/api/organization")
-def organization(principal=Depends(get_principal)):
-    ids = scope_ids(principal)
-    marks = ",".join("?" for _ in ids) or "NULL"
-    with business() as db:
-        snapshot = db.execute("SELECT value FROM dataset_meta WHERE key='as_of'").fetchone()[0]
-        depts = rows(db, "SELECT id,name,parent_id,level,division_id FROM departments")
-        assigned = rows(
-            db,
-            f"SELECT a.department_id,COUNT(*) AS count FROM assignments a JOIN employees e ON e.id=a.employee_id WHERE a.valid_to IS NULL AND e.id IN ({marks}) AND e.hire_date<=? AND (e.termination_date IS NULL OR e.termination_date>?) GROUP BY a.department_id",
-            (*ids, snapshot, snapshot),
-        )
-        own = {r["department_id"]: r["count"] for r in assigned}
-        totals = {d["id"]: own.get(d["id"], 0) for d in depts}
-        for d in sorted(depts, key=lambda d: d["level"], reverse=True):
-            if d["parent_id"]:
-                totals[d["parent_id"]] += totals[d["id"]]
-        visible = [
-            {**d, "direct_employees": own.get(d["id"], 0), "count": totals[d["id"]]}
-            for d in depts
-            if totals[d["id"]] > 0
-        ]
-    people = execute(principal, QueryPlan(kind="people", period="as_of", limit=100), record_audit=False)
-    return {"departments": visible, "people": people, "principal": public_principal(principal)}
-
-
-@app.get("/api/dashboards")
-def dashboards(principal=Depends(get_principal)):
-    with application() as db:
-        cards = rows(
-            db,
-            "SELECT id,title,plan,catalog_version,created_at FROM dashboards WHERE owner_id=? ORDER BY created_at DESC",
-            (principal["id"],),
-        )
-    output = []
-    for card in cards:
-        try:
-            if card["catalog_version"] != config.CATALOG_VERSION:
-                raise HTTPException(409, detail="指标目录已更新，请重新保存看板。")
-            plan = QueryPlan.model_validate_json(card["plan"])
-            result = execute(principal, plan, record_audit=False)
-            output.append({**card, "plan": plan.model_dump(), "result": result})
-        except HTTPException as exc:
-            output.append({**card, "plan": None, "result": None, "error": exc.detail})
-    return {"dashboards": output}
-
-
-@app.post("/api/dashboards", status_code=201)
-def save_dashboard(body: DashboardRequest, request: Request, principal=Depends(get_principal)):
-    require_csrf(request, principal)
-    if body.plan.kind != "metric":
-        raise HTTPException(422, detail="个人看板仅保存汇总指标，明细不持久化为看板。")
-    execute(principal, body.plan, record_audit=False)
-    ident = uuid4().hex
-    with application() as db:
-        count = db.execute("SELECT COUNT(*) FROM dashboards WHERE owner_id=?", (principal["id"],)).fetchone()[
-            0
-        ]
-        if count >= 20:
-            raise HTTPException(422, detail="最多保存 20 个看板指标，请先移除不再使用的项目。")
-        db.execute(
-            "INSERT INTO dashboards VALUES (?,?,?,?,?,?)",
-            (
-                ident,
-                principal["id"],
-                body.title,
-                json.dumps(body.plan.model_dump(), ensure_ascii=False),
-                config.CATALOG_VERSION,
-                datetime.now(UTC).isoformat(),
-            ),
-        )
-    audit(principal, "dashboard.save", "allowed", body.plan.metric)
-    return {"id": ident, "title": body.title}
-
-
-@app.delete("/api/dashboards/{dashboard_id}")
-def delete_dashboard(dashboard_id: str, request: Request, principal=Depends(get_principal)):
-    require_csrf(request, principal)
-    with application() as db:
-        count = db.execute(
-            "DELETE FROM dashboards WHERE id=? AND owner_id=?", (dashboard_id, principal["id"])
-        ).rowcount
-    if not count:
-        raise HTTPException(404, detail="看板不存在或不可访问。")
-    audit(principal, "dashboard.delete", "allowed")
-    return {"ok": True}
-
-
-@app.post("/api/export")
-def export(plan: QueryPlan, request: Request, principal=Depends(get_principal)):
-    require_csrf(request, principal)
-    if not principal["can_export"] or plan.metric == "avg_salary":
-        audit(principal, "export", "denied", plan.metric)
-        raise HTTPException(403, detail="当前身份或该指标没有导出权限。")
-    result = execute(principal, plan)
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow([c["label"] for c in result["columns"]])
-    for row in result["rows"]:
-        values = []
-        for c in result["columns"]:
-            raw = row.get(c["key"])
-            value = "" if raw is None else str(raw)
-            if value.startswith(("=", "+", "-", "@", "\t", "\r")):
-                value = "'" + value
-            values.append(value)
-        writer.writerow(values)
-    audit(principal, "export", "allowed", plan.metric, result["scope"]["count"])
-    return Response(
-        "\ufeff" + output.getvalue(),
-        media_type="text/csv; charset=utf-8",
-        headers={"Content-Disposition": 'attachment; filename="chengguan-hr.csv"'},
-    )
-
-
-@app.get("/api/governance")
-def governance(principal=Depends(get_principal)):
-    if principal["role"] != "executive":
-        raise HTTPException(403, detail="数据治理总览仅对演示公司负责人开放。")
-    report = validate()
-    with application() as db:
-        events = rows(
-            db,
-            "SELECT action,outcome,metric_id,scope_count,policy_version,duration_ms,created_at FROM audit_events WHERE principal_id=? ORDER BY created_at DESC LIMIT 30",
-            (principal["id"],),
-        )
-    return {
-        "validation": report,
-        "audit": events,
-        "storage": {
-            "business": "SQLite 只读业务库（24 张关系表）",
-            "application": "独立 SQLite 应用库：身份、会话、指标、看板与审计",
-            "semantics": "Git JSON 源文件 + 运行目录 + FTS5 派生索引",
-            "vectors": "未启用；当前目录规模不需要向量数据库",
-        },
-        "boundaries": [
-            "演示身份切换仅适用于本机回环部署",
-            "模型仅接收指标和获准组织元数据，不接收人员明细",
-            "所有查询使用类型计划、服务端权限注入与数据库只读检查",
-            "生产需接入 SSO、PostgreSQL RLS、集中审计及部署审批",
-        ],
-    }
