@@ -1,12 +1,12 @@
 # 整个项目的代码目录与执行逻辑导读
 
-更新时间：2026-09-20。本文依据 `codex/v2-superset-integration` 分支代码整理，业务实现基线为 `2b70008`。这次补充文档和中文注释，不改变业务规则或查询行为。
+更新时间：2026-09-20。本文依据 `v2-superset-integration` 分支代码整理，业务实现基线为 `2b70008`。这次补充文档和中文注释，不改变业务规则或查询行为。
 
 这是一份从目录走到调用链的源码地图。若要手动重做 PostgreSQL 导入、Superset 用户/角色/RLS 配置，请配合 [V2 Superset 实施讲义](V2_SUPERSET_IMPLEMENTATION_GUIDE.md)。完整专题导航见 [文档索引](index.md)。
 
 ## 1. 先分清分支、版本和运行模式
 
-当前 Git 分支的准确名称是 **`codex/v2-superset-integration`**。可以称为“V2 的 Superset 集成分支”，并不是一个名为 `V2` 的分支。
+当前 Git 分支的准确名称是 **`v2-superset-integration`**。可以称为“V2 的 Superset 集成分支”，并不是一个名为 `V2` 的分支。
 
 Git 分支决定检出的代码；页面路径决定打开哪个界面；环境变量决定 V2 使用哪个查询后端。三者是不同的概念。**检出此分支后运行 `npm run demo`，V2 仍默认使用 SQLite；要启用 Superset，应运行 `npm run demo:superset`。**
 

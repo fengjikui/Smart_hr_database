@@ -1,7 +1,7 @@
 {
   "checked_at": "2026-09-19T23:51:38.124948+00:00",
   "baseline_commit": "2b70008b1d105bebbd67b1ef001dc87cd1326e7b",
-  "branch": "codex/v2-superset-integration",
+  "branch": "v2-superset-integration",
   "scope": "代码中文注释与整项目导读，不改变业务逻辑",
   "checks": [
     {
