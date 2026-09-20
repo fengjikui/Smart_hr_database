@@ -34,7 +34,8 @@ def pg(dbname=DATABASE):
 
 
 def read_fixture():
-    fixture = json.loads((LOCAL / "fixtures.json").read_text())
+    # 新容器使用独立只读挂载；既有容器仍可从原本机清单位置读取。
+    fixture = json.loads(Path(os.getenv("HR_FIXTURE_PATH", LOCAL / "fixtures.json")).read_text())
     ids = [f["id"] for f in fixture["fields"]]
     if not all(re.fullmatch(r"[a-z][a-z0-9_]*", key) for key in ids):
         raise ValueError("字段 ID 不符合安全标识符规范")

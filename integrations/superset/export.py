@@ -44,6 +44,9 @@ def main():
     LOCAL.mkdir(parents=True, exist_ok=True)
     target = LOCAL / "fixtures.json"
     target.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    # 宿主机 .local 为私有目录；容器单独只读挂载此文件，UID 可与宿主机不同。
+    # 这里只开放合成导入样本的读取，绝不修改同目录 credentials.json 的 0600 权限。
+    target.chmod(0o644)
     print(f"已导出 {data['row_count']} 人、{len(data['fields'])} 字段、{len(data['personas'])} 个身份：{target}")
     return data
 

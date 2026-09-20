@@ -10,10 +10,13 @@ x-superset: &superset
   environment:
     SUPERSET_CONFIG_PATH: /lab/superset_config.py
     FLASK_APP: superset.app:create_app
+    HR_FIXTURE_PATH: /run/hr-input/fixtures.json
     OMP_NUM_THREADS: "1"
     OPENBLAS_NUM_THREADS: "1"
   volumes:
     - ./:/lab:ro
+    # 仅把导入样本单独挂载；容器无需穿过宿主机 0700 的凭据目录。
+    - ./.local/application/fixtures.json:/run/hr-input/fixtures.json:ro
   cpus: 1.5
   mem_limit: 2g
 services:

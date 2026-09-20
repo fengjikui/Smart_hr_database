@@ -43,6 +43,8 @@ uv run python integrations/superset/run.py export
 
 输出在 `integrations/superset/.local/application/fixtures.json`。这是可阅读 JSON，不含密码，未提交 Git。工号 `00031266` 始终作为字符串，不能转换为整数。
 
+容器通过单独的只读挂载 `/run/hr-input/fixtures.json` 读取样本，避免 Linux 宿主机与容器 UID 不一致时无法穿过私有目录。宿主机 `.local` 仍为私有目录，密码文件保持 0600；只有合成样本文件设为 0644 以供该挂载读取。
+
 原模拟数据的生成函数是 `store.generate_rows()`：固定种子为 `20260911`，快照日为 `2026-09-11`；保留原固定人物关系、学校、入离职和合同样例。相对时间“今年”“上季度”仍以快照日解释。
 
 ### 26 个字段
