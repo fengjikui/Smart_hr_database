@@ -33,7 +33,7 @@ npm run demo
 
 | 文档 | 内容 |
 |---|---|
-| [从零实操](docs/HANDS_ON.md) | 分阶段路线、当前一步、重置范围与学习期间启动方式 |
+| [从零实操](docs/HANDS_ON.md) | 完整 45 步：手工建库、导入、Superset 配置、Agent 接入及验收 |
 | [学习记录](docs/LEARNING_LOG.md) | 实际操作结果、问题、回答与踩坑；随学习追加 |
 | [代码目录与整体逻辑](docs/PROJECT_CODE_GUIDE.md) | 文件职责、一次问数的完整过程、权限、前端状态和接口 |
 | [字段与指标字典](docs/DATA_DICTIONARY.md) | 当前 26 字段、15 指标、别名、含义边界、20 个问题 |

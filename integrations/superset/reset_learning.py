@@ -8,11 +8,11 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
 import shutil
 import sqlite3
 import subprocess
 from datetime import datetime
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 LOCAL = ROOT / '.local' / 'application'
@@ -24,14 +24,15 @@ RLS = ['V2_scope_public', 'V2_scope_contract', 'V2_context_scope', 'V2_PROBE_pub
 
 def clear_metadata():
     """容器内执行。显式白名单；任何未知外键依赖导致整笔事务回滚。"""
-    from superset.app import create_app
     from sqlalchemy import inspect, text
+    from superset.app import create_app
     with create_app().app_context():
-        from superset import db, security_manager as sm
+        from superset import db
+        from superset import security_manager as sm
+        from superset.connectors.sqla.models import RowLevelSecurityFilter, SqlaTable
         from superset.models.core import Database
         from superset.models.dashboard import Dashboard
         from superset.models.slice import Slice
-        from superset.connectors.sqla.models import SqlaTable, RowLevelSecurityFilter
         admin = sm.find_user(username='v2_setup_admin')
         assert admin and any(r.name == 'Admin' for r in admin.roles), '必须保留技术管理员'
         databases = db.session.query(Database).filter(Database.database_name.in_(CONNECTIONS)).all()

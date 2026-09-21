@@ -38,6 +38,8 @@ Smart_hr_database/
 │   ├── export.py                # 300 人、26 字段及策略导出
 │   ├── run.py                   # 宿主机 setup/status/verify-storage 入口
 │   ├── setup.py / schema.sql    # 数据库、递归关系、用户、角色、RLS
+│   ├── learning.py / learning_inspect.py # 手工课堂材料、只读 ID 盘点与 Agent 绑定
+│   ├── reset_learning.py        # 备份后清空本项目课堂对象；不是日常启动入口
 │   ├── verify_storage.py        # 数据与物理权限核验
 │   ├── status.py                # 只读配置盘点
 │   └── probe.py                 # 撤权回归及恢复
