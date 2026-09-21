@@ -5,7 +5,7 @@
 ## 1. 日常回归
 
 ```bash
-uv run ruff check backend tests scripts integrations/superset
+uv run ruff check backend tests scripts integrations
 npm test
 npm run typecheck
 npm run lint
@@ -71,3 +71,20 @@ uv run python scripts/smoke_http.py
 - `.github/workflows/release.yml`：手动打包当前源码。上线环境与正式认证需另行配置。
 
 本地通过不等于远端 CI 已通过。每次交付以实际执行结果为准，不保留过期成功报告作为当前依据。
+
+## OpenFGA 真实服务验收
+
+先完成独立服务与原始种子初始化，然后串行执行：
+
+```bash
+npm run test:openfga
+uv run python -m integrations.openfga.verify_changes
+HR_QUERY_BACKEND=openfga uv run python scripts/evaluate_model.py --cases HR-01 --output reports/openfga-model.json
+```
+
+第一项验证真实 FGA/PG、20道固定计划和API/多轮/历史；LangGraph 的模型输出用固定替身。
+第二项临时变更独立课堂源表，先生成私有恢复快照，finally 恢复；不要和人工操作/watch并行。
+第三项才调用真实本机模型。报告分别为 openfga-integration.json、openfga-changes.json、openfga-model.json。
+OpenFGA CI 在空的容器环境重复前两项，不依赖本机LM Studio，不接触Superset学习库。
+
+单元测试 test_openfga.py 检查批量响应缺项/错误/关联ID、源环/孤儿/非法策略等拒绝边界。

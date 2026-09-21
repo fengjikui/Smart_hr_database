@@ -1,0 +1,47 @@
+name: Validate OpenFGA integration
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'integrations/openfga/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'package*.json'
+      - '.github/workflows/openfga.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: openfga-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: bash integrations/openfga/services.sh up
+      - run: uv run python -m integrations.openfga.run init
+      - run: uv run python -m integrations.openfga.run seed
+      - run: uv run python -m integrations.openfga.run sync
+      - run: uv run python -m integrations.openfga.verify_materials
+      - run: npm run test:openfga
+      - run: uv run python -m integrations.openfga.verify_changes
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: openfga-validation
+          path: reports/openfga*.json
+      - run: bash integrations/openfga/services.sh stop
+        if: always()

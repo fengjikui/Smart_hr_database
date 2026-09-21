@@ -1,6 +1,6 @@
 """查询计划公共校验，以及 SQLite 基线编译器与执行器。
 
-execute 按配置分派到本地基线或 Superset；两条路径复用依赖字段、业务口径与
+execute 按配置分派到本地基线、Superset 或 OpenFGA；各路径复用依赖字段、业务口径与
 分页格式。这里只有白名单 Plan→SQL 的编译，不能把模型返回的 SQL 直接传入。
 """
 
@@ -11,7 +11,7 @@ from datetime import date, timedelta
 
 from fastapi import HTTPException
 
-from . import auth, store, superset_source
+from . import auth, openfga_source, store, superset_source
 from .schema import DIMENSIONS, FIELDS, LEVELS, METRICS, SCHOOLS
 
 
@@ -297,6 +297,10 @@ def fill_zeros(rows, plan, departments):
 
 def execute(p, plan):
     """统一执行入口；返回内部分页前数据供核验/导出，普通接口会删去 _all_rows。"""
+    if openfga_source.enabled():
+        from .openfga_query import execute as execute_fga
+
+        return execute_fga(p, plan)
     if superset_source.enabled():
         from .superset_query import execute as execute_superset
 
@@ -339,6 +343,12 @@ def execute(p, plan):
             rows = fill_zeros(rows, plan, departments)
         if plan.kind == "aggregate":
             rows = order_rows(rows, plan)
+    return format_result(c, sql, rows, totals, started)
+
+
+def format_result(c, sql, rows, totals, started):
+    """共享结果格式，SQLite 与 PostgreSQL 使用相同分页/列标签/总计契约。"""
+    plan = c.plan
     count = len(rows)
     all_rows = rows
     rows = rows[(plan.page - 1) * plan.page_size : plan.page * plan.page_size]

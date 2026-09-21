@@ -500,7 +500,9 @@ function Workspace({
                 </span>
                 <span>权限版本 {boot.principal.policy_version}</span>
                 <span>
-                  {boot.query_backend === 'superset'
+                  {boot.query_backend === 'openfga'
+                    ? 'OpenFGA 权限 · PostgreSQL 查询'
+                    : boot.query_backend === 'superset'
                     ? 'Superset 权限 · PostgreSQL 查询'
                     : '本地 SQLite 演示'}
                 </span>

@@ -1,0 +1,32 @@
+model
+  schema 1.1
+
+type user
+
+type role
+  relations
+    define member: [user]
+
+type company
+  relations
+    define reports: [role#member]
+    define hrbp: [role#member]
+    define inherit_hrbp: [role#member]
+    define details: [role#member]
+    define export: [role#member]
+    define basic: [role#member]
+    define education: [role#member]
+    define employment: [role#member]
+    define contract: [role#member]
+
+type person
+  relations
+    define owner: [user]
+    define manager: [person]
+    define hrbp_provider: [person]
+    define company: [company]
+    define supervisors: owner from manager or supervisors from manager
+    define reports_access: supervisors and reports from company
+    define hrbp_access: owner from hrbp_provider and hrbp from company
+    define inherited_access: supervisors from hrbp_provider and inherit_hrbp from company and reports from company
+    define viewer: owner or reports_access or hrbp_access or inherited_access

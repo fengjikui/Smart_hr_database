@@ -2,11 +2,11 @@
 
 用自然语言查询授权范围内的人员、教育背景和入离职数据，并查看统计口径、结果表格、独立核验和逐节点调试。
 
-仓库只维护一套应用：**React 工作台 → FastAPI / LangGraph → Superset → PostgreSQL**。默认使用 Superset 权限；SQLite 是显式选择的离线验证后端。样本为 300 人、26 个字段、15 个指标，数据截止日固定为 `2026-09-11`。
+仓库只维护一套应用：**React 工作台 → FastAPI / LangGraph → 权限后端 → PostgreSQL**。默认使用 Superset，也可显式选择 OpenFGA；SQLite 是离线验证后端。样本为 300 人、26 个字段、15 个指标，数据截止日固定为 `2026-09-11`。
 
 ## 启动
 
-手工学习请先读 [从零实操](docs/HANDS_ON.md)，进度记在 [学习记录](docs/LEARNING_LOG.md)。本机有 `manual-learning.json` 标记时，下面的一键初始化和工作台启动会被阻止；这是为了保留你亲手建库、配置权限的过程。
+手工学习请先读 [从零实操](docs/HANDS_ON.md)，进度记在 [学习记录](docs/LEARNING_LOG.md)。本机有 `manual-learning.json` 标记时，Superset 一键初始化和原工作台启动会被阻止；独立的 OpenFGA 启动不受此标记阻止；这是为了保留你亲手建库、配置权限的过程。
 
 依赖：Node.js 24、Python 3.13、uv，以及 Docker/Compose。模型在本机 LM Studio，默认兼容接口 `http://127.0.0.1:1234/v1`、模型标识 `hr-qwen`。
 
@@ -29,11 +29,28 @@ npm run demo
 
 不连接 Superset 时可运行 `npm run demo:offline`，仍是同一套界面与指标。Superset 模式故障不会自动降级到离线模式。
 
+## OpenFGA 方案
+
+另一路径已接入同一问数界面，使用独立 PostgreSQL/FGA 服务，不修改 Superset 学习进度。
+详细操作请从 [OpenFGA 35步实操](docs/OPENFGA_HANDS_ON.md) 开始。
+
+```bash
+npm run openfga:up
+npm run openfga:init
+npm run openfga:seed       # 仅首次，已有数据会拒绝覆盖
+npm run openfga:sync
+npm run test:openfga
+npm run demo:openfga
+```
+
 ## 文档从这里读
 
 | 文档 | 内容 |
 |---|---|
 | [从零实操](docs/HANDS_ON.md) | 完整 45 步：手工建库、导入、Superset 配置、Agent 接入及验收 |
+| [OpenFGA实操](docs/OPENFGA_HANDS_ON.md) | 35步：模型、关系、同步、查询与撤权 |
+| [OpenFGA方案与边界](docs/OPENFGA_DESIGN.md) | 职责、代码地图、同步一致性与生产差距 |
+| [OpenFGA学习记录](docs/OPENFGA_LEARNING_LOG.md) | 开发证据和你的手工进度 |
 | [学习记录](docs/LEARNING_LOG.md) | 实际操作结果、问题、回答与踩坑；随学习追加 |
 | [代码目录与整体逻辑](docs/PROJECT_CODE_GUIDE.md) | 文件职责、一次问数的完整过程、权限、前端状态和接口 |
 | [字段与指标字典](docs/DATA_DICTIONARY.md) | 当前 26 字段、15 指标、别名、含义边界、20 个问题 |
@@ -62,9 +79,10 @@ npm run build
 
 | 配置 | 默认值 / 说明 |
 |---|---|
-| `HR_QUERY_BACKEND` | `superset`；仅接受 `superset` 或 `sqlite` |
+| `HR_QUERY_BACKEND` | `superset`；接受 `superset`、`openfga` 或 `sqlite` |
 | `HR_SUPERSET_URL` | `http://127.0.0.1:8088` |
 | `HR_SUPERSET_DIR` | `integrations/superset/.local/application` |
+| `HR_OPENFGA_CONFIG` | `integrations/openfga/.local/runtime.json`；只读数据库与引擎连接 |
 | `HR_DATA_DIR` | `data`，保存 `sessions.sqlite` 和 `people.sqlite` |
 | `HR_BACKEND_URL` | `http://127.0.0.1:8000`，仅前端代理服务端使用 |
 | `LM_STUDIO_URL` / `LM_STUDIO_MODEL` | 本机模型地址 / `hr-qwen` |

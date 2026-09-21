@@ -25,7 +25,7 @@ META_COLUMNS = ["_viewer_id", "_depth", "_reports", "_hrbp", "_inherited", "_ori
 def enabled():
     """默认通过 Superset 查询；离线样本须显式设置 sqlite，拼写错误拒绝执行。"""
     backend = os.getenv("HR_QUERY_BACKEND", "superset")
-    if backend not in {"sqlite", "superset"}:
+    if backend not in {"sqlite", "superset", "openfga"}:
         raise HTTPException(503, "未知 查询后端；拒绝自动回退")
     return backend == "superset"
 

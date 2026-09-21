@@ -107,7 +107,7 @@ export type Principal = {
 };
 export type Bootstrap = {
   // 初始化响应同时带回当前身份、权限裁剪后的目录与数据指纹，用于整页状态失效。
-  query_backend?: 'sqlite' | 'superset';
+  query_backend?: 'sqlite' | 'superset' | 'openfga';
   fingerprint: string;
   principal: Principal;
   personas: { id: string; label: string }[];

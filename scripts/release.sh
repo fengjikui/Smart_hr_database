@@ -5,7 +5,7 @@ if [[ -n "$(git status --porcelain)" ]]; then
   printf 'Please commit or resolve working tree changes before packaging a release.\n' >&2
   exit 1
 fi
-uv run ruff check backend tests scripts integrations/superset
+uv run ruff check backend tests scripts integrations
 uv run pytest -q
 npm run typecheck
 npm run lint

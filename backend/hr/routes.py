@@ -12,7 +12,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field
 
-from . import auth, config, query, registry, service, store, superset_source
+from . import auth, config, openfga_source, query, registry, service, store, superset_source
 from .model import model_status
 from .schema import Plan, Question, Strict
 
@@ -44,7 +44,7 @@ def health():
         "as_of": store.AS_OF,
         "synthetic": True,
         "source_fields": 26,
-        "query_backend": "superset" if superset_source.enabled() else "sqlite",
+        "query_backend": "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
     }
 
 
@@ -68,7 +68,7 @@ async def bootstrap(p=Depends(auth.principal)):
         "model": await model_status(),
         "data_version": store.DATA_VERSION,
         "fingerprint": auth.fingerprint(p),
-        "query_backend": "superset" if superset_source.enabled() else "sqlite",
+        "query_backend": "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
     }
 
 
@@ -138,6 +138,8 @@ def relations(p=Depends(auth.principal)):
 # 这组配置 API 仅服务原 SQLite 演示；Superset 模式拒绝本地规则写入。
 @router.get("/policy")
 def policy(p=Depends(auth.principal)):
+    if openfga_source.enabled():
+        raise HTTPException(409, "OpenFGA 模式请配置模型/源策略并发布")
     if superset_source.enabled():
         raise HTTPException(409, "Superset 模式的配置入口在 Superset 与 PostgreSQL，本地规则编辑已停用")
     if p["id"] != "admin":

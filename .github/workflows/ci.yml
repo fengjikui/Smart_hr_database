@@ -24,7 +24,7 @@ jobs:
           python-version: '3.13'
       - run: uv sync --frozen
       - run: npm ci
-      - run: uv run ruff check backend tests scripts integrations/superset
+      - run: uv run ruff check backend tests scripts integrations
       - run: uv run pytest -q --junitxml=reports/junit.xml
       - run: uv run python scripts/document_catalog.py --check
       - run: npm run typecheck

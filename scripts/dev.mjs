@@ -60,7 +60,7 @@ function start(command, args) {
 }
 try {
   // 学习期间不启动旧工作台，避免历史结果与尚未建好的数据库混淆。
-  if (existsSync(join(root, 'integrations/superset/.local/application/manual-learning.json')))
+  if (process.env.HR_QUERY_BACKEND !== 'openfga' && existsSync(join(root, 'integrations/superset/.local/application/manual-learning.json')))
     throw new Error('正在手工学习，请按 docs/HANDS_ON.md 完成配置后再启动工作台。');
   // 检测到已有服务就退出，避免把既有实例误认为本次新启动的版本。
   if (await probe('http://127.0.0.1:3000/'))

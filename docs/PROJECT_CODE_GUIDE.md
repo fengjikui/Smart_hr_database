@@ -1,7 +1,7 @@
 # 项目代码目录与整体逻辑
 
-本文只描述当前可运行的系统。仓库不再并列保留旧工作台、独立权限实验或阶段版本目录。
-代码历史由 Git 保存；阅读当前文件即可理解当前行为。默认执行链为 **LangGraph → Superset → PostgreSQL**。
+本文只描述当前可运行的系统。仓库不再并列保留旧工作台或阶段版本目录；Superset/OpenFGA 是同一应用的两个可选适配器。
+代码历史由 Git 保存；阅读当前文件即可理解当前行为。默认执行链为 **LangGraph → Superset → PostgreSQL**；OpenFGA 链路和同步协议见 [方案设计](OPENFGA_DESIGN.md)。
 
 ## 1. 从哪里开始读
 
@@ -27,6 +27,9 @@ Smart_hr_database/
 │   ├── query.py                  # 统一校验与执行分派；离线 SQL 编译器
 │   ├── superset_source.py        # 业务账号、受限快照与上游错误处理
 │   ├── superset_query.py         # PostgreSQL 表达式与 Chart Data 请求
+│   ├── fga_client.py             # OpenFGA HTTP 与批量检查完整性
+│   ├── openfga_source.py         # 主体、发布快照、权限、PG只读上下文
+│   ├── openfga_query.py          # 复用校验与结果格式的 PostgreSQL 编译器
 │   ├── service.py                # 摘要、核验、下钻、历史
 │   ├── reference.py              # 独立 Python 参考计算与 BFS
 │   └── store.py                  # 确定性样本、SQLite 会话和历史
@@ -43,6 +46,7 @@ Smart_hr_database/
 │   ├── verify_storage.py        # 数据与物理权限核验
 │   ├── status.py                # 只读配置盘点
 │   └── probe.py                 # 撤权回归及恢复
+├── integrations/openfga/        # 模型DSL、官方转换器、独立服务、同步、真实回归
 ├── evaluation/                  # cases/plans/golden/paraphrases，当前验收资料
 ├── tests/                       # 当前业务与迁移回归
 ├── scripts/                     # 启动、验收、文档校验、状态迁移与打包

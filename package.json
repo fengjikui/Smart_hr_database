@@ -29,7 +29,13 @@
     "test:performance": "HR_QUERY_BACKEND=sqlite uv run python scripts/benchmark.py",
     "test:superset": "uv run python scripts/validate_superset.py",
     "test:revocation": "uv run python scripts/validate_revocation.py",
-    "release": "bash scripts/release.sh"
+    "release": "bash scripts/release.sh",
+    "openfga:up": "bash integrations/openfga/services.sh up",
+    "openfga:init": "uv run python -m integrations.openfga.run init",
+    "openfga:seed": "uv run python -m integrations.openfga.run seed",
+    "openfga:sync": "uv run python -m integrations.openfga.run sync",
+    "demo:openfga": "HR_QUERY_BACKEND=openfga HR_DATA_DIR=integrations/openfga/.local/app node scripts/dev.mjs",
+    "test:openfga": "uv run python -m integrations.openfga.verify"
   },
   "dependencies": {
     "ag-grid-community": "36.1.0",
@@ -45,6 +51,7 @@
     "@cloudflare/vite-plugin": "1.54.8",
     "@cloudflare/workers-types": "5.20260911.1",
     "@openai/sites-vite-plugin": "0.2.0",
+    "@openfga/syntax-transformer": "0.2.2",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",

@@ -1,4 +1,4 @@
-"""会话身份与授权的统一入口，隔离 SQLite 基线和 Superset 两种实现。
+"""会话身份与授权的统一入口，隔离 SQLite 基线、Superset 和 OpenFGA 实现。
 
 上层目录、查询、历史都通过本模块取权限，不应自行读取全量人员再筛选。
 当前 session 是可切换身份的本机演示入口，不承担企业员工身份认证；生产
@@ -14,7 +14,7 @@ from datetime import UTC, datetime
 from fastapi import HTTPException, Request
 from pydantic import Field
 
-from . import store, superset_source
+from . import openfga_source, store, superset_source
 from .schema import FIELDS, Strict
 
 COOKIE = "hr_session"
@@ -95,6 +95,8 @@ def grants(p, config=None, rows=None):
     Superset 在线模式读取经过 RLS 的快照；显式传入 rows/config 时用于本地
     配置预览或独立样本检查。下方 Python 遍历不是 Superset 模式的最终授权。
     """
+    if openfga_source.enabled() and config is None and rows is None:
+        return openfga_source.snapshot(p)["grant"]
     if superset_source.enabled() and config is None and rows is None:
         return superset_source.snapshot(p)["grant"]
     config = config or store.policy()
@@ -183,6 +185,8 @@ def scoped(p, scope="all", config=None, rows=None):
 
 def allowed_fields(p, config=None):
     """字段组展开为字段 ID；输出、筛选、排序及指标依赖都要检查这个集合。"""
+    if openfga_source.enabled() and config is None:
+        return openfga_source.snapshot(p)["fields"]
     if superset_source.enabled() and config is None:
         return superset_source.snapshot(p)["fields"]
     rules = (config or store.policy())["roles"][p["role"]]
@@ -191,6 +195,8 @@ def allowed_fields(p, config=None):
 
 def fingerprint(p):
     """为历史和长查询建立失效标识；权限或数据变化后不能复用旧结果。"""
+    if openfga_source.enabled():
+        return openfga_source.snapshot(p, refresh=True)["fingerprint"]
     if superset_source.enabled():
         # 历史读取、模型前后、结果返回前均重新查询，撤权不能靠旧会话缓存绕过。
         return superset_source.snapshot(p, refresh=True)["fingerprint"]
@@ -206,6 +212,10 @@ def fingerprint(p):
 
 def policy(p):
     """业务配置唯一来源随执行后端选择，不混用两份授权配置。"""
+    if openfga_source.enabled():
+        snap = openfga_source.snapshot(p)
+        return {"version": snap["grant"]["policy_version"], "assumption": True,
+                "roles": {p["role"]: snap["rules"]}}
     if superset_source.enabled():
         snap = superset_source.snapshot(p)
         return {"version": snap["grant"]["policy_version"], "assumption": True,
@@ -215,6 +225,8 @@ def policy(p):
 
 def people(p):
     """Superset 模式下连候选部门/关系说明也只能来自当前用户可读的人群。"""
+    if openfga_source.enabled():
+        return openfga_source.snapshot(p)["rows"]
     if superset_source.enabled():
         return superset_source.snapshot(p)["rows"]
     return store.people()
@@ -235,14 +247,16 @@ def public(p):
         "count": sum(active(r) for r in rows),
         "candidate_count": len(rows),
         "policy_version": grant["policy_version"],
-        "can_configure": p["id"] == "admin" and not superset_source.enabled(),
-        "authorization_backend": "superset" if superset_source.enabled() else "local",
+        "can_configure": p["id"] == "admin" and not (superset_source.enabled() or openfga_source.enabled()),
+        "authorization_backend": "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "local",
         "rules": rules,
     }
 
 
 def policy_preview(p, body):
     """仅在 SQLite 演示预览所有身份的影响；Superset 配置不能写入本地假装生效。"""
+    if openfga_source.enabled():
+        raise HTTPException(409, "OpenFGA 模式请修改源策略并同步发布，本地规则编辑已停用")
     if superset_source.enabled():
         raise HTTPException(409, "Superset 模式请在 Superset 配置角色/RLS，在 PostgreSQL 配置业务关系；本地规则编辑已停用")
     if p["id"] != "admin":

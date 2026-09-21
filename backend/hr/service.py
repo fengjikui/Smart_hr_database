@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 
-from . import auth, query, reference, store, superset_source
+from . import auth, openfga_source, query, reference, store, superset_source
 from .schema import FIELDS, METRICS, Plan
 
 
@@ -58,7 +58,7 @@ def reconcile(p, plan):
     """
     before = auth.fingerprint(p)
     actual = query.execute(p, plan)
-    if superset_source.enabled():
+    if superset_source.enabled() or openfga_source.enabled():
         ids, grant = auth.scoped(p, plan.scope)
         expected = reference.calculate(p, plan, source=auth.people(p), scope=(set(ids), grant["depths"]))
     else:
@@ -86,7 +86,7 @@ def reconcile(p, plan):
         "query_hash": digest(actual["_all_rows"]),
         "reference_hash": digest(expected["rows"]),
         "totals": expected["totals"],
-        "method": ("Superset/PostgreSQL结果 vs 当前已授权快照的独立Python计算" if superset_source.enabled()
+        "method": ("PostgreSQL结果 vs 当前已授权快照的独立Python计算" if superset_source.enabled() or openfga_source.enabled()
                    else "只读SQL结果 vs 独立Python逐人员过滤与分组；权限采用独立BFS遍历"),
         "limitation": "验证演示口径下的计算一致性；在线对账不独立证明授权范围正确，权限名单另由离线回归核验；不代替业务确认口径，也不证明模型理解符合提问本意。",
         "fingerprint": before,
