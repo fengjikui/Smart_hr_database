@@ -1,4 +1,5 @@
 """手工教程生成器的关键边界：材料一致性、真实 ID 和 SQL 值转义。"""
+
 import importlib.util
 from pathlib import Path
 
@@ -36,6 +37,7 @@ def test_mapping_refuses_guessed_or_missing_user_id(lesson):
 
 def test_fixture_tamper_rejected(lesson, tmp_path, monkeypatch):
     import json
+
     monkeypatch.setattr(lesson, "LOCAL", tmp_path)
     (tmp_path / "fixtures.json").write_text(json.dumps({"people": [], "data_fingerprint": "bad"}))
     with pytest.raises(ValueError, match="指纹不符"):
@@ -47,3 +49,29 @@ def test_private_sql_output(lesson, tmp_path, monkeypatch):
     path = lesson.write_sql("test.sql", "SELECT 1;")
     assert path.stat().st_mode & 0o777 == 0o600
     assert path.parent.stat().st_mode & 0o777 == 0o700
+
+
+@pytest.mark.parametrize("flag,allowed", [(False, True), (True, False), (None, False), ("false", False)])
+def test_container_guard_unreadable_private_directory(flag, allowed):
+    from integrations.superset.initialization_guard import require_automatic_setup
+
+    class PrivateDirectory:
+        def __truediv__(self, name):
+            return self
+
+        def stat(self):
+            raise PermissionError("private host directory")
+
+    if allowed:
+        require_automatic_setup(PrivateDirectory(), lambda: {"manual_learning": flag})
+    else:
+        with pytest.raises(SystemExit):
+            require_automatic_setup(PrivateDirectory(), lambda: {"manual_learning": flag})
+
+
+def test_visible_learning_marker_cannot_be_overridden(tmp_path):
+    from integrations.superset.initialization_guard import require_automatic_setup
+
+    (tmp_path / "manual-learning.json").write_text("{}")
+    with pytest.raises(SystemExit):
+        require_automatic_setup(tmp_path, lambda: {"manual_learning": False})

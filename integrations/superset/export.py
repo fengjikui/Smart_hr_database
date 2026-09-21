@@ -26,6 +26,7 @@ def snapshot():
     fingerprint = hashlib.sha256(json.dumps(rows, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     return {
         "schema_version": 1,
+        "manual_learning": (LOCAL / "manual-learning.json").exists(),
         "source": "backend.hr.store.people()/policy()",
         "as_of": store.AS_OF,
         "data_version": store.DATA_VERSION,

@@ -42,6 +42,7 @@ Smart_hr_database/
 │   ├── run.py                   # 宿主机 setup/status/verify-storage 入口
 │   ├── setup.py / schema.sql    # 数据库、递归关系、用户、角色、RLS
 │   ├── learning.py / learning_inspect.py # 手工课堂材料、只读 ID 盘点与 Agent 绑定
+│   ├── initialization_guard.py # 学习保护；兼容容器与宿主机 UID 不同
 │   ├── reset_learning.py        # 备份后清空本项目课堂对象；不是日常启动入口
 │   ├── verify_storage.py        # 数据与物理权限核验
 │   ├── status.py                # 只读配置盘点

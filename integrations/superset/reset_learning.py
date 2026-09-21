@@ -115,6 +115,8 @@ def reset():
     hashes = {str(p.relative_to(backup)): hashlib.sha256(p.read_bytes()).hexdigest() for p in backup.rglob('*') if p.is_file()}
     (backup / 'sha256.json').write_text(json.dumps(hashes, indent=2))
     # 标记在删除前写入；失败也禁止自动 setup，供人工检查/恢复。
+    from initialization_guard import stamp_fixture_guard
+    stamp_fixture_guard(LOCAL)
     marker = LOCAL / 'manual-learning.json'
     marker.write_text(json.dumps({'backup': str(backup), 'state': 'resetting'}, indent=2))
     result = run([*ss, 'python', '/lab/reset_learning.py', '--inside'], capture_output=True, text=True)
