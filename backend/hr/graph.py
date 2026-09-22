@@ -126,6 +126,10 @@ def discover(s):
     部门候选来自当前授权人员，不能把不可见部门作为模型上下文泄露出去。
     """
     started = time.perf_counter()
+    from . import superset_mcp, superset_source
+    if superset_mcp.enabled():
+        proof = superset_source.snapshot(s["principal"])["mcp_catalog"]
+        record(s, "官方 MCP 授权目录发现（查询仍走 REST）", {}, proof, started)
     catalog = registry.catalog(s["principal"])
     s["catalog"] = catalog
     index = [
@@ -353,7 +357,7 @@ def execute_node(s):
         {
             k: s["result"][k]
             for k in ("sql", "parameters", "rows", "totals", "total_rows", "duration_ms", "scope_count",
-                      "execution_backend", "source_queries") if k in s["result"]
+                      "execution_backend", "source_queries", "mcp_trace") if k in s["result"]
         },
         started,
     )

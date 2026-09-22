@@ -12,7 +12,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field
 
-from . import auth, config, openfga_source, query, registry, service, store, superset_source
+from . import auth, config, openfga_source, query, registry, service, store, superset_mcp, superset_source
 from .model import model_status
 from .schema import Plan, Question, Strict
 
@@ -44,7 +44,7 @@ def health():
         "as_of": store.AS_OF,
         "synthetic": True,
         "source_fields": 26,
-        "query_backend": "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
+        "query_backend": "superset_mcp_catalog_rest_query" if superset_mcp.enabled() else "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
     }
 
 
@@ -68,7 +68,7 @@ async def bootstrap(p=Depends(auth.principal)):
         "model": await model_status(),
         "data_version": store.DATA_VERSION,
         "fingerprint": auth.fingerprint(p),
-        "query_backend": "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
+        "query_backend": "superset_mcp_catalog_rest_query" if superset_mcp.enabled() else "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
     }
 
 

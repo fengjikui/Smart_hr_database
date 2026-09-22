@@ -1,0 +1,53 @@
+# 此文件独立定义所有服务；不继承课堂 Compose，避免固定端口/卷意外复用。
+name: hr-superset-mcp
+x-platform: &platform
+  image: hr-superset-mcp:6.1.0-fastmcp3.1.0
+  build: .
+  env_file: .local/lab.env
+  environment:
+    SUPERSET_CONFIG_PATH: /mcp-lab/superset_config.py
+    FLASK_APP: superset.app:create_app
+    HR_FIXTURE_PATH: /run/hr-input/fixtures.json
+    OMP_NUM_THREADS: "1"
+    OPENBLAS_NUM_THREADS: "1"
+  volumes:
+    - ../superset:/lab:ro
+    - ./:/mcp-lab:ro
+    - ./.local/application/fixtures.json:/run/hr-input/fixtures.json:ro
+  cpus: 0.75
+  mem_limit: 768m
+services:
+  postgres:
+    image: postgres:17.11
+    env_file: .local/lab.env
+    ports: ["127.0.0.1:55434:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../superset/init-postgres.sh:/docker-entrypoint-initdb.d/10-lab.sh:ro
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=40"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    cpus: 0.5
+    mem_limit: 384m
+  init:
+    <<: *platform
+    command: ["sh", "-c", "superset db upgrade && superset init"]
+    depends_on:
+      postgres: {condition: service_healthy}
+  superset:
+    <<: *platform
+    ports: ["127.0.0.1:18088:8088"]
+    command: ["gunicorn", "--bind", "0.0.0.0:8088", "--workers", "1", "--threads", "2", "--timeout", "90", "superset.app:create_app()"]
+    depends_on:
+      init: {condition: service_completed_successfully}
+  mcp:
+    <<: *platform
+    ports: ["127.0.0.1:15008:5008"]
+    command: ["python", "/mcp-lab/server.py"]
+    depends_on:
+      init: {condition: service_completed_successfully}
+volumes:
+  postgres-data:

@@ -300,7 +300,8 @@ def execute(p, plan):
             "学校与学历取宽表当前教育记录；毕业日期映射为演示假设。",
             "查询通过当前演示身份登录 Superset；RLS 在 PostgreSQL 聚合前生效。",
         ],
-        "execution_backend": "superset",
+        "execution_backend": "superset_mcp_catalog_rest_query" if snapshot.get("mcp_catalog") else "superset",
+        "mcp_trace": snapshot["mcp_catalog"]["trace"] if snapshot.get("mcp_catalog") else None,
         "source_queries": source_queries,
         "_all_rows": rows,
     }

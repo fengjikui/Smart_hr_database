@@ -25,9 +25,9 @@ META_COLUMNS = ["_viewer_id", "_depth", "_reports", "_hrbp", "_inherited", "_ori
 def enabled():
     """默认通过 Superset 查询；离线样本须显式设置 sqlite，拼写错误拒绝执行。"""
     backend = os.getenv("HR_QUERY_BACKEND", "superset")
-    if backend not in {"sqlite", "superset", "openfga"}:
+    if backend not in {"sqlite", "superset", "superset_mcp", "openfga"}:
         raise HTTPException(503, "未知 查询后端；拒绝自动回退")
-    return backend == "superset"
+    return backend in {"superset", "superset_mcp"}
 
 
 def local_dir():
@@ -185,6 +185,9 @@ def snapshot(p, refresh=False):
     if not refresh and p.get("_superset_snapshot") is not None:
         return p["_superset_snapshot"]
     subject = identity(p)
+    # MCP 是显式实验路径；刷新权限时重新读取目录，撤销目录权限/服务断开即失败关闭。
+    from . import superset_mcp
+    mcp_catalog = superset_mcp.catalog(p) if superset_mcp.enabled() else None
     with session(p) as client:
         # ① 先通过 context 的 RLS 读本人策略，再决定人员出口与所需字段。
         # 要求恰好一行：零行可能未映射，多行可能配置错误，均不能猜测身份。
@@ -245,9 +248,9 @@ def snapshot(p, refresh=False):
     # 指纹刻意不包含 SQL 文本或返回顺序，而使用真实授权内容与出口 ID。
     # 这不是生产级全库版本号；本机样本通过重复真实查询换取可直观看到的即时撤权。
     fingerprint = hashlib.sha256(json.dumps({"backend": "superset", "subject": subject,
-        "context": context, "rows": rows, "query_scopes": scopes},
+        "context": context, "rows": rows, "query_scopes": scopes, "mcp_catalog": mcp_catalog},
         sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     result = {"context": context, "rows": rows, "grant": grant, "rules": rules, "fields": fields,
-              "fingerprint": fingerprint, "source_queries": source_queries}
+              "fingerprint": fingerprint, "source_queries": source_queries, "mcp_catalog": mcp_catalog}
     p["_superset_snapshot"] = result
     return result
