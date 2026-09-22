@@ -98,6 +98,8 @@ def grants(p, config=None, rows=None):
     if openfga_source.enabled() and config is None and rows is None:
         return openfga_source.snapshot(p)["grant"]
     if superset_source.enabled() and config is None and rows is None:
+        # 在线 Superset 分支在这里直接返回，不进入下面用于离线样本的 Python 递归。
+        # grant 已来自业务账号经过 RLS 的结果，但实际查询仍须再次经过上游鉴权。
         return superset_source.snapshot(p)["grant"]
     config = config or store.policy()
     rows = rows if rows is not None else store.people()
@@ -188,6 +190,8 @@ def allowed_fields(p, config=None):
     if openfga_source.enabled() and config is None:
         return openfga_source.snapshot(p)["fields"]
     if superset_source.enabled() and config is None:
+        # 字段能力用于模型目录和 Plan 校验；不是只在前端隐藏列，实际出口
+        # 还通过 public/contract 两种视图与数据集访问角色约束。
         return superset_source.snapshot(p)["fields"]
     rules = (config or store.policy())["roles"][p["role"]]
     return {name for name, info in FIELDS.items() if info[1] in rules["field_groups"]}

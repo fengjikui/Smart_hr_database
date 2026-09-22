@@ -16,6 +16,8 @@ def views():
     try:
         class Recorder:
             def execute(self, statement):
+                # 模拟 cursor.execute 的签名，但只序列化 SQL；真实连接仅用于
+                # psycopg2 标识符转义，绝不将收集到的 CREATE 语句提交给数据库。
                 statements.append(statement.as_string(conn).strip() + ";")
         create_people_views(Recorder(), read_fixture()["fields"])
     finally:
@@ -31,6 +33,8 @@ def inventory():
         from superset import security_manager as sm
         from superset.connectors.sqla.models import SqlaTable
         from superset.models.core import Database
+        # 盘点的是用户和已注册数据集，不单独返回连接列表；datasets 为空
+        # 不能据此断言数据库连接尚未创建，连接需要查询 Database 模型核对。
         result = {"users": {}, "datasets": {}}
         fixture = read_fixture()
         for name in ["v2_setup_admin", "v2_unmapped", *["v2_" + p["id"] for p in fixture["personas"]]]:
@@ -56,6 +60,8 @@ def inventory():
 
 def binding():
     """核对人员映射后返回兼容 Agent 的清单，不创建或修改任何配置。"""
+    # 确认“应用身份→Superset 账号→员工主键/业务角色”和五个出口均对得上。
+    # 这里只验证映射结构；真实 RLS/越权测试仍须由后续验收执行。
     actual = inventory()
     fixture = read_fixture()
     expected = {"people_public", "people_contract", "events_public", "events_contract", "context"}

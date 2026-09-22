@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture
 def lesson(monkeypatch):
+    # 加载材料生成器，测试临时目录/模拟 ID；不执行生成 SQL，不改课堂账号。
     monkeypatch.syspath_prepend(str(ROOT / "integrations/superset"))
     spec = importlib.util.spec_from_file_location("hr_learning", ROOT / "integrations/superset/learning.py")
     module = importlib.util.module_from_spec(spec)

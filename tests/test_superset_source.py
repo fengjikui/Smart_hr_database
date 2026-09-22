@@ -25,6 +25,8 @@ def test_manual_learning_rejects_stale_manifest(tmp_path, monkeypatch):
 
 @pytest.fixture
 def remote(monkeypatch, request):
+    # 替换清单与网络会话，覆盖授权出口的错误分支；不会登录当前课堂平台。
+    # 这些单测证明适配器行为，不等同于真实 Superset 配置已经通过验收。
     key = getattr(request, "param", "employee")
     p = dict(next(p for p in store.PERSONAS if p["id"] == key))
     subject = {"username": "v2_employee", "user_id": 42, "person_id": p["person_id"], "role": p["role"]}

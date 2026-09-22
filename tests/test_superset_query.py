@@ -21,6 +21,7 @@ PLANS = json.loads((config.PROJECT / "evaluation/plans.json").read_text())["plan
 
 @pytest.fixture
 def environment(tmp_path, monkeypatch):
+    # 只使用合成基线与临时会话库；检验受限 Plan 的编译，不执行真实平台查询。
     monkeypatch.setattr(config, "APP_DB", tmp_path / "app.sqlite")
     store.ensure()
     principal = next(persona for persona in store.PERSONAS if persona["id"] == "hr_lead")

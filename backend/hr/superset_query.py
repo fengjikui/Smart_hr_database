@@ -55,9 +55,13 @@ class Compiler:
         self.snapshot = snapshot
         self.ids, self.grant = query.validate(p, self.plan)
         required = query.dependencies(self.plan)
+        # 依赖不止展示列：筛选、排序、分组、指标的隐含字段也必须允许读取，
+        # 否则即便不展示合同列，仍可能通过筛选/统计推测合同信息。
         if not required <= set(snapshot["fields"]):
             raise HTTPException(403, "当前 Superset 角色没有这些字段或指标的权限")
         contract = any(FIELDS[field][1] == "contract" for field in required)
+        # 根据问题所需字段选择最小出口，不因用户是 HR 就一律访问合同数据集。
+        # employment_events 对应“同一期间入职和离职”，用事件视图统一日期维度。
         self.dataset_key = ("events" if plan.date_field == "employment_events" else "people") + (
             "_contract" if contract else "_public"
         )
@@ -131,6 +135,7 @@ class Compiler:
 
     def metric(self, name):
         """把一个业务指标展开成 PostgreSQL 表达式；辅助分母/样本量同样在库中计算。"""
+        # 同一个人在事件视图里可能有两行，人数要去重；入/离职次数则分别累加标记。
         count = 'COUNT(DISTINCT "person_id")'
         if name == "count":
             return [(name, count)]
@@ -163,6 +168,8 @@ class Compiler:
         numerator = f'COUNT(DISTINCT CASE WHEN {predicates[key]} THEN "person_id" END)'
         if name.endswith("_count"):
             return [(name, numerator)]
+        # NULLIF 防止空人群除以零；分子/分母一并输出，便于人工核验比例口径。
+        # 总体比例需对总体人群重新计算，不能把各部门百分比直接相加或取平均。
         return [
             (name, f"ROUND(100.0 * {numerator} / NULLIF({count}, 0), 2)"),
             (name + "_numerator", numerator),
@@ -171,6 +178,8 @@ class Compiler:
 
     def query_object(self, columns, metrics, *, include_period=True, people=False):
         """只描述业务筛选和展示方式；实际 FROM 与查看人 RLS 由 Superset 补入。"""
+        # extras.where 是编译器受限生成的条件片段，不接收用户原始 SQL。
+        # Superset 将它与数据集 RLS 合并；此处不写 _viewer_id，也不能靠它选身份。
         return {
             "columns": columns,
             "metrics": metrics,
@@ -226,6 +235,8 @@ def execute(p, plan):
     from . import superset_source
 
     started = time.perf_counter()
+    # 快照用于能力校验/解释，真正的结果仍要再调用 Chart Data，不能直接拿
+    # 快照在本地替代业务查询，否则后续数据集 RLS 的差异可能被漏掉。
     snapshot = superset_source.snapshot(p)
     compiler = Compiler(p, plan, snapshot)
     plan = compiler.plan
@@ -265,6 +276,8 @@ def execute(p, plan):
             if metric.startswith("avg_"):
                 columns.append({"key": metric + "_sample_size", "label": "有效样本 · " + METRICS[metric][0]})
     source_queries = list(snapshot.get("source_queries", []))
+    # 调试页展示的是上游实际生成的 SQL，不是模型猜写的 SQL。SQL 也可能包含
+    # 身份/筛选信息，因此随查询结果一起受 service 的历史归属和指纹检查保护。
     source_queries.extend(result.get("query", "") for result in results)
     return {
         "status": "success",

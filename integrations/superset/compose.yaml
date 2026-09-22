@@ -1,4 +1,6 @@
 name: hr-superset-lab
+# YAML 锚点供初始化容器和 Web 服务复用同一镜像、配置和只读源码挂载。
+# 两者不是 Agent 进程；Agent 在宿主机通过 HTTP 调用 8088。
 x-superset: &superset
   build:
     context: .
@@ -21,6 +23,8 @@ x-superset: &superset
   mem_limit: 2g
 services:
   postgres:
+    # 同一个实例中分库存放平台元数据和 HR 业务事实，账号/授权用途不同。
+    # 宿主机访问 55432；容器之间使用服务名 postgres:5432。
     image: postgres:17.11
     env_file: .local/lab.env
     ports: ["127.0.0.1:55432:5432"]
@@ -37,6 +41,8 @@ services:
     mem_limit: 640m
   init:
     <<: *superset
+    # 先迁移平台元库，再初始化内置权限，最后创建本项目演示对象。
+    # 学习期间 services.sh 会阻止自动 up；setup.py 还会再次检查学习标记。
     command: ["sh", "-c", "superset db upgrade && superset init && python /lab/setup.py"]
     depends_on:
       postgres: {condition: service_healthy}
@@ -45,6 +51,8 @@ services:
     ports: ["127.0.0.1:8088:8088"]
     command: ["gunicorn", "--bind", "0.0.0.0:8088", "--workers", "1", "--threads", "2", "--timeout", "90", "superset.app:create_app()"]
     depends_on:
+      # 首次启动须等初始化成功；resume 用 start 恢复已有容器，不执行完整 setup。
       init: {condition: service_completed_successfully}
 volumes:
+  # 数据持久化在命名卷；停止服务不会删除，不能用删卷代替日常重启。
   postgres-data:

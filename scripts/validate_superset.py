@@ -148,6 +148,8 @@ def unmapped_client():
 
 
 def verify_direct(checks, oracle):
+    # 先绕过聊天/模型，直接验证身份和数据集边界，再对比 20 题完整结果。
+    # 这能区分“模型理解错误”和“授权/SQL 执行错误”，不会拿模型输出当标准答案。
     checks.equal("PostgreSQL 导入行数", source.manifest()["row_count"], len(oracle["rows"]))
     checks.equal("导入数据与原 SQLite 指纹一致", source.manifest()["data_fingerprint"], oracle["fingerprint"])
     for key, expected in oracle["identities"].items():
@@ -310,6 +312,8 @@ def verify_failure(checks):
 
 
 def run(report_path):
+    # 这是需要真实服务的集成验收；不要在手工配置尚未完成时执行自动 setup 来
+    # 让它通过。课堂中优先做单步检查，完整验收留到用户完成绑定之后。
     checks = Checks()
     report = {"passed": False, "tested_at": datetime.now(UTC).isoformat(),
               "backend": "Superset Chart Data API + PostgreSQL", "checks": checks.items,

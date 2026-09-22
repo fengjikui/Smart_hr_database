@@ -43,6 +43,7 @@ def main(action, value):
                 cur.execute("UPDATE v2_auth.role_policy SET reports=false,version=version+1 WHERE role_key='manager'")
                 result = {"changed": "manager_self"}
             elif action == "revoke_public":
+                # 撤的是平台数据集访问权：即使 PG 可见关系仍存在，请求也应被拒绝。
                 role.permissions = []
                 db.session.commit()
                 result = {"changed": "public_dataset_access"}
@@ -68,6 +69,7 @@ def main(action, value):
                 db.session.commit()
                 result = {"changed": "public_events_rls"}
             elif action == "narrow_rls":
+                # 数据集仍能访问，但只允许更小行集；与上一类“禁止访问”分别验收。
                 # 只缩小普通人员/事件数据集，不改context，证明RLS本身影响Agent全链路。
                 rls.clause = "_viewer_id = {{ current_user_id() }} AND person_id = 'P0005'"
                 db.session.commit()
@@ -80,6 +82,8 @@ def main(action, value):
                             ("P0005" if action == "cycle" else "missing-person",))
                 result = {"changed": action}
             elif action == "restore":
+                # 用 capture 的实际旧值恢复，而非重跑 setup 猜测默认配置。
+                # 两个事务域仍可能部分失败；宿主机保留恢复文件以便人工处理。
                 from flask_appbuilder.security.sqla.models import PermissionView
 
                 cur.execute("UPDATE v2_auth.role_policy SET reports=%s,version=%s WHERE role_key='manager'",

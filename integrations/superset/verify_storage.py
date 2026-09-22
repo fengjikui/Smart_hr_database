@@ -14,6 +14,8 @@ from superset.app import create_app
 
 
 def main():
+    # 本工具分三层验收：导入数据一致性、PG 真实 reader 的对象权限、平台角色/RLS。
+    # 需要完整配置后执行；不会自动修复失败项，也不替用户完成手工学习步骤。
     from superset import db
     from superset import security_manager as sm
     from superset.connectors.sqla.models import RowLevelSecurityFilter, SqlaTable
@@ -74,6 +76,7 @@ def main():
         finally:
             reader.close()
 
+    # 平台配置检查不是实际业务查询；完整链路另由 scripts/validate_superset.py 验证。
     roles = [r for r in db.session.query(sm.role_model).all() if r.name.startswith("V2_")]
     role_names = {"V2_Data_public", "V2_Data_contract", "V2_Context",
                   *["V2_Role_" + p["role"] for p in fixture["personas"]]}

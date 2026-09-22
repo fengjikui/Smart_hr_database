@@ -1,4 +1,5 @@
 name: Validate Superset integration
+# CI 在独立 runner 上新建演示环境；本机手工课堂不因运行此工作流而被初始化。
 on:
   push:
     paths: ['integrations/superset/**', 'backend/hr/**', 'scripts/validate_superset.py', 'scripts/validate_revocation.py', '.github/workflows/superset.yml']
@@ -34,10 +35,12 @@ jobs:
           done
           exit 1
       - name: Check storage and physical permissions
+        # 先确认导入内容与 PG 对象边界，再测通过 Superset 的真实请求。
         run: uv run python integrations/superset/run.py verify-storage
       - name: Validate queries and access paths
         run: uv run python scripts/validate_superset.py
       - name: Validate revocation and restore configuration
+        # 会修改演示权限，必须在一般回归之后串行执行，结束时恢复旧配置。
         run: uv run python scripts/validate_revocation.py
       - name: Show service diagnostics on failure
         if: failure()
@@ -50,6 +53,7 @@ jobs:
             integrations/superset/.local/application/storage-verification.json
             reports/superset-integration.json
             reports/superset-revocation.json
+          # 只上传以上三份验证报告，不上传同目录账号密码、种子或完整配置目录。
           include-hidden-files: true
       - name: Clean up lab
         if: always()

@@ -80,6 +80,8 @@ def import_sql(fixture):
 
 
 def prepare():
+    # 生成凭据文件不是创建账号；CREATE ROLE/建视图/导入数据都留待手工执行。
+    # setdefault 保留已有平台密码，不因重新生成学习材料而替换登录资料。
     fixture = load_fixture()
     seed = read_seed()
     credentials_path = LOCAL / "credentials.json"
@@ -89,6 +91,8 @@ def prepare():
     write_private_json(credentials_path, credentials)
     write_database_credentials()
     write_sql("22_import.sql", import_sql(fixture))
+    # 容器内 Recorder 只收集 create_people_views 生成的 SQL，不执行 CREATE VIEW。
+    # 因此自动初始化与手工材料复用同一份视图定义，减少两套口径漂移。
     views = container_command("learning_inspect.py", "views")
     write_sql("23_views.sql", "\\set ON_ERROR_STOP on\nBEGIN;\n" + "\n\n".join(views) + "\nCOMMIT;")
     connections = json.loads((LOCAL / "database-credentials.json").read_text())
@@ -109,6 +113,8 @@ def prepare():
 
 
 def mapping_sql(fixture, actual):
+    # actual 来自平台实时盘点；账号 ID 只有真正创建用户后才知道。
+    # 输出是待执行的 INSERT 文件，不直接把身份写入业务数据库。
     lines = ["-- ID 取自本次实际平台配置；请核对后手工执行。", "\\set ON_ERROR_STOP on", "BEGIN;"]
     for persona in fixture["personas"]:
         username = "v2_" + persona["id"]
@@ -137,6 +143,7 @@ def main():
         else:
             print(json.dumps(actual, ensure_ascii=False, indent=2))
     else:
+        # bind 仅将已核对的实际对象 ID 写给 Agent；不授予新权限，也不解除学习锁。
         result = container_command("learning_inspect.py", "binding")
         write_private_json(LOCAL / "manifest.json", result)
         print("已核对并保存 Agent 清单；未修改权限、未解除学习标记：", LOCAL / "manifest.json")

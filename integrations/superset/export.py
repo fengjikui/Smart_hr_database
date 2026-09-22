@@ -22,6 +22,8 @@ def snapshot():
     from backend.hr.schema import FIELDS
 
     store.ensure()
+    # 读取的是确定性合成基线，不是线上 Superset 结果；供迁移及独立验收比较。
+    # 仅导出不会改变 Superset 中已有数据库、角色或规则。
     rows = store.people()
     fingerprint = hashlib.sha256(json.dumps(rows, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     return {
@@ -34,6 +36,7 @@ def snapshot():
         "row_count": len(rows),
         "fields": [{"id": key, "label": value[0], "group": value[1], "description": value[2],
                     "sql_type": "integer" if key == "age" else "text"} for key, value in FIELDS.items()],
+        # persona.id 是应用身份，person_id 是人员主键；此时尚没有 Superset user.id。
         "personas": store.PERSONAS,
         "policy": store.policy(),
         "people": rows,

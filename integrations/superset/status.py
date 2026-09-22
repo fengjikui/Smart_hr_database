@@ -7,6 +7,8 @@ from superset.app import create_app
 
 
 def main():
+    # 元库读“平台配置”，PG 读“业务数据/关系”；两种来源组合成一份盘点报告。
+    # 此报告不是以某位业务用户执行的 Chart Data 查询，不能单独证明 RLS 有效。
     from superset import db
     from superset import security_manager as sm
     from superset.connectors.sqla.models import RowLevelSecurityFilter, SqlaTable
@@ -22,6 +24,7 @@ def main():
     for rule in db.session.query(RowLevelSecurityFilter).filter(RowLevelSecurityFilter.name.like("V2_%")).all():
         result["rls"].append({"name": rule.name, "type": str(rule.filter_type), "clause": rule.clause,
             "exempt_roles": [r.name for r in rule.roles], "datasets": [t.table_name for t in rule.tables]})
+    # 只列出两个指定连接下的数据集，不输出 URI/密码；没有数据集不代表没有连接。
     for table in db.session.query(SqlaTable).join(Database).filter(Database.database_name.in_(
             ["V2_public", "V2_contract"])).all():
         result["datasets"].append({"id": table.id, "name": table.table_name, "database": table.database.database_name,

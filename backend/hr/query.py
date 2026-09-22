@@ -302,6 +302,8 @@ def execute(p, plan):
 
         return execute_fga(p, plan)
     if superset_source.enabled():
+        # 选定此分支后，不再执行下面 SQLite 的 SQL/authorizer；Superset 拒绝或
+        # 故障会直接向上传播，不能换管理员或离线数据库继续查询。
         from .superset_query import execute as execute_superset
 
         return execute_superset(p, plan)

@@ -4,6 +4,8 @@ import json
 
 
 def require_automatic_setup(local, read_fixture):
+    # 两种信号都服务于“学习期间不要自动补建”：正常读本地 marker；
+    # 跨 UID 无法查看目录时，退而检查单文件挂载的样本标记，无法确认则拒绝。
     try:
         (local / "manual-learning.json").stat()
         blocked = True

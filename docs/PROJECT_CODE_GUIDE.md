@@ -59,6 +59,29 @@ Smart_hr_database/
 
 推荐顺序：`schema.py` → `graph.py` → `auth.py` → `superset_source.py` → `superset_query.py` → `service.py` → 前端 `workspace.tsx`。入口文件只做装配，不复制查询和权限规则。
 
+### 配合 Superset 实操阅读代码
+
+以下路径均相对项目根目录。关键流程已补充中文注释，可先搜函数名，再读函数内分段说明；无需一次读完所有文件。
+
+| 正在操作或学习的内容 | 对应文件与入口 | 阅读重点 |
+|---|---|---|
+| 平台启动与元数据库 | `integrations/superset/services.sh`、`compose.yaml`、`init-postgres.sh`、`superset_config.py` | 宿主机与容器的区别；元数据库不等于业务库；启动、恢复与初始化的区别 |
+| 合成数据和手工 SQL 材料 | `integrations/superset/export.py`、`learning.py` 的 `prepare()` | 导出不等于导入；生成凭据不等于创建账号；生成 SQL 后仍需手工执行 |
+| 创建业务库和视图 | `integrations/superset/setup.py` 的 `prepare_database()` / `create_people_views()`、`schema.sql` | 原始数据、业务策略、身份映射、四种关系来源、公共/合同出口 |
+| 第 26 步：数据库连接 | `integrations/superset/setup.py` 的 `prepare_superset()`，搜索 `Database(database_name=` | 这是保存平台连接对象；两个 reader 限制可读对象/列；已有连接不会自动覆盖开关 |
+| 注册数据集、RLS、角色和账号 | 同一函数，依次搜索 `SqlaTable`、`RowLevelSecurityFilter`、`role_specs`、`sm.add_user` | 数据集访问权与行过滤分别配置；Base 角色列表代表豁免；真实用户 ID 创建后再写映射 |
+| 手工配置绑定到 Agent | `integrations/superset/learning_inspect.py` 的 `inventory()` / `binding()`、`learning.py` 的 `bind` 分支 | 从实际对象读取 ID；清单是地址簿，不是授权证明，也不自动开放权限 |
+| Agent 登录 Superset | `backend/hr/superset_source.py` 的 `identity()` / `session()` | 应用身份映射到业务账号；Bearer token 与 CSRF token 各自的用途；不能用技术管理员代查 |
+| 问题变成受控查询 | `backend/hr/graph.py` → `query.py` → `superset_query.py` 的 `Compiler` | 模型输出受限 Plan；校验展示/筛选/排序/指标依赖；代码生成 QueryObject |
+| 真正执行查询与行权限 | `backend/hr/superset_source.py` 的 `_chart()`，以及 `superset_query.py` 的 `execute()` | Chart Data API 根据当前业务账号验权和添加 RLS；业务筛选只能进一步缩小结果 |
+| 授权快照与历史撤权 | `superset_source.py` 的 `snapshot()` → `auth.py` 的 `fingerprint()` → `service.py` | 快照不替代最终查询；多出口纳入指纹；旧历史也检查当前权限；前后检查不是跨库原子事务 |
+| 验证与故障恢复 | `verify_storage.py`、`scripts/validate_superset.py`、`scripts/validate_revocation.py`、`probe.py` | 区分只读盘点、真实查询验收与会改权限的故障注入；后者不能与手工演示并行 |
+| 重新开始学习 | `reset_learning.py`、`initialization_guard.py` | 备份、按依赖删除、保留管理员、学习锁；不是普通启动步骤 |
+
+以“某部门有多少人”为例：模型先生成部门筛选和人数指标的 Plan；编译器选择 `people_public`，生成固定口径的聚合表达式；适配器使用该人的业务账号提交 Chart Data 请求；Superset 加入 `_viewer_id = 当前平台用户 ID` 的 RLS，PostgreSQL 对允许的数据统计；服务层核对前后指纹后返回摘要与结果。浏览器和模型不提供数据库账号或 `_viewer_id`。
+
+手工配置阶段不要为了阅读上述函数而执行 `setup.py`。代码注释描述的是实现机制，不表示当前课堂中的所有对象已经配置完成。
+
 ## 2. 数据和进程如何连接
 
 | 进程 | 地址 | 负责什么 |

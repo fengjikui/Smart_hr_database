@@ -5,6 +5,8 @@ CREATE SCHEMA IF NOT EXISTS v2_auth;
 CREATE SCHEMA IF NOT EXISTS v2_api;
 
 -- 人员宽表由 setup.py 根据 fixtures.json 的 26 个字段创建，避免字段定义双写。
+-- 每行定义一种业务角色的能力；布尔列决定关系来源，field_groups 决定字段组。
+-- details/export 是 Agent 功能开关，不会自动修改 Superset 自带下载菜单的权限。
 CREATE TABLE IF NOT EXISTS v2_auth.role_policy (
     role_key text PRIMARY KEY,
     reports boolean NOT NULL,
@@ -15,6 +17,9 @@ CREATE TABLE IF NOT EXISTS v2_auth.role_policy (
     export boolean NOT NULL,
     version integer NOT NULL
 );
+-- 把 Superset 的账号 ID、应用演示身份和真实员工主键连接起来。
+-- 此简化模型每账号只有一个 role_key；Superset 平台的多个角色是另一套关联关系。
+-- 先创建平台用户取得实际 ID，再插入此表；未映射账号在受控出口没有对应行。
 CREATE TABLE IF NOT EXISTS v2_auth.identity_map (
     superset_user_id integer PRIMARY KEY,
     username text UNIQUE NOT NULL,
@@ -22,6 +27,8 @@ CREATE TABLE IF NOT EXISTS v2_auth.identity_map (
     person_id text NOT NULL,
     role_key text NOT NULL
 );
+-- singleton 只能是 true 且为主键，因此全表最多一条，用于记录整份数据快照。
+-- as_of 是演示统计截止日，data_fingerprint 是导入内容摘要，不是当前权限缓存。
 CREATE TABLE IF NOT EXISTS v2_auth.snapshot (
     singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),
     as_of text NOT NULL,
@@ -34,8 +41,12 @@ CREATE TABLE IF NOT EXISTS v2_auth.snapshot (
 -- depth=0 是本人，1 是直属下属，2 及以上是间接下属。
 CREATE OR REPLACE VIEW v2_auth.management_closure AS
 WITH RECURSIVE chain(root_id,target_id,depth,path,is_cycle) AS (
+    -- 起点：每个人都作为一次 root，先生成“自己到自己”的深度 0 记录。
     SELECT person_id,person_id,0,ARRAY[person_id],false FROM v2_data.people
     UNION ALL
+    -- 每轮用上一轮的新记录找到下一层下属。root 不变，target 移到该下属。
+    -- ANY(path) 检查新目标是否已在路径中；检测到环的那一行保留供健康检查，
+    -- 但下一轮 WHERE NOT c.is_cycle 不再扩展它。实际输出顺序不由此保证。
     SELECT c.root_id,p.person_id,c.depth+1,c.path||p.person_id,p.person_id=ANY(c.path)
     FROM chain c JOIN v2_data.people p ON p.head_person_id=c.target_id
     WHERE NOT c.is_cycle
@@ -56,28 +67,35 @@ SELECT NOT (
 -- 四种来源各自计算，再合并；不能把 HRBP 可见人群当成管理线继续递归。
 CREATE OR REPLACE VIEW v2_auth.visible_people AS
 WITH origins AS (
+    -- 来源一：本人。即使未开启 reports/hrbp，也能生成自身候选关系。
     SELECT i.superset_user_id,i.person_id AS target_id,'self'::text AS kind,
            ARRAY[i.person_id] AS path,'本人'::text AS reason,0 AS priority
     FROM v2_auth.identity_map i
     JOIN v2_data.people p ON p.person_id=i.person_id
     JOIN v2_auth.role_policy r USING(role_key)
     UNION ALL
+    -- 来源二：管理线。只取深度 > 0 的下属，本人已由上一分支提供。
     SELECT i.superset_user_id,c.target_id,'reports',c.path,'管理线下属',1
     FROM v2_auth.identity_map i JOIN v2_auth.role_policy r USING(role_key)
     JOIN v2_auth.management_closure c ON c.root_id=i.person_id
     WHERE r.reports AND c.depth>0 AND NOT c.is_cycle
     UNION ALL
+    -- 来源三：本人负责的 HRBP 人群，由员工记录的 dept_hrbp_id 指向该查看人。
     SELECT i.superset_user_id,p.person_id,'hrbp',ARRAY[i.person_id,p.person_id],'本人 HRBP 服务',2
     FROM v2_auth.identity_map i JOIN v2_auth.role_policy r USING(role_key)
     JOIN v2_data.people p ON p.dept_hrbp_id=i.person_id
     WHERE r.hrbp
     UNION ALL
+    -- 来源四：管理线下属作为 HRBP 所服务的人群。先沿管理线找到下属，
+    -- 再走一次 HRBP 服务关系；不会把 HRBP 服务对象的下属继续递归纳入。
     SELECT i.superset_user_id,p.person_id,'inherited_hrbp',c.path||p.person_id,'继承下属 HRBP 服务',3
     FROM v2_auth.identity_map i JOIN v2_auth.role_policy r USING(role_key)
     JOIN v2_auth.management_closure c ON c.root_id=i.person_id
     JOIN v2_data.people p ON p.dept_hrbp_id=c.target_id
     WHERE r.reports AND r.inherit_hrbp AND c.depth>0 AND NOT c.is_cycle
 ), merged AS (
+    -- UNION ALL 可以产生多条授权理由；按“查看人 + 目标员工”归并为一行，
+    -- bool_or 保留是否存在某类来源，origins 保留所有解释路径，避免重复计人数。
     SELECT superset_user_id,target_id,
            bool_or(kind='reports') AS reports,
            bool_or(kind='hrbp') AS hrbp,
@@ -87,12 +105,16 @@ WITH origins AS (
 )
 SELECT m.*, c.depth
 FROM merged m JOIN v2_auth.identity_map i USING(superset_user_id)
+-- LEFT JOIN 保留只有 HRBP 关系的人；这些人没有管理深度，depth 可以是 NULL。
 LEFT JOIN v2_auth.management_closure c ON c.root_id=i.person_id AND c.target_id=m.target_id AND NOT c.is_cycle
 CROSS JOIN v2_auth.graph_health h
+-- 整体关系图异常时返回空授权。context 仍返回 graph_valid=false，供 Agent 报错。
 WHERE h.graph_valid;
 
 -- 只给调用者自己的上下文；调用者选择由 Superset Base RLS 负责。
 -- graph_valid 显式暴露图校验结果，Agent 必须在无效时报告错误，不能把拒绝误报成 0 人。
+-- CROSS JOIN 将单行快照和健康状态附到每个账号；普通 VIEW 不物化这些结果。
+-- Superset 的 context 数据集还必须配置 superset_user_id=current_user_id() 的 RLS。
 CREATE OR REPLACE VIEW v2_api.context WITH(security_barrier=true) AS
 SELECT i.superset_user_id,i.persona_id,i.person_id,i.role_key,r.version AS policy_version,
        (to_jsonb(r)-'role_key'-'version')::text AS rules_json,

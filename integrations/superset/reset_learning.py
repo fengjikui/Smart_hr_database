@@ -49,6 +49,7 @@ def clear_metadata():
             for table, column in [('query', 'database_id'), ('saved_query', 'db_id'), ('tab_state', 'database_id'), ('table_schema', 'database_id')]:
                 db.session.execute(text(f'DELETE FROM "{table}" WHERE "{column}" = :id'), {'id': database.id})
         for group in [dashboards, charts, filters, datasets, databases]:
+            # 按引用依赖由外到内删除；flush 先落实当前组，commit 最后统一提交元库。
             for obj in group:
                 db.session.delete(obj)
             db.session.flush()
@@ -120,6 +121,8 @@ def reset():
     marker = LOCAL / 'manual-learning.json'
     marker.write_text(json.dumps({'backup': str(backup), 'state': 'resetting'}, indent=2))
     result = run([*ss, 'python', '/lab/reset_learning.py', '--inside'], capture_output=True, text=True)
+    # 平台对象清理成功后才删业务数据库。两者不能共享一个事务，备份和学习锁
+    # 用于处理中途失败；不能声称整套重置是跨数据库原子操作。
     # Superset 输出可能包含启动日志，只展示末行的对象计数。
     removed = json.loads(result.stdout.strip().splitlines()[-1])
     run([*pg, 'psql', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-c', 'DROP DATABASE hr_v2 WITH (FORCE);'], capture_output=True)

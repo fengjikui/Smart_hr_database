@@ -39,6 +39,8 @@ def summary(result):
 
 def run_query(p, plan):
     """查询前后比较指纹，丢弃执行期间身份/授权/数据发生变化的结果。"""
+    # Superset 分支的 fingerprint 会重新读上游授权快照，并非只读本地版本号。
+    # 前后检查可发现观察点之间的变化，但不是跨多次 HTTP/SQL 的原子事务。
     before = auth.fingerprint(p)
     result = query.execute(p, plan)
     auth.refresh(p)
@@ -122,6 +124,8 @@ def save_run(p, question, result, parent_id=None, trace=None, fingerprint=None):
 
 def history(p):
     """只列出本人且仍匹配当前权限/数据指纹的记录，不暴露其他人的问题标题。"""
+    # 历史存在应用 SQLite，但读历史之前仍向 Superset 确认当前授权；不能因
+    # “这是旧结果”而跳过撤权检查。上游不可用时也不会继续返回缓存历史。
     auth.refresh(p)
     with store.connection(readonly=True) as db:
         return [

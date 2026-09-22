@@ -27,6 +27,8 @@ def container_command(script, *args):
     container_id = lookup.stdout.strip()
     if not container_id:
         raise SystemExit("Superset 未运行；请先按 integrations/superset/README.md 启动已有实验环境。")
+    # /lab 来自 compose.yaml 的项目集成目录挂载；superset Python 库在容器内。
+    # 宿主机只负责调度；容器脚本最后一行输出 JSON，前面可能有平台启动日志。
     result = subprocess.run(["docker", "exec", container_id, "python", f"/lab/{script}", *args],
         env=env, text=True, capture_output=True, timeout=240)
     if result.returncode:
@@ -80,8 +82,11 @@ def write_database_credentials():
 
 
 def setup(sync_data=False):
+    # 手工学习时禁止自动补齐，防止覆盖课堂现场、跳过用户正在验证的步骤。
     if (LOCAL / "manual-learning.json").exists():
         raise SystemExit("正在手工学习，禁止自动建库/导入。请按 docs/HANDS_ON.md 逐步操作。")
+    # fixtures 提供迁移输入，两个 credentials 文件保存不同系统的登录资料；
+    # manifest 在容器配置成功后才生成，记录本次真实 ID，不能跨环境照抄。
     fixture = export_data()
     write_credentials(fixture)
     write_database_credentials()
@@ -98,6 +103,8 @@ def setup(sync_data=False):
 
 
 def main():
+    # export/导出连接信息只生成材料；status/verify-storage 只读实际配置；
+    # setup/sync-data 会写库。看到命令名要先确认副作用，不要拿初始化命令当检查命令。
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["export", "setup", "sync-data", "status", "verify-storage",
                                           "export-connection-info"])

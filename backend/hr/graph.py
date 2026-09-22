@@ -92,6 +92,8 @@ def date_hints(question):
 
 def authorize(s):
     """固定本轮身份与权限指纹，只从本人且仍有效的成功历史恢复上一轮 Plan。"""
+    # Superset 模式下 auth 从真实业务账号的 RLS 出口取上下文；LLM 此时尚未调用，
+    # 因而权限不是模型理解问题后自行决定的。Superset 凭据不进入 State 或提示词。
     started = time.perf_counter()
     p = s["principal"]
     auth.refresh(p)

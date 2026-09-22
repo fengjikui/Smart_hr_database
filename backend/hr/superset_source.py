@@ -44,6 +44,8 @@ def read_local(name):
 
 
 def manifest():
+    # manifest 是部署/手工绑定生成的对象地址簿（账号、数据集 ID），不是授权结果。
+    # 每次访问是否允许仍由 Superset 的当前配置与 PostgreSQL 视图决定。
     return read_local("manifest.json")
 
 
@@ -82,10 +84,14 @@ def session(p):
     url = os.getenv("HR_SUPERSET_URL", "http://127.0.0.1:8088").rstrip("/")
     try:
         with httpx.Client(base_url=url, trust_env=False, timeout=30) as client:
+            # ① 用当前 persona 对应的业务账号登录，不能用技术管理员统一代查。
+            # provider=db 表示本演示使用 Superset 本地账号，生产 SSO 需另行接入。
             login = checked_response(client.post("/api/v1/security/login", json={
                 "username": subject["username"], "password": password, "provider": "db", "refresh": False,
             }))
             client.headers["Authorization"] = "Bearer " + login["access_token"]
+            # ② Bearer token 表示身份；CSRF token 防护提交请求，二者职责不同。
+            # 使用同一个客户端保留服务端会话 cookie，然后再提交 Chart Data POST。
             csrf = checked_response(client.get("/api/v1/security/csrf_token/"))
             client.headers["X-CSRFToken"] = csrf["result"]
             yield client
@@ -96,8 +102,12 @@ def session(p):
 def _chart(client, dataset_key, queries):
     """在已登录业务会话中查询固定数据集，检查每个 QueryObject 都返回成功结果。"""
     spec = manifest()["datasets"][dataset_key]
+    # datasource 只包含已注册数据集 ID，模型不能换成任意数据库/临时 SQL。
+    # force=True 要求重新取数，便于演示撤权效果；它本身不是权限检查开关。
     payload = {"datasource": {"id": spec["id"], "type": "table"}, "force": True,
                "result_format": "json", "result_type": "full", "queries": queries}
+    # 此处是在线数据出口：Superset 验证数据集访问权、拼入当前用户 RLS，再
+    # 使用数据集所绑定的 reader 连接发起 PostgreSQL 查询。上游失败就停止。
     response = checked_response(client.post("/api/v1/chart/data", json=payload))
     results = response.get("result")
     if not isinstance(results, list) or len(results) != len(queries):
@@ -115,6 +125,7 @@ def chart(p, dataset_key, queries):
 
 
 def raw_query(columns, limit=MAX_ROWS):
+    # raw 是“取明细、不做指标聚合”，不是允许提交 raw SQL；RLS 仍然生效。
     return {"columns": columns, "metrics": [], "filters": [], "row_limit": limit,
             "orderby": [], "extras": {}, "is_timeseries": False}
 
@@ -126,6 +137,8 @@ def counted_listing(client, dataset, columns, limit):
     人员/事件出口。必须让同一个业务账号真正经过各出口的鉴权和 RLS。
     """
     counter = raw_query([])
+    # 总数与明细都由同一登录会话查同一数据集；不能只拿前 1000 行就当全量。
+    # 两个 QueryObject 不承诺同一事务快照，数量不一致时拒绝，外层另做指纹检查。
     counter["metrics"] = [{"expressionType": "SQL", "sqlExpression": "COUNT(*)", "label": "n"}]
     counts, listing = _chart(client, dataset, [counter, raw_query(columns, limit)])
     if len(counts["data"]) != 1:
@@ -173,6 +186,8 @@ def snapshot(p, refresh=False):
         return p["_superset_snapshot"]
     subject = identity(p)
     with session(p) as client:
+        # ① 先通过 context 的 RLS 读本人策略，再决定人员出口与所需字段。
+        # 要求恰好一行：零行可能未映射，多行可能配置错误，均不能猜测身份。
         context_columns = ["superset_user_id", "persona_id", "person_id", "role_key", "policy_version",
                            "rules_json", "as_of", "data_fingerprint", "graph_valid"]
         contexts = _chart(client, "context", [raw_query(context_columns, 2)])[0]
@@ -192,6 +207,8 @@ def snapshot(p, refresh=False):
         fields = {name for name, info in FIELDS.items() if info[1] in rules["field_groups"]}
         dataset = "people_contract" if "contract" in rules["field_groups"] else "people_public"
         columns = [f for f in FIELDS if f in fields] + META_COLUMNS
+        # ② 读取已经过 RLS 的有限规模快照，供词汇候选、关系解释与核验使用。
+        # 当前实现有意限制规模；未来扩大到全公司需分页/授权版本机制等优化。
         rows, listing_sql = counted_listing(client, dataset, columns, MAX_ROWS)
         scopes = {dataset: checked_scope(rows, subject)}
         source_queries = [contexts.get("query"), listing_sql]
@@ -213,6 +230,7 @@ def snapshot(p, refresh=False):
         # 清单中的实际数据集 ID 也属于身份边界，切换到另一个出口不可复用历史。
         for key, scope in scopes.items():
             scope["dataset_id"] = manifest()["datasets"][key]["id"]
+    # ③ 将视图的授权列整理成上层 auth 统一格式；不在 Python 再遍历全公司授权。
     rows.sort(key=lambda row: row["person_id"])
     origins = {}
     for row in rows:

@@ -29,6 +29,8 @@ def password(name):
 
 
 def pg(dbname=DATABASE):
+    # 这是搭建/检查阶段的 PostgreSQL 管理连接，不是在线 Agent 的查询连接。
+    # postgres 是 Compose 服务名；此函数在 Superset 容器内执行，因此用内部端口。
     return psycopg2.connect(host="postgres", dbname=dbname, user="postgres",
                             password=os.environ["POSTGRES_PASSWORD"])
 
@@ -43,6 +45,7 @@ def read_fixture():
         raise ValueError("字段类型不在白名单中")
     if len(set(ids)) != len(ids) or any(set(p) != set(ids) for p in fixture["people"]):
         raise ValueError("重复字段或人员字段不完整")
+    # 指纹检查导出文件是否完整一致，不是签名或权限证明；输入仍必须是受控文件。
     actual = hashlib.sha256(json.dumps(fixture["people"], ensure_ascii=False, sort_keys=True).encode()).hexdigest()
     if actual != fixture["data_fingerprint"]:
         raise ValueError("数据指纹不符，拒绝导入被部分修改的文件")
@@ -54,6 +57,8 @@ def prepare_database(fixture, sync_data=False):
     bootstrap = pg("postgres")
     bootstrap.autocommit = True  # CREATE DATABASE 不可处于事务块内。
     with bootstrap.cursor() as cur:
+        # 两个共享数据库账号负责限制可读对象/列；它们不代表某一名员工。
+        # 员工行隔离在后续 Superset RLS 完成，不能把 reader 密码发给业务用户。
         for level in ["public", "contract"]:
             name = "v2_" + level + "_reader"
             cur.execute("SELECT 1 FROM pg_roles WHERE rolname=%s", (name,))
@@ -63,6 +68,8 @@ def prepare_database(fixture, sync_data=False):
         cur.execute("SELECT 1 FROM pg_database WHERE datname=%s", (DATABASE,))
         if not cur.fetchone():
             cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(DATABASE)))
+        # PUBLIC 是所有角色默认共享的授权集合，不是 public schema。
+        # 此处撤销数据库级默认权限，不影响超级用户，也不会清空其他显式对象授权。
         cur.execute("REVOKE ALL ON DATABASE hr_v2 FROM PUBLIC")
         cur.execute("GRANT CONNECT ON DATABASE hr_v2 TO v2_public_reader,v2_contract_reader")
     bootstrap.close()
@@ -77,6 +84,8 @@ def prepare_database(fixture, sync_data=False):
         for key in ["head_person_id", "dept_hrbp_id", "dept_cn_name", "onboard_date", "termin_date"]:
             cur.execute(sql.SQL("CREATE INDEX IF NOT EXISTS {} ON v2_data.people({})").format(
                 sql.Identifier("v2_people_" + key), sql.Identifier(key)))
+        # schema.sql 建立角色策略、身份映射、递归关系视图和 context 出口；
+        # 人员/事件出口需要动态列清单，所以由下面 create_people_views 单独创建。
         cur.execute((ROOT / "schema.sql").read_text())
         cur.execute("SELECT count(*) FROM v2_auth.snapshot")
         initialized = bool(cur.fetchone()[0])
@@ -88,6 +97,7 @@ def prepare_database(fixture, sync_data=False):
                 sql.SQL(",").join(map(sql.Identifier, columns)))
             execute_values(cur, statement.as_string(conn), [[p[c] for c in columns] for p in fixture["people"]])
             cur.execute("DELETE FROM v2_auth.role_policy")
+            # 这里导入的是业务能力（汇报线、HRBP、字段组），不是 Superset 平台角色。
             for role, rule in fixture["policy"]["roles"].items():
                 cur.execute("INSERT INTO v2_auth.role_policy VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                     (role, rule["reports"], rule["hrbp"], rule["inherit_hrbp"], Json(rule["field_groups"]),
@@ -107,6 +117,8 @@ def prepare_database(fixture, sync_data=False):
             cur.execute(sql.SQL("GRANT USAGE ON SCHEMA v2_api TO {}").format(role))
             cur.execute(sql.SQL("GRANT SELECT ON v2_api.people_{},v2_api.events_{} TO {}").format(
                 sql.SQL(level), sql.SQL(level), role))
+            # 默认只读与超时是额外保护；对象权限仍依赖上面的 GRANT 和默认不授予。
+            # default_transaction_read_only 本身不是禁止有权限用户写入的完整安全边界。
             cur.execute(sql.SQL("ALTER ROLE {} SET default_transaction_read_only=on").format(role))
             cur.execute(sql.SQL("ALTER ROLE {} SET statement_timeout='10s'").format(role))
         cur.execute("GRANT SELECT ON v2_api.context TO v2_public_reader")
@@ -124,6 +136,8 @@ def create_people_views(cur, fields):
         columns = [f["id"] for f in fields if level == "contract" or f["group"] != "contract"]
         # 附加的授权列便于受控查询、核验和节点解释，不能由模型指定查看人。
         condition = "AND r.field_groups ? 'contract'" if level == "contract" else ""
+        # p 是人员事实，g 是查看人→人员的可见关系，i 把查看人绑定业务角色，r 是策略。
+        # 普通 VIEW 不保存计算结果；security_barrier 约束优化器，不负责识别登录人。
         cur.execute(sql.SQL("""CREATE OR REPLACE VIEW v2_api.people_{} WITH(security_barrier=true) AS
             SELECT {},g.superset_user_id AS _viewer_id,g.depth AS _depth,
                    g.reports AS _reports,g.hrbp AS _hrbp,g.inherited AS _inherited,g.origins AS _origins,
@@ -138,6 +152,9 @@ def create_people_views(cur, fields):
             JOIN v2_auth.role_policy r ON r.role_key=i.role_key
             WHERE true {}""").format(sql.SQL(level), sql.SQL(",").join(
                 sql.SQL("p.{}").format(sql.Identifier(c)) for c in columns), sql.SQL(condition)))
+        # 把一行人员记录转换成入职/离职事件：有离职日期的人可以贡献两行。
+        # UNION ALL 保留不同事件；人数用 DISTINCT person_id，事件数用 SUM 标记。
+        # Superset 会分别注册事件数据集，因此事件数据集也必须单独绑定 RLS。
         cur.execute(sql.SQL("""CREATE OR REPLACE VIEW v2_api.events_{} WITH(security_barrier=true) AS
             SELECT p.*,onboard_date AS event_day,substring(onboard_date,1,7) AS event_month,
                    1::integer AS is_hire,0::integer AS is_exit FROM v2_api.people_{} p WHERE onboard_date IS NOT NULL
@@ -148,6 +165,8 @@ def create_people_views(cur, fields):
 
 
 def create_chart(db, Slice, Dashboard, admin, table, level):
+    # Slice 是 Superset 的图表对象，Dashboard 是排版容器，均保存在元数据库。
+    # 图表只引用数据集 ID 和展示列，不复制业务数据，也不替代数据集权限/RLS。
     title = "当前 · " + ("人员与汇报范围" if level == "public" else "合同字段权限")
     columns = ["employee_no", "name", "dept_cn_name", "diploma_code_desc", "school_name", "relation"]
     if level == "contract":
@@ -159,6 +178,8 @@ def create_chart(db, Slice, Dashboard, admin, table, level):
         chart.params = json.dumps({"datasource": f"{table.id}__table", "viz_type": "table", "query_mode": "raw",
             "all_columns": columns, "metrics": [], "groupby": [], "adhoc_filters": [], "row_limit": 1000,
             "time_range": "No filter", "include_search": True, "page_length": 20})
+        # QueryContext 描述一次查询；all_columns 是图表表单字段，queries.columns
+        # 是执行协议字段。两者保持同一投影，保存图表不等于执行查询。
         chart.query_context = json.dumps({"datasource": {"id": table.id, "type": "table"}, "force": True,
             "result_format": "json", "result_type": "full", "queries": [{"columns": columns,
                 "metrics": [], "filters": [], "row_limit": 1000, "orderby": [], "extras": {}}]})
@@ -185,6 +206,12 @@ def create_chart(db, Slice, Dashboard, admin, table, level):
 
 
 def prepare_superset(sync_data=False):
+    """按依赖顺序建立平台配置，最后输出 Agent 要用的实际对象 ID。
+
+    顺序：PG 事实/视图 → 技术管理员 → 连接/数据集 → RLS → 平台角色 →
+    业务账号 → identity_map。PG 和 Superset 元数据各自提交，不是跨库原子事务；
+    失败后应检查现场，不能把部分完成当成可交付状态。已有对象主要复用而不覆盖。
+    """
     from superset import db
     from superset import security_manager as sm
     from superset.connectors.sqla.models import RowLevelSecurityFilter, SqlaTable
@@ -195,6 +222,7 @@ def prepare_superset(sync_data=False):
 
     fixture = read_fixture()
     conn = prepare_database(fixture, sync_data)
+    # 技术管理员只负责配置，绝不放进下方供 Agent 执行的 principals 映射。
     admin = sm.find_user(username="v2_setup_admin") or sm.add_user(
         "v2_setup_admin", "当前", "配置管理员", "v2_setup_admin@example.invalid",
         sm.find_role("Admin"), password("v2_setup_admin"))
@@ -205,21 +233,30 @@ def prepare_superset(sync_data=False):
         level = "contract" if name.endswith("contract") else "public"
         database = db.session.query(Database).filter_by(database_name="V2_" + level).first()
         if database is None:
+            # Database 是“Superset 保存的连接配置”，不是 CREATE DATABASE。
+            # 对应手册第 26 步：显示名、Host、端口、账号和密码都记录在该对象中。
             database = Database(database_name="V2_" + level)
             db_user = "v2_" + level + "_reader"
             database.sqlalchemy_uri = f"postgresql+psycopg2://{db_user}:{password(db_user)}@postgres:5432/{DATABASE}"
             database.expose_in_sqllab = False
+            # 对应页面的 DDL/DML、CTAS、CVAS、异步执行开关。只在新建时赋值，
+            # 重跑脚本不会覆盖用户后来编辑过的开关；已有连接需另外核对。
             database.allow_dml = database.allow_ctas = database.allow_cvas = database.allow_run_async = False
             db.session.add(database)
             db.session.commit()
+        # SqlaTable 是注册到 Superset 的物理数据集。引用 PG 已存在的 VIEW，
+        # 不在这里复制数据或创建视图；相当于手册中“选择连接、schema、表名”。
         table = db.session.query(SqlaTable).filter_by(database_id=database.id, schema="v2_api", table_name=name).first()
         if table is None:
             table = SqlaTable(database=database, schema="v2_api", table_name=name, owners=[admin])
             db.session.add(table)
             db.session.commit()
+            # 读取列名/类型等元信息，让图表接口知道允许引用的数据集字段。
             table.fetch_metadata()
             db.session.commit()
         tables[name] = table
+        # 创建“可访问这个数据集”的权限项，随后再赋给指定角色；创建权限项
+        # 本身不意味着任何业务用户已获权，更不决定能看到该数据集的哪些行。
         sm.add_permission_view_menu("datasource_access", table.get_perm())
         result["datasets"][name] = {"id": table.id, "database_id": database.id, "permission": table.get_perm(),
             "columns": [c.column_name for c in table.columns], "schema": "v2_api", "table_name": name,
@@ -228,6 +265,9 @@ def prepare_superset(sync_data=False):
             result["datasets"][name]["urls"].update(create_chart(db, Slice, Dashboard, admin, table, level))
 
     # Base 且 roles=[] 表示没有豁免角色；未映射业务用户自动 0 行。
+    # current_user_id() 由 Superset 登录上下文提供，不是问题里的 person_id。
+    # Base 的 roles 是豁免角色，与 Regular 的适用角色含义不同；管理员不用于验权。
+    # context 的身份列名不同，所以单独一条规则；人员/事件共用同一查看人列名。
     for name, members, clause in [
         ("V2_scope_public", ["people_public", "events_public"], "_viewer_id = {{ current_user_id() }}"),
         ("V2_scope_contract", ["people_contract", "events_contract"], "_viewer_id = {{ current_user_id() }}"),
@@ -243,6 +283,9 @@ def prepare_superset(sync_data=False):
         result["rls"].append({"id": rule.id, "name": name, "clause": rule.clause,
                               "datasets": [t.table_name for t in rule.tables], "exempt_roles": [r.name for r in rule.roles]})
 
+    # 平台角色分成数据集访问角色与业务标签角色。V2_Role_* 本身没有数据权限；
+    # 真正业务范围还要用 identity_map.role_key 关联 PG 的 role_policy。
+    # 不授 database_access，避免将整个连接中的其他数据集一起开放。
     role_specs = {"V2_Data_public": ["people_public", "events_public"],
                   "V2_Data_contract": ["people_contract", "events_contract"], "V2_Context": ["context"]}
     role_specs.update({"V2_Role_" + p["role"]: [] for p in fixture["personas"]})
@@ -263,6 +306,8 @@ def prepare_superset(sync_data=False):
             policy = cur.fetchone()
             if not policy:
                 raise ValueError("当前 PostgreSQL 策略缺少身份角色，请显式 sync-data 后重试")
+        # Gamma 提供基础浏览能力；指定数据集访问权由自定义角色补充。
+        # 合同权限既需要此处平台数据集角色，也需要 PG 字段组条件同时满足。
         roles = [sm.find_role("Gamma"), role_objects["V2_Data_public"], role_objects["V2_Context"],
                  role_objects["V2_Role_" + persona["role"]]]
         if "contract" in policy[0]:
@@ -271,6 +316,8 @@ def prepare_superset(sync_data=False):
         if user is None:
             user = sm.add_user(username, "当前", persona["name"], username + "@example.invalid", roles, password(username))
         # 重跑不覆盖用户后来在 Superset UI 中变更的角色。
+        # 必须先创建/找到真实用户，再用实际 user.id 写映射；不能猜自增 ID。
+        # ON CONFLICT DO NOTHING 只保留既有映射，不负责调岗或离职时自动同步。
         with conn, conn.cursor() as cur:
             cur.execute("""INSERT INTO v2_auth.identity_map VALUES (%s,%s,%s,%s,%s)
                 ON CONFLICT(superset_user_id) DO NOTHING""",

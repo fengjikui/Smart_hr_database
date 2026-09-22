@@ -46,6 +46,8 @@ def remote(action, state=None):
 
 
 def main():
+    # 此测试会真的改角色、RLS 和关系数据；只能在可恢复的演示现场串行运行。
+    # 临时 APP_DB 隔离历史，不代表上游 Superset/PG 也是临时副本。
     checks = []
 
     def record(name, condition):
@@ -53,6 +55,7 @@ def main():
         checks.append({"name": name, "passed": True})
 
     state = remote("capture")
+    # 先留一份磁盘恢复快照，再注入故障；即使进程异常退出也有人工恢复依据。
     recovery = ROOT / "integrations/superset/.local/application/probe-recovery.json"
     recovery.write_text(json.dumps(state, ensure_ascii=False, indent=2))
     try:
@@ -131,6 +134,7 @@ def main():
                 remote("restore", state)
             record("撤回故障后恢复本人一人", client.post("/api/query", headers=headers, json={}).json()["totals"]["count"] == 1)
     finally:
+        # finally 尽力恢复，随后再读配置比对；恢复失败应保留现场和恢复文件。
         remote("restore", state)
     record("角色数据RLS精确恢复", remote("capture") == state)
     result = {"tested_at": datetime.now(UTC).isoformat(), "passed": True, "check_count": len(checks),
