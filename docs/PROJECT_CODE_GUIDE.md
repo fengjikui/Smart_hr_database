@@ -3,6 +3,8 @@
 本文只描述当前可运行的系统。仓库不再并列保留旧工作台或阶段版本目录；Superset/OpenFGA 是同一应用的两个可选适配器。
 代码历史由 Git 保存；阅读当前文件即可理解当前行为。默认执行链为 **LangGraph → Superset → PostgreSQL**；OpenFGA 链路和同步协议见 [方案设计](OPENFGA_DESIGN.md)。
 
+集中理解权限关系，请先读 [权限机制讲解](PERMISSIONS_EXPLAINED.md)：表与视图依赖、简化 SQL、三类角色，以及业务账号到查询结果的完整过程。
+
 ## 1. 从哪里开始读
 
 ```text

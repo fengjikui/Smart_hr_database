@@ -1,5 +1,7 @@
 # 当前安全与权限边界
 
+对象依赖和生效过程的教学说明见 [权限机制讲解](PERMISSIONS_EXPLAINED.md)，包含视图简化结构、数据库账号、Superset 数据集角色、RLS 与业务账号的对应关系。
+
 ## 已实现
 
 1. 会话主体由服务端读取；随机 token 仅存哈希，Cookie 为 HttpOnly/SameSite，POST 查询附带 CSRF 校验。本机限制 Host/Origin、跨站请求、请求体大小与速率。
