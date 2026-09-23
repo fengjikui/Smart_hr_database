@@ -1,0 +1,43 @@
+{
+  "observed_at": "2026-09-23T00:11:53.622105+00:00",
+  "versions": {
+    "apache-superset": "6.1.0",
+    "fastmcp": "3.1.0",
+    "mcp": "1.30.0",
+    "Flask-SQLAlchemy": "2.5.1",
+    "pydantic": "2.11.7",
+    "Authlib": "1.8.0"
+  },
+  "official_source_sha256": {
+    "superset/mcp_service/server.py": "8503fd7bf0ee3544dd154717cea06b425fb9290fde1cb0bcf4f94ceb08e12c29",
+    "superset/mcp_service/auth.py": "1da188ed7153f231cfcf47c67936f4589f83b3027e5e489b5bc127b3ed7dc9a8",
+    "superset/mcp_service/dataset/tool/list_datasets.py": "5ca4eb20776121b0da3af65e55e993d766f8c3837b0014f9d1a5f6555e6c8bf9",
+    "superset/mcp_service/dataset/tool/get_dataset_info.py": "de6dfcc7871ca24a6e3daa5718c25036878a99c835aa6d81ae711ab98109f700",
+    "superset/mcp_service/chart/tool/get_chart_data.py": "3f544f340bcf5fe0b4f0658e2ba07beb747e8eb2b4136cdc41275bbd9339de2b",
+    "superset/mcp_service/chart/schemas.py": "e2e30bdd98f79cf7ab565a21bce17ecf3399b7ecda97fc011c112d05945a854f",
+    "superset/mcp_service/sql_lab/tool/execute_sql.py": "13210dd03d78b9972b9e1984f40d7859dbf573bc1bfa6839e7a08f210b6f0756",
+    "superset/security/manager.py": "3a089dd7876b41942fbcd40bba6bad649704a0fd70713768b00a4bb8b66822b0",
+    "superset/connectors/sqla/models.py": "272a390505cc16d80473c7bf1537ebd73a3a40a333f4b8afd95d9e70c7ec5f7b",
+    "superset/commands/chart/data/get_data_command.py": "a8cafe265c95f7fb66da4a2e036796c5388aae2aa6aac48c66657225f036181d",
+    "superset/common/query_context.py": "b68f293395edce6544e529b2dbc976fc85d9edbd0e775fbb6477af8616b070e6",
+    "superset/daos/dataset.py": "3ac80830e118b823c69d79da1b111a584a73d9ef5eaeb3328415325b3588b43f"
+  },
+  "base_superset_digest": "apache/superset@sha256:b51a9827c3d689276f7c240449d84c363e42d89b8591abbb404d60c5cf362b5b",
+  "postgres_digest": "postgres@sha256:281a8324d51e47d056766475d1d713c8ef3b09daafb4ce1ceee82a365aa3afe6",
+  "application_mcp_sdk": "1.26.0",
+  "native_cli_observation": {
+    "initialize_protocol": "2025-11-25",
+    "discovered_tool_count": 24,
+    "valid_jwt_list_datasets": "No authenticated user found; g.user was not set by JWT middleware; MCP_DEV_USERNAME is not configured"
+  },
+  "concurrent_chart_baseline": "DetachedInstanceError before serializing tool execution",
+  "limited_chart_observation": {
+    "persona": "hr_lead",
+    "requested_limit": 1,
+    "row_count": 1,
+    "total_rows": 1,
+    "oracle_full_count": 239,
+    "conclusion": "total_rows is not a proof of full authorized population"
+  },
+  "probe_scope": "isolated hr-superset-mcp project only; no classroom writes"
+}

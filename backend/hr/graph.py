@@ -128,6 +128,8 @@ def discover(s):
     started = time.perf_counter()
     from . import superset_mcp, superset_source
     if superset_mcp.enabled():
+        # 网络调用已在授权快照刷新阶段完成；此节点展示已验证的协议证据。
+        # 本节点耗时仅为读取/记录结果，网络时间计入身份校验及快照刷新。
         proof = superset_source.snapshot(s["principal"])["mcp_catalog"]
         record(s, "官方 MCP 授权目录发现（查询仍走 REST）", {}, proof, started)
     catalog = registry.catalog(s["principal"])

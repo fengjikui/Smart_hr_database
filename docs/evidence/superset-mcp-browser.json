@@ -1,0 +1,24 @@
+{
+  "observed_at": "2026-09-23T00:17:12.168175+00:00",
+  "source": "实际浏览器可访问性树核对",
+  "url": "http://127.0.0.1:13000/",
+  "persona": "employee",
+  "question": "我能看到多少在职人员？",
+  "count": 1,
+  "nodes": 8,
+  "debug_url": "http://127.0.0.1:13000/debug?run=63cf400e30374fcab68171f476e627e7",
+  "mcp_datasets": [
+    "context",
+    "events_public",
+    "people_public"
+  ],
+  "protocol": "2025-11-25",
+  "mcp_stages": [
+    "initialize",
+    "notifications/initialized",
+    "tools/list",
+    "tools/call:list_datasets"
+  ],
+  "query_transport": "Superset Chart Data REST → PostgreSQL",
+  "passed": true
+}

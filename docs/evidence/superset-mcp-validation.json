@@ -1,0 +1,1094 @@
+{
+  "tested_at": "2026-09-23T00:11:26.283433+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "name": "hr_lead 初始化/发现",
+      "passed": true
+    },
+    {
+      "name": "hr_lead MCP 目录范围",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 公共目录不含合同字段",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 官方 MCP 图表精确人员集合",
+      "passed": true,
+      "evidence": {
+        "count": 239,
+        "employee_numbers_hash": "07e2519c573630588ea2b0d7b819c52c3c6216715e512353bc6161b97fe0b57e"
+      }
+    },
+    {
+      "name": "hr_lead MCP 与同身份 REST 人员集合",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 服务端拒绝 execute_sql",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 服务端拒绝 create_virtual_dataset",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 服务端拒绝 update_chart",
+      "passed": true
+    },
+    {
+      "name": "hr_lead REST 拒绝修改数据集",
+      "passed": true
+    },
+    {
+      "name": "hr_lead REST 拒绝修改 RLS",
+      "passed": true
+    },
+    {
+      "name": "hrbp 初始化/发现",
+      "passed": true
+    },
+    {
+      "name": "hrbp MCP 目录范围",
+      "passed": true
+    },
+    {
+      "name": "hrbp 公共目录不含合同字段",
+      "passed": true
+    },
+    {
+      "name": "hrbp 官方 MCP 图表精确人员集合",
+      "passed": true,
+      "evidence": {
+        "count": 239,
+        "employee_numbers_hash": "07e2519c573630588ea2b0d7b819c52c3c6216715e512353bc6161b97fe0b57e"
+      }
+    },
+    {
+      "name": "hrbp MCP 与同身份 REST 人员集合",
+      "passed": true
+    },
+    {
+      "name": "hrbp 服务端拒绝 execute_sql",
+      "passed": true
+    },
+    {
+      "name": "hrbp 服务端拒绝 create_virtual_dataset",
+      "passed": true
+    },
+    {
+      "name": "hrbp 服务端拒绝 update_chart",
+      "passed": true
+    },
+    {
+      "name": "hrbp REST 拒绝修改数据集",
+      "passed": true
+    },
+    {
+      "name": "hrbp REST 拒绝修改 RLS",
+      "passed": true
+    },
+    {
+      "name": "manager 初始化/发现",
+      "passed": true
+    },
+    {
+      "name": "manager MCP 目录范围",
+      "passed": true
+    },
+    {
+      "name": "manager 公共目录不含合同字段",
+      "passed": true
+    },
+    {
+      "name": "manager 官方 MCP 图表精确人员集合",
+      "passed": true,
+      "evidence": {
+        "count": 179,
+        "employee_numbers_hash": "9a6573d38abb1d1d3c5d43e0e8fad756545ba5a6c72cb83675cedefd50b137bc"
+      }
+    },
+    {
+      "name": "manager MCP 与同身份 REST 人员集合",
+      "passed": true
+    },
+    {
+      "name": "manager 服务端拒绝 execute_sql",
+      "passed": true
+    },
+    {
+      "name": "manager 服务端拒绝 create_virtual_dataset",
+      "passed": true
+    },
+    {
+      "name": "manager 服务端拒绝 update_chart",
+      "passed": true
+    },
+    {
+      "name": "manager 服务端拒绝 get_dataset_info",
+      "passed": true
+    },
+    {
+      "name": "manager 服务端拒绝 get_chart_data",
+      "passed": true
+    },
+    {
+      "name": "manager REST 拒绝修改数据集",
+      "passed": true
+    },
+    {
+      "name": "manager REST 拒绝修改 RLS",
+      "passed": true
+    },
+    {
+      "name": "employee 初始化/发现",
+      "passed": true
+    },
+    {
+      "name": "employee MCP 目录范围",
+      "passed": true
+    },
+    {
+      "name": "employee 公共目录不含合同字段",
+      "passed": true
+    },
+    {
+      "name": "employee 官方 MCP 图表精确人员集合",
+      "passed": true,
+      "evidence": {
+        "count": 1,
+        "employee_numbers_hash": "41b56d73a3c48f2a866c2a58adf30951ff96a31728717723a258785c31863ff9"
+      }
+    },
+    {
+      "name": "employee MCP 与同身份 REST 人员集合",
+      "passed": true
+    },
+    {
+      "name": "employee 服务端拒绝 execute_sql",
+      "passed": true
+    },
+    {
+      "name": "employee 服务端拒绝 create_virtual_dataset",
+      "passed": true
+    },
+    {
+      "name": "employee 服务端拒绝 update_chart",
+      "passed": true
+    },
+    {
+      "name": "employee 服务端拒绝 get_dataset_info",
+      "passed": true
+    },
+    {
+      "name": "employee 服务端拒绝 get_chart_data",
+      "passed": true
+    },
+    {
+      "name": "employee REST 拒绝修改数据集",
+      "passed": true
+    },
+    {
+      "name": "employee REST 拒绝修改 RLS",
+      "passed": true
+    },
+    {
+      "name": "admin 初始化/发现",
+      "passed": true
+    },
+    {
+      "name": "admin MCP 目录范围",
+      "passed": true
+    },
+    {
+      "name": "admin 公共目录不含合同字段",
+      "passed": true
+    },
+    {
+      "name": "admin 官方 MCP 图表精确人员集合",
+      "passed": true,
+      "evidence": {
+        "count": 300,
+        "employee_numbers_hash": "06cf7b43fd4ab22f302e55a765589287073453f77964aa1eb8e0d5b0b79e4a7d"
+      }
+    },
+    {
+      "name": "admin MCP 与同身份 REST 人员集合",
+      "passed": true
+    },
+    {
+      "name": "admin 服务端拒绝 execute_sql",
+      "passed": true
+    },
+    {
+      "name": "admin 服务端拒绝 create_virtual_dataset",
+      "passed": true
+    },
+    {
+      "name": "admin 服务端拒绝 update_chart",
+      "passed": true
+    },
+    {
+      "name": "admin REST 拒绝修改数据集",
+      "passed": true
+    },
+    {
+      "name": "admin REST 拒绝修改 RLS",
+      "passed": true
+    },
+    {
+      "name": "两身份交错不串结果",
+      "passed": true
+    },
+    {
+      "name": "两身份授权集合确实不同",
+      "passed": true
+    },
+    {
+      "name": "missing 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "invalid 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "expired 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "wrong_signature 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "wrong_audience 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "wrong_issuer 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "missing_scope 凭据拒绝",
+      "passed": true,
+      "evidence": {
+        "status": 401
+      }
+    },
+    {
+      "name": "REST token 不能用于 MCP",
+      "passed": true
+    },
+    {
+      "name": "未知 Superset 用户被拒绝",
+      "passed": true
+    },
+    {
+      "name": "未映射账号官方图表明确 NoData",
+      "passed": true
+    },
+    {
+      "name": "PostgreSQL 导入行数",
+      "passed": true
+    },
+    {
+      "name": "导入数据与原 SQLite 指纹一致",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 授权人员 ID 集合",
+      "passed": true,
+      "evidence": {
+        "candidate_count": 239
+      }
+    },
+    {
+      "name": "hr_lead 字段组与独立配置一致",
+      "passed": true
+    },
+    {
+      "name": "hr_lead 真实 PostgreSQL 在职人数",
+      "passed": true,
+      "evidence": {
+        "active_count": 226
+      }
+    },
+    {
+      "name": "hr_lead 执行 SQL 有用户隔离条件",
+      "passed": true
+    },
+    {
+      "name": "hrbp 授权人员 ID 集合",
+      "passed": true,
+      "evidence": {
+        "candidate_count": 239
+      }
+    },
+    {
+      "name": "hrbp 字段组与独立配置一致",
+      "passed": true
+    },
+    {
+      "name": "hrbp 真实 PostgreSQL 在职人数",
+      "passed": true,
+      "evidence": {
+        "active_count": 226
+      }
+    },
+    {
+      "name": "hrbp 执行 SQL 有用户隔离条件",
+      "passed": true
+    },
+    {
+      "name": "manager 授权人员 ID 集合",
+      "passed": true,
+      "evidence": {
+        "candidate_count": 179
+      }
+    },
+    {
+      "name": "manager 字段组与独立配置一致",
+      "passed": true
+    },
+    {
+      "name": "manager 真实 PostgreSQL 在职人数",
+      "passed": true,
+      "evidence": {
+        "active_count": 169
+      }
+    },
+    {
+      "name": "manager 执行 SQL 有用户隔离条件",
+      "passed": true
+    },
+    {
+      "name": "employee 授权人员 ID 集合",
+      "passed": true,
+      "evidence": {
+        "candidate_count": 1
+      }
+    },
+    {
+      "name": "employee 字段组与独立配置一致",
+      "passed": true
+    },
+    {
+      "name": "employee 真实 PostgreSQL 在职人数",
+      "passed": true,
+      "evidence": {
+        "active_count": 1
+      }
+    },
+    {
+      "name": "employee 执行 SQL 有用户隔离条件",
+      "passed": true
+    },
+    {
+      "name": "admin 授权人员 ID 集合",
+      "passed": true,
+      "evidence": {
+        "candidate_count": 300
+      }
+    },
+    {
+      "name": "admin 字段组与独立配置一致",
+      "passed": true
+    },
+    {
+      "name": "admin 真实 PostgreSQL 在职人数",
+      "passed": true,
+      "evidence": {
+        "active_count": 284
+      }
+    },
+    {
+      "name": "admin 执行 SQL 有用户隔离条件",
+      "passed": true
+    },
+    {
+      "name": "HR-01 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 5,
+        "hash": "fd4a43871a47f847aeb169a2414a725e5d9f6d06072ef6319ae9bc19921dcfad"
+      }
+    },
+    {
+      "name": "HR-01 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 168
+        }
+      }
+    },
+    {
+      "name": "HR-02 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "dd9b0bf908d91678be315fdc6b5fe75638f32e33c4deddc33b675e0965418d19"
+      }
+    },
+    {
+      "name": "HR-02 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 226,
+          "masters_count": 115,
+          "masters_ratio": 50.88,
+          "masters_ratio_numerator": 115,
+          "masters_ratio_denominator": 226
+        }
+      }
+    },
+    {
+      "name": "HR-03 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "f6cf3665b3804ae9a7bedadd7589b6a1272c80111ca5b856b31474dd3866a35b"
+      }
+    },
+    {
+      "name": "HR-03 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 226
+        }
+      }
+    },
+    {
+      "name": "HR-04 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "28dcf26c21f1e901cb232d515aa1b2c5f2cf188a97604d0f1631f0b9ff9f64d2"
+      }
+    },
+    {
+      "name": "HR-04 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 4
+        }
+      }
+    },
+    {
+      "name": "HR-05 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 2,
+        "hash": "9a0a48a7e0d7fe0b1cb0283559cbc4af09f8019ea33f6365b92d734acb23738e"
+      }
+    },
+    {
+      "name": "HR-05 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "hires": 3,
+          "departures": 0,
+          "net_change": 3
+        }
+      }
+    },
+    {
+      "name": "HR-06 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 16,
+        "hash": "f57bd6bcddf4f6303e286d418a72156cf56addb5a945d8300fa9612f218cb744"
+      }
+    },
+    {
+      "name": "HR-06 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "departures": 6
+        }
+      }
+    },
+    {
+      "name": "HR-07 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 8,
+        "hash": "de75a1a4eb215c0545a2892fb0c20f070e39ee20dcf6d5964f02781c40fbf5bf"
+      }
+    },
+    {
+      "name": "HR-07 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "hires": 18,
+          "departures": 3,
+          "net_change": 15
+        }
+      }
+    },
+    {
+      "name": "HR-08 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "80b81f3500b18b1b81a827af2c355499a784780eb11eeb3d7368a2cf10de0da3"
+      }
+    },
+    {
+      "name": "HR-08 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "doctors_count": 9
+        }
+      }
+    },
+    {
+      "name": "HR-09 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 2,
+        "hash": "279feaf887a8459067d135dc8be31ab6535a9182c2d7c9454921b57a37bbd620"
+      }
+    },
+    {
+      "name": "HR-09 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "school_985_count": 62,
+          "school_211_count": 75,
+          "school_985_ratio": 55.36,
+          "school_985_ratio_numerator": 62,
+          "school_985_ratio_denominator": 112,
+          "school_211_ratio": 66.96,
+          "school_211_ratio_numerator": 75,
+          "school_211_ratio_denominator": 112
+        }
+      }
+    },
+    {
+      "name": "HR-10 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "9a2c70376ced921df921a5230b826aff7250cc1075779732fb80e7053efe0d06"
+      }
+    },
+    {
+      "name": "HR-10 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 64
+        }
+      }
+    },
+    {
+      "name": "HR-11 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 12,
+        "hash": "3ea94cd5869b6f972b8e15372a1ff344a3894b1e99557ab565995cbce73e3009"
+      }
+    },
+    {
+      "name": "HR-11 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 226
+        }
+      }
+    },
+    {
+      "name": "HR-12 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 14,
+        "hash": "59fdc2d99dbbbf2bc948400428c1977c1709daaafef5f6e10b0129bcab93dd2f"
+      }
+    },
+    {
+      "name": "HR-12 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 14
+        }
+      }
+    },
+    {
+      "name": "HR-13 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 19,
+        "hash": "55761ae8db5bdf21b17ae2a72d532b2ea1b3730a217ec77588b2d78772c23ecd"
+      }
+    },
+    {
+      "name": "HR-13 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 19
+        }
+      }
+    },
+    {
+      "name": "HR-14 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "06ed0581c7e29e72ac4c4169941c877b2a34eb61cb14312ff2329f4df9d8ac38"
+      }
+    },
+    {
+      "name": "HR-14 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 226,
+          "outsource_count": 32,
+          "outsource_ratio": 14.16,
+          "outsource_ratio_numerator": 32,
+          "outsource_ratio_denominator": 226
+        }
+      }
+    },
+    {
+      "name": "HR-15 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 2,
+        "hash": "12abbd680f36b8c0ae7f44e8596f0bd87fda6510591b23215826c7f74186d718"
+      }
+    },
+    {
+      "name": "HR-15 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 112,
+          "avg_age": 38.66,
+          "avg_age_sample_size": 109,
+          "masters_ratio": 46.43,
+          "masters_ratio_numerator": 52,
+          "masters_ratio_denominator": 112
+        }
+      }
+    },
+    {
+      "name": "HR-16 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 82,
+        "hash": "d7291a6566eb1e5a3041ad24dbe51af45e9541895b4d56d848e1d6cfb36f4875"
+      }
+    },
+    {
+      "name": "HR-16 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 82
+        }
+      }
+    },
+    {
+      "name": "HR-17 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "ec16fea53f25f85025bd122db5d146b8af637de32ee3e271e4843ec1b578533a"
+      }
+    },
+    {
+      "name": "HR-17 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 42,
+          "avg_confirmation_days": 90.0,
+          "avg_confirmation_days_sample_size": 42
+        }
+      }
+    },
+    {
+      "name": "HR-18 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 75,
+        "hash": "498e976acbd58a42344c7de04b5f05cd19012fd4cc5b28e63b781bbdefbd0e3b"
+      }
+    },
+    {
+      "name": "HR-18 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 75
+        }
+      }
+    },
+    {
+      "name": "HR-19 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 4,
+        "hash": "b53871ef8908c6cd38cf7613134c8429274ef0225f87ede1e306b3edab33c195"
+      }
+    },
+    {
+      "name": "HR-19 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 24
+        }
+      }
+    },
+    {
+      "name": "HR-20 全量明细/分组与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "rows": 9,
+        "hash": "ec2d4c584205915b4dc46948efa2babc23740daad65bf22b71a0723ec5811e69"
+      }
+    },
+    {
+      "name": "HR-20 合计与独立 Python 一致",
+      "passed": true,
+      "evidence": {
+        "totals": {
+          "count": 9
+        }
+      }
+    },
+    {
+      "name": "员工业务筛选不能扩大到他人",
+      "passed": true
+    },
+    {
+      "name": "员工合同明细列被拒绝",
+      "passed": true,
+      "evidence": {
+        "status_code": 403
+      }
+    },
+    {
+      "name": "员工合同筛选列被拒绝",
+      "passed": true,
+      "evidence": {
+        "status_code": 403
+      }
+    },
+    {
+      "name": "员工合同排序列被拒绝",
+      "passed": true,
+      "evidence": {
+        "status_code": 403
+      }
+    },
+    {
+      "name": "上游公共数据集不能指定隐藏合同列",
+      "passed": true,
+      "evidence": {
+        "http_status": 400
+      }
+    },
+    {
+      "name": "上游合同数据集拒绝员工",
+      "passed": true,
+      "evidence": {
+        "http_status": 403
+      }
+    },
+    {
+      "name": "员工没有 SQL Lab 执行权",
+      "passed": true,
+      "evidence": {
+        "http_status": 403
+      }
+    },
+    {
+      "name": "未映射账号 context 查询无上游错误",
+      "passed": true
+    },
+    {
+      "name": "未映射账号 context 返回空集",
+      "passed": true
+    },
+    {
+      "name": "未映射账号 people_public 查询无上游错误",
+      "passed": true
+    },
+    {
+      "name": "未映射账号 people_public 返回空集",
+      "passed": true
+    },
+    {
+      "name": "hr_lead HTTP 明确标记混合路径",
+      "passed": true
+    },
+    {
+      "name": "实验 Cookie 独立",
+      "passed": true
+    },
+    {
+      "name": "前端 SQL 不进入工具",
+      "passed": true
+    },
+    {
+      "name": "narrow_rls 历史/调试失效",
+      "passed": true
+    },
+    {
+      "name": "narrow_rls query 成功且重新鉴权",
+      "passed": true
+    },
+    {
+      "name": "narrow_rls query 仅剩一人",
+      "passed": true
+    },
+    {
+      "name": "narrow_rls verify 成功且重新鉴权",
+      "passed": true
+    },
+    {
+      "name": "narrow_rls verify 仅剩一人",
+      "passed": true
+    },
+    {
+      "name": "narrow_rls export 成功且重新鉴权",
+      "passed": true
+    },
+    {
+      "name": "收窄 RLS 后导出不含旧分组",
+      "passed": true
+    },
+    {
+      "name": "narrow_events 历史/调试失效",
+      "passed": true
+    },
+    {
+      "name": "narrow_events query 成功且重新鉴权",
+      "passed": true
+    },
+    {
+      "name": "narrow_events verify 成功且重新鉴权",
+      "passed": true
+    },
+    {
+      "name": "narrow_events export 成功且重新鉴权",
+      "passed": true
+    },
+    {
+      "name": "事件撤权后核验不重建旧事件",
+      "passed": true
+    },
+    {
+      "name": "事件撤权后核验一致",
+      "passed": true
+    },
+    {
+      "name": "revoke_public 历史/调试失效",
+      "passed": true
+    },
+    {
+      "name": "revoke_public query 拒绝",
+      "passed": true
+    },
+    {
+      "name": "revoke_public verify 拒绝",
+      "passed": true
+    },
+    {
+      "name": "revoke_public export 拒绝",
+      "passed": true
+    },
+    {
+      "name": "revoke_events 历史/调试失效",
+      "passed": true
+    },
+    {
+      "name": "revoke_events query 拒绝",
+      "passed": true
+    },
+    {
+      "name": "revoke_events verify 拒绝",
+      "passed": true
+    },
+    {
+      "name": "revoke_events export 拒绝",
+      "passed": true
+    },
+    {
+      "name": "manager HTTP 明确标记混合路径",
+      "passed": true
+    },
+    {
+      "name": "manager_self 新查询",
+      "passed": true
+    },
+    {
+      "name": "manager_self 历史/调试拒绝旧权限",
+      "passed": true
+    },
+    {
+      "name": "主管权限收缩为本人",
+      "passed": true
+    },
+    {
+      "name": "employee HTTP 明确标记混合路径",
+      "passed": true
+    },
+    {
+      "name": "unmap_employee 新查询",
+      "passed": true
+    },
+    {
+      "name": "unmap_employee 历史/调试拒绝旧权限",
+      "passed": true
+    },
+    {
+      "name": "manager HTTP 明确标记混合路径",
+      "passed": true
+    },
+    {
+      "name": "cycle 新查询",
+      "passed": true
+    },
+    {
+      "name": "cycle 历史/调试拒绝旧权限",
+      "passed": true
+    },
+    {
+      "name": "manager HTTP 明确标记混合路径",
+      "passed": true
+    },
+    {
+      "name": "orphan 新查询",
+      "passed": true
+    },
+    {
+      "name": "orphan 历史/调试拒绝旧权限",
+      "passed": true
+    },
+    {
+      "name": "角色/映射/汇报线/RLS 精确恢复",
+      "passed": true
+    },
+    {
+      "name": "revoke_role 旧 JWT 不能保留旧权限",
+      "passed": true
+    },
+    {
+      "name": "disable 旧 JWT 不能保留旧权限",
+      "passed": true
+    },
+    {
+      "name": "账号角色和启停状态精确恢复",
+      "passed": true
+    },
+    {
+      "name": "hr_lead HTTP 明确标记混合路径",
+      "passed": true
+    },
+    {
+      "name": "MCP 故障关闭 query",
+      "passed": true
+    },
+    {
+      "name": "MCP 故障关闭 history",
+      "passed": true
+    },
+    {
+      "name": "MCP 故障关闭 verify",
+      "passed": true
+    },
+    {
+      "name": "MCP 故障关闭 export",
+      "passed": true
+    }
+  ],
+  "model_test": "未在本脚本运行；固定 Plan 不能冒充自然语言模型测试",
+  "execution": "MCP 目录 + 官方 MCP 已保存图表验权 + Agent REST Plan 查询",
+  "structured_plans": [
+    "HR-01",
+    "HR-02",
+    "HR-03",
+    "HR-04",
+    "HR-05",
+    "HR-06",
+    "HR-07",
+    "HR-08",
+    "HR-09",
+    "HR-10",
+    "HR-11",
+    "HR-12",
+    "HR-13",
+    "HR-14",
+    "HR-15",
+    "HR-16",
+    "HR-17",
+    "HR-18",
+    "HR-19",
+    "HR-20"
+  ],
+  "protocol": "2025-11-25",
+  "tools": [
+    "generate_chart",
+    "get_chart_data",
+    "get_chart_info",
+    "get_chart_preview",
+    "get_chart_type_schema",
+    "list_charts",
+    "update_chart",
+    "update_chart_preview",
+    "add_chart_to_existing_dashboard",
+    "generate_dashboard",
+    "get_dashboard_info",
+    "list_dashboards",
+    "get_database_info",
+    "list_databases",
+    "create_virtual_dataset",
+    "get_dataset_info",
+    "list_datasets",
+    "generate_explore_link",
+    "execute_sql",
+    "open_sql_lab_with_context",
+    "save_sql_query",
+    "get_instance_info",
+    "get_schema",
+    "health_check"
+  ],
+  "check_count": 185,
+  "implementation_commit": "6d932901cdad341468f91494e953308b5379c189"
+}

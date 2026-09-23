@@ -1,0 +1,205 @@
+{
+  "tested_at": "2026-09-23T00:10:22.246763+00:00",
+  "model": "hr-qwen",
+  "mocked_planner": false,
+  "passed": true,
+  "cases": [
+    {
+      "persona": "employee",
+      "question": "我能看到多少在职人员？",
+      "passed": true,
+      "status": "success",
+      "summary": "在当前授权范围内，人数 1 人。 数据截止 2026-09-11；组织采用当前部门。",
+      "plan": {
+        "kind": "aggregate",
+        "scope": "all",
+        "population": "active",
+        "departments": [],
+        "filters": [],
+        "date_field": null,
+        "start_date": null,
+        "end_date": null,
+        "group_by": [],
+        "metrics": [
+          "count"
+        ],
+        "columns": [],
+        "order_by": [],
+        "page": 1,
+        "page_size": 50,
+        "message": null,
+        "inspect_ids": []
+      },
+      "totals": {
+        "count": 1
+      },
+      "mcp_stages": [
+        {
+          "name": "官方 MCP 授权目录发现（查询仍走 REST）",
+          "input": {},
+          "output": {
+            "datasets": [
+              "context",
+              "events_public",
+              "people_public"
+            ],
+            "trace": {
+              "transport": "MCP Streamable HTTP",
+              "protocol_version": "2025-11-25",
+              "stages": [
+                "initialize",
+                "notifications/initialized",
+                "tools/list",
+                "tools/call:list_datasets"
+              ],
+              "allowed_tools": [
+                "list_datasets"
+              ],
+              "dataset_count": 3,
+              "query_transport": "Superset Chart Data REST → PostgreSQL"
+            }
+          },
+          "duration_ms": 0.01
+        }
+      ],
+      "execution_backend": "superset_mcp_catalog_rest_query",
+      "model_trace": [
+        {
+          "name": "模型生成计划",
+          "duration_ms": 14908.39,
+          "candidate": {
+            "kind": "aggregate",
+            "scope": "all",
+            "population": "active",
+            "departments": [],
+            "filters": [],
+            "date_field": null,
+            "start_date": null,
+            "end_date": null,
+            "group_by": [],
+            "metrics": [
+              "count"
+            ],
+            "columns": [],
+            "order_by": [],
+            "page": 1,
+            "page_size": 50,
+            "message": null,
+            "inspect_ids": []
+          },
+          "usage": {
+            "prompt_tokens": 2119,
+            "completion_tokens": 90,
+            "total_tokens": 2209,
+            "completion_tokens_details": {
+              "reasoning_tokens": 89
+            }
+          },
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "persona": "hr_lead",
+      "question": "我能看到的在职人员按部门分别有多少？请给出合计。",
+      "passed": true,
+      "status": "success",
+      "summary": "在当前授权范围内，人数 226 人。 共 4 个分组，合计按完整人群重新计算。 数据截止 2026-09-11；组织采用当前部门。",
+      "plan": {
+        "kind": "aggregate",
+        "scope": "all",
+        "population": "active",
+        "departments": [],
+        "filters": [],
+        "date_field": null,
+        "start_date": null,
+        "end_date": null,
+        "group_by": [
+          "dept_cn_name"
+        ],
+        "metrics": [
+          "count"
+        ],
+        "columns": [],
+        "order_by": [],
+        "page": 1,
+        "page_size": 50,
+        "message": null,
+        "inspect_ids": []
+      },
+      "totals": {
+        "count": 226
+      },
+      "mcp_stages": [
+        {
+          "name": "官方 MCP 授权目录发现（查询仍走 REST）",
+          "input": {},
+          "output": {
+            "datasets": [
+              "context",
+              "events_contract",
+              "events_public",
+              "people_contract",
+              "people_public"
+            ],
+            "trace": {
+              "transport": "MCP Streamable HTTP",
+              "protocol_version": "2025-11-25",
+              "stages": [
+                "initialize",
+                "notifications/initialized",
+                "tools/list",
+                "tools/call:list_datasets"
+              ],
+              "allowed_tools": [
+                "list_datasets"
+              ],
+              "dataset_count": 5,
+              "query_transport": "Superset Chart Data REST → PostgreSQL"
+            }
+          },
+          "duration_ms": 0.01
+        }
+      ],
+      "execution_backend": "superset_mcp_catalog_rest_query",
+      "model_trace": [
+        {
+          "name": "模型生成计划",
+          "duration_ms": 4882.46,
+          "candidate": {
+            "kind": "aggregate",
+            "scope": "all",
+            "population": "active",
+            "departments": [],
+            "filters": [],
+            "date_field": null,
+            "start_date": null,
+            "end_date": null,
+            "group_by": [
+              "dept_cn_name"
+            ],
+            "metrics": [
+              "count"
+            ],
+            "columns": [],
+            "order_by": [],
+            "page": 1,
+            "page_size": 50,
+            "message": null,
+            "inspect_ids": []
+          },
+          "usage": {
+            "prompt_tokens": 2296,
+            "completion_tokens": 94,
+            "total_tokens": 2390,
+            "completion_tokens_details": {
+              "reasoning_tokens": 93
+            }
+          },
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ],
+  "status": "tested_live_model"
+}
