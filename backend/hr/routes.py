@@ -11,6 +11,7 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field
+from starlette.concurrency import run_in_threadpool
 
 from . import auth, config, openfga_source, query, registry, service, store, superset_mcp, superset_source
 from .model import model_status
@@ -59,17 +60,23 @@ def session(body: Persona, request: Request, response: Response):
 
 
 # 页面启动时一起取得身份、授权目录、数据版本和模型状态，避免先展示全量目录。
-@router.get("/bootstrap")
-async def bootstrap(p=Depends(auth.principal)):
+def bootstrap_context(p):
+    """同步 Superset/MCP 访问放在线程里，避免阻塞 ASGI 事件循环或嵌套 asyncio.run。"""
     return {
         "principal": auth.public(p),
         "personas": store.PERSONAS,
         "catalog": registry.catalog(p),
-        "model": await model_status(),
         "data_version": store.DATA_VERSION,
         "fingerprint": auth.fingerprint(p),
         "query_backend": "superset_mcp_catalog_rest_query" if superset_mcp.enabled() else "openfga" if openfga_source.enabled() else "superset" if superset_source.enabled() else "sqlite",
     }
+
+
+@router.get("/bootstrap")
+async def bootstrap(p=Depends(auth.principal)):
+    result = await run_in_threadpool(bootstrap_context, p)
+    result["model"] = await model_status()
+    return result
 
 
 # 结构化查询入口用于可视化编辑器；自然语言 chat 最终也经过同一个 run_query。

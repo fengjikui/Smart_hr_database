@@ -35,6 +35,8 @@ ALLOWED_ORIGINS = {
     "http://localhost:8000",
     "http://testserver",
 }
+# 默认不增加来源；仅服务端启动配置可增加隔离页面地址，不能由请求头决定。
+ALLOWED_ORIGINS.update(filter(None, os.getenv("HR_EXTRA_ORIGINS", "").split(",")))
 
 
 @app.middleware("http")

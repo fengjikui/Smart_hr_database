@@ -138,7 +138,16 @@ async def catalog_async(p):
     except HTTPException:
         raise
     except Exception as exc:
-        # SDK 的 ExceptionGroup 可能包含请求头或远端堆栈；仅输出固定错误，禁止 str(exc)。
+        # SDK 的上下文退出可能把我们自己的 HTTPException 包成 ExceptionGroup。
+        # 保留已经过安全处理的 403/413，不能把明确撤权错误混成服务故障。
+        pending = [exc]
+        while pending:
+            error = pending.pop()
+            if isinstance(error, HTTPException):
+                raise error from None
+            if isinstance(error, BaseExceptionGroup):
+                pending.extend(error.exceptions)
+        # 网络/SDK 异常可能包含请求头或堆栈；只输出固定错误，禁止 str(exc)。
         raise HTTPException(503, 'MCP 不可用或认证失败，已停止查询；未回退其他身份或数据源') from exc
 
 

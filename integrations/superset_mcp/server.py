@@ -4,6 +4,9 @@
 这里使用官方公开的中间件扩展点，把已验证身份绑定到独立请求上下文。
 所有工具、DAO、数据集鉴权和 ChartDataCommand 仍来自 apache/superset 镜像。
 """
+import asyncio
+
+from anyio import fail_after
 from fastmcp.exceptions import ToolError
 from fastmcp.server.dependencies import get_access_token
 from fastmcp.server.middleware import Middleware
@@ -15,8 +18,23 @@ from superset.mcp_service.server import build_middleware_list
 
 
 class PrincipalBinding(Middleware):
+    def __init__(self):
+        # Superset 6.1.0 使用 Flask-SQLAlchemy 2.x；真实并发图表查询曾触发
+        # DetachedInstanceError。当前部署单进程串行工具调用，防止共享 scoped_session。
+        # 这是明确的吞吐限制，不能将本实验称为多 worker 已验证部署。
+        self.gate = asyncio.Lock()
+
     async def on_call_tool(self, context, call_next):
+        with fail_after(20):
+            async with self.gate:
+                return await self.bound_call(context, call_next)
+
+    async def bound_call(self, context, call_next):
         """验签由 FastMCP 完成；无用户、停用用户、解析失败一律拒绝，不设开发兜底。"""
+        # 一些图表 mutate 工具在官方装饰器使用 can_read；不依赖该注解阻止写入。
+        # 部署仅允许三个已实测只读工具。工具发现仍展示官方注册表，直接调用越界工具拒绝。
+        if context.message.name not in {'list_datasets', 'get_dataset_info', 'get_chart_data'}:
+            raise ToolError('Tool disabled by read-only deployment policy')
         token = get_access_token()
         claims = getattr(token, 'claims', {}) if token else {}
         username = claims.get('sub')

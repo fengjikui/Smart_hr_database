@@ -47,6 +47,13 @@ services:
     <<: *platform
     ports: ["127.0.0.1:15008:5008"]
     command: ["python", "/mcp-lab/server.py"]
+    # 覆盖基础镜像针对 8088 的 Web 探针；本进程只监听 5008，匿名请求必须 401。
+    healthcheck:
+      test: ["CMD", "python", "-c", "import http.client; c=http.client.HTTPConnection('127.0.0.1',5008,timeout=2); c.request('POST','/mcp','{}',{'Content-Type':'application/json'}); assert c.getresponse().status == 401"]
+      interval: 20s
+      timeout: 3s
+      start_period: 20s
+      retries: 3
     depends_on:
       init: {condition: service_completed_successfully}
 volumes:

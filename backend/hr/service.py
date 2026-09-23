@@ -60,7 +60,20 @@ def reconcile(p, plan):
     """
     before = auth.fingerprint(p)
     actual = query.execute(p, plan)
-    if superset_source.enabled() or openfga_source.enabled():
+    if superset_source.enabled():
+        from .superset_query import Compiler
+
+        snapshot = superset_source.snapshot(p)
+        compiler = Compiler(p, plan, snapshot)
+        # HR 的解释快照可能来自合同出口；本次公共/事件出口的 RLS 可以更窄。
+        # 独立核验必须与本次实际出口相交，不能把另一个出口的旧人群放入差异响应。
+        visible = snapshot["query_scopes"][compiler.dataset_key]["rows"]
+        allowed_ids = {row[0] for row in visible}
+        event_scope = ({(row[0], row[2], row[3], row[4]) for row in visible}
+                       if compiler.dataset_key.startswith("events_") else None)
+        expected = reference.calculate(p, plan, source=snapshot["rows"],
+            scope=(set(compiler.ids) & allowed_ids, compiler.grant["depths"]), event_scope=event_scope)
+    elif openfga_source.enabled():
         ids, grant = auth.scoped(p, plan.scope)
         expected = reference.calculate(p, plan, source=auth.people(p), scope=(set(ids), grant["depths"]))
     else:

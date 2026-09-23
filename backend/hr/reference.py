@@ -53,7 +53,7 @@ def independent_scope(p, plan, rows, policy):
     return scopes[plan.scope], depths
 
 
-def calculate(p, plan, *, source=None, scope=None):
+def calculate(p, plan, *, source=None, scope=None, event_scope=None):
     """返回未分页 rows/totals；可显式注入数据及授权范围，不需要连接查询数据库。"""
     # 在线核验可传入 Superset 已授权快照：参考计算不能成为全量数据泄露的旁路。
     # 离线集成验收仍用默认的独立 BFS 验证完整权限名单。
@@ -121,7 +121,10 @@ def calculate(p, plan, *, source=None, scope=None):
     for row in records:
         if plan.date_field == "employment_events":
             for field in ("onboard_date", "termin_date"):
-                if in_range(row[field]):
+                event_key = (row["person_id"], row[field], int(field == "onboard_date"), int(field == "termin_date"))
+                # 在线事件核验只允许实际事件出口经 RLS 返回的键；同一人的另一种
+                # 事件可能被单独撤销，不能由人员快照自动重建并泄露该事件。
+                if in_range(row[field]) and (event_scope is None or event_key in event_scope):
                     facts.append(
                         {
                             **row,

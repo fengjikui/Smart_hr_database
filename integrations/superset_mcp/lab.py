@@ -9,6 +9,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -30,7 +31,8 @@ def environment():
     """覆盖可能从课堂 shell 继承的路径；子进程只访问实验应用历史和样本。"""
     return dict(os.environ, DOCKER_HOST=os.getenv('HR_DOCKER_HOST',
         f'unix://{Path.home()}/.colima/hr-superset/docker.sock'), COMPOSE_PARALLEL_LIMIT='1',
-        HR_QUERY_BACKEND='superset_mcp', HR_SUPERSET_URL='http://127.0.0.1:18088',
+        HR_SESSION_COOKIE='hr_mcp_session', HR_EXTRA_ORIGINS='http://127.0.0.1:18000,http://127.0.0.1:13000',
+        HR_BACKEND_URL='http://127.0.0.1:18000', HR_QUERY_BACKEND='superset_mcp', HR_SUPERSET_URL='http://127.0.0.1:18088',
         HR_SUPERSET_MCP_URL='http://127.0.0.1:15008/mcp', HR_SUPERSET_DIR=str(APPLICATION),
         HR_DATA_DIR=str(LOCAL / 'app'), HR_MCP_SIGNING_FILE=str(LOCAL / 'mcp-signing.json'),
         OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1', UV_CONCURRENT_BUILDS='1')
@@ -54,6 +56,24 @@ def load_check():
     for command in [['uptime'], ['memory_pressure'], ['pmset', '-g', 'therm']]:
         if shutil.which(command[0]):
             subprocess.run(command, check=False)
+
+
+def ready():
+    """启动不等于就绪：最多等待 45 秒；MCP 匿名请求必须返回 401，不能是开放服务。"""
+    import httpx
+    deadline = time.monotonic() + 45
+    with httpx.Client(trust_env=False, timeout=2) as client:
+        while time.monotonic() < deadline:
+            try:
+                web = client.get('http://127.0.0.1:18088/health')
+                mcp = client.post('http://127.0.0.1:15008/mcp', json={})
+                if web.status_code == 200 and mcp.status_code == 401:
+                    print('Web health=200；MCP 无凭据=401。')
+                    return
+            except httpx.HTTPError:
+                pass
+            time.sleep(1)
+    raise SystemExit('实验服务未就绪，请查看本实验容器日志。')
 
 
 def prepare():
@@ -87,7 +107,7 @@ def prepare():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=['targets', 'prepare', 'build', 'up', 'bootstrap', 'status',
-        'stop', 'start', 'restart', 'logs', 'run'])
+        'stop', 'start', 'restart', 'logs', 'run', 'health'])
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     targets()
@@ -107,17 +127,21 @@ def main():
                 with socket.socket() as sock:
                     sock.bind(('127.0.0.1', port))
         compose('up', '-d', '--no-build')
+        ready()
     elif args.action == 'bootstrap':
         output = compose('exec', '-T', 'superset', 'python', '/mcp-lab/bootstrap.py', capture=True)
         value = json.loads(output.stdout.strip().splitlines()[-1])
         private_json(APPLICATION / 'manifest.json', value)
         print(f"实验就绪：{value['row_count']} 人、{len(value['principals'])} 个业务身份。")
+    elif args.action == 'health':
+        ready()
     elif args.action == 'status':
         compose('ps', '-a')
     elif args.action == 'logs':
         compose('logs', '--tail', '60', 'mcp')
     elif args.action in {'start', 'restart'}:
         compose(args.action, 'postgres', 'superset', 'mcp')
+        ready()
     elif args.action == 'stop':
         compose('stop')
     elif args.action == 'run':

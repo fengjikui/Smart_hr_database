@@ -7,6 +7,7 @@
 
 import hashlib
 import json
+import os
 import secrets
 import time
 from datetime import UTC, datetime
@@ -17,7 +18,8 @@ from pydantic import Field
 from . import openfga_source, store, superset_source
 from .schema import FIELDS, Strict
 
-COOKIE = "hr_session"
+# 同主机不同端口共享 Cookie 域；隔离实验必须使用独立名称，避免挤掉课堂登录。
+COOKIE = os.getenv("HR_SESSION_COOKIE", "hr_session")
 
 
 # 字段组与功能开关是本项目业务策略；不等同于 Superset 自带的平台角色。

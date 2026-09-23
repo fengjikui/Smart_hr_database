@@ -247,10 +247,13 @@ def snapshot(p, refresh=False):
              "origins": origins, "policy_version": context["policy_version"]}
     # 指纹刻意不包含 SQL 文本或返回顺序，而使用真实授权内容与出口 ID。
     # 这不是生产级全库版本号；本机样本通过重复真实查询换取可直观看到的即时撤权。
-    fingerprint = hashlib.sha256(json.dumps({"backend": "superset", "subject": subject,
-        "context": context, "rows": rows, "query_scopes": scopes, "mcp_catalog": mcp_catalog},
+    boundary = {"backend": "superset", "subject": subject,
+                "context": context, "rows": rows, "query_scopes": scopes}
+    if mcp_catalog is not None:
+        boundary["mcp_catalog"] = mcp_catalog
+    fingerprint = hashlib.sha256(json.dumps(boundary,
         sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     result = {"context": context, "rows": rows, "grant": grant, "rules": rules, "fields": fields,
-              "fingerprint": fingerprint, "source_queries": source_queries, "mcp_catalog": mcp_catalog}
+              "fingerprint": fingerprint, "source_queries": source_queries, "mcp_catalog": mcp_catalog, "query_scopes": scopes}
     p["_superset_snapshot"] = result
     return result

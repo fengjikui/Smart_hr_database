@@ -5,6 +5,8 @@ import runpy
 # 复用课堂配置的安全默认值，但在独立容器/网络中解析 postgres 服务名。
 # 不加载课堂 .env、卷、账号或应用状态；同名库仅存在于各自 PostgreSQL 实例。
 globals().update({k: v for k, v in runpy.run_path('/lab/superset_config.py').items() if k.isupper()})
+# 不同端口仍共享 Cookie 域；实验 Web 登录不能覆盖课堂浏览器会话。
+SESSION_COOKIE_NAME = "hr_superset_mcp_session"
 MCP_AUTH_ENABLED = True  # 默认官方为 False；实验强制身份认证，不能静默落入开发模式。
 MCP_DEV_USERNAME = None
 MCP_RBAC_ENABLED = True  # 保持官方工具级 FAB 权限检查。
