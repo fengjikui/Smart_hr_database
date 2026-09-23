@@ -386,8 +386,8 @@
 
 - 你的问题：为什么命令前要设置 `DOCKER_HOST`？为什么这个值是文件路径？在另一台 Linux 服务器上，先 `docker ps` 找到名字，再 `docker exec ... psql ...` 就能连接，为什么不用设置？
 - 解答：整条命令有两层连接。电脑上的 Docker 命令先联系 Docker 引擎，让它在指定容器里运行 `psql`；容器里的 `psql` 再连接 PostgreSQL。
-- `DOCKER_HOST=unix://$HOME/.colima/hr-superset/docker.sock`：告诉 Docker 客户端使用本机 Colima 的 `hr-superset` 实例。它是 Docker 引擎的 Unix socket 地址，不是 PostgreSQL 主机地址；`$HOME` 是当前用户的主目录，`unix://` 表示使用本地 Unix socket。写在命令前只对这一条命令生效，不修改全局 Docker context。
-- Linux 上直接执行可以成功，说明 Docker 客户端已经能通过现有默认配置找到目标引擎。常见默认地址是 `/var/run/docker.sock`，也可能由 context 或环境变量指定，所以不需要每条命令再写 `DOCKER_HOST`。是否需要指定，取决于当前 Docker 配置，不是所有 Mac 必须写、所有 Linux 都不用写。
+- `DOCKER_HOST`：告诉 Docker 客户端要联系哪个引擎，不是 PostgreSQL 主机地址。使用 Unix socket 时，`unix://` 表示本地套接字连接；文档从当前 Docker context 获取实际地址，不固定个人机器路径。写在命令前只对这一条命令生效，不修改全局 Docker context。
+- Linux 上直接执行可以成功，说明 Docker 客户端已经能通过现有默认配置找到目标引擎；也可能由 context 或环境变量指定，所以不需要每条命令再写 DOCKER_HOST。是否需要指定取决于当前 Docker 配置，不是所有 Mac 必须写、所有 Linux 都不用写。
 - `docker exec`：在一个已经运行的容器里执行命令。`-it` 保留交互输入并分配终端；`hr-superset-lab-postgres-1` 是容器名，不是数据库名。
 - `psql -U postgres -d postgres`：启动 PostgreSQL 命令行客户端，以数据库用户 `postgres` 连接数据库 `postgres`。这两个相同的单词分别是用户名和库名。这里未写 `psql -h`，客户端在本容器配置下连接本地 PostgreSQL；前面的 `DOCKER_HOST` 不负责选择数据库服务器。
 - 你说的 Linux 操作顺序是正确的：`docker ps` 列出运行容器，取 `NAMES` 列的容器名或容器 ID，再 `docker exec -it <容器名> psql -U <数据库用户> -d <数据库名>`。本机查看同一套容器时，也应给 `docker ps` 指定同一个 `DOCKER_HOST`。
@@ -423,6 +423,380 @@
 - 当前只执行 `\d v2_auth.identity_map`，预期五列：superset_user_id、username、persona_id、person_id、role_key。
 - 若提示表不存在，先补做实操手册第 17 步建表语句；本次不重复建表，也不猜测 Superset 用户 ID 插入数据。
 - 确认后继续后续配置。助手只提供操作指引，不代为执行数据库操作。
+
+## 2026-09-22：回到 Superset 第 20、21 步
+
+- 用户选择继续 Superset 手工学习，不推进 OpenFGA 手册。
+- 已核对手册和 schema.sql：第 20 步 visible_people 已由用户确认完成；第 21 步 context 尚待执行结果确认。本次未查询或修改数据库，历史计数不能当作今日实测。
+- 复习分工：visible_people 表达“账号可以看哪些员工”，context 表达“账号是谁、使用什么策略、数据版本及组织关系是否有效”。二者都还需要后续 Superset RLS 按当前登录身份过滤。
+- 本次操作：在连接 hr_v2 的 psql 中执行手册第 21 步 CREATE OR REPLACE VIEW，再 SELECT count(*) FROM v2_api.context；不运行整个初始化脚本。
+- 解释重点：to_jsonb(r) 将策略行转换为 JSON，减去 role_key 和 version 表示删除两个键；CROSS JOIN 把快照和关系检查附到每条账号上下文上，快照为空时不会产生结果。
+- 预期：CREATE VIEW；若仍维持上次尚未填写身份映射与快照的状态，计数为 0。实际结果待用户反馈，不标记完成。
+
+### 第 22.1 步：准备完整样本的导入材料（已完成，用户确认）
+
+- 用户表示“请继续”。本次推进不依赖建视图结果的材料生成；第 21 步没有新的实际输出，不据此补记执行成功。
+- 操作位置：电脑终端；若仍在 psql，先用 `\q` 退出，再进入项目根目录。
+- 命令：`uv run python integrations/superset/learning.py prepare`。
+- 目的：为后续从三人练习样本切换到完整 300 人合成样本准备 SQL。本次只生成文件，不执行导入，也不配置 Superset。
+- 预期提示“仅生成材料，未导入数据库、未创建用户”，生成位置为 `integrations/superset/.local/application/learning/`；首份待学习文件为 `22_import.sql`。
+- SQL 材料及登录、连接资料保存在本机私有目录，包含密码的文件不要粘贴到聊天。本次只需反馈终端成功提示或脱敏报错。
+- 助手未运行 prepare、未修改数据库；待用户完成后，下一小步阅读导入 SQL 的事务和替换逻辑。
+- 实际结果：用户反馈“已经生成了对应的文件”，据此确认材料生成完成；不代表已执行 SQL 导入。
+
+### 第 22.2 步：阅读导入 SQL（已讲解，用户同意继续）
+
+- 操作：在编辑器打开本机 `learning/22_import.sql`，先阅读结构，不执行。
+- 讲解：BEGIN 开始事务；DELETE FROM people 删除旧记录但保留表结构；INSERT 写入完整 300 人；role_policy 恢复五种角色策略；snapshot 写入数据日期、指纹和字段目录；最后检查组织关系并 COMMIT。
+- 特别区分：DELETE 没有 WHERE 时删除全表记录，因此这份脚本是整份样本替换，不是在三条练习记录后追加 300 条，也不是 DROP TABLE。身份映射不在本次替换范围内。
+- 事务语义：本脚本开启遇错停止；提交前发生 SQL 错误会使事务无法正常提交。后续用独立 psql 连接执行时，错误退出会回滚未提交修改；若自己在交互 psql 中执行失败，应 ROLLBACK。
+- 当前未导入、未备份，用户理解后再进入第 22.3 步的备份与执行。
+- 用户反馈“好的，我们下一步开始吧”，本轮进入备份；不据此认为已经执行导入。
+
+### 第 22.3 步之一：备份练习库（已完成，用户确认）
+
+- 操作位置：电脑终端，在项目根目录设置本机 Docker 引擎地址。
+- 操作：创建 `data/backups` 私有目录，使用容器中的 `pg_dump -U postgres -Fc hr_v2`，将输出重定向到电脑上的带时间戳 `.dump` 文件。具体命令见手册第 22.3 步。
+- 解释：pg_dump 导出数据库结构和数据；-Fc 指定供 pg_restore 使用的自定义归档格式；重定向由电脑上的 shell 执行，因此备份留在项目目录，非容器目录。chmod 700 和 umask 077 限制其他本机用户访问。
+- 检查：备份命令无报错，`ls -lh data/backups/` 出现本次时间对应的非空文件；仅列文件不等于做过恢复验证，若有错误先处理，不进入导入。
+- 当前助手只提供指引、记录学习过程，没有代为执行备份或修改数据库；待用户反馈后继续复制和执行 SQL。
+- 实际反馈：用户表示“欧了”，确认本次备份步骤完成。助手未另行检查归档或执行恢复演练。
+
+### 第 22.3 步之二：执行完整样本导入（已完成，用户确认）
+
+- 操作位置：沿用已设置 DOCKER_HOST 的电脑终端和项目根目录。
+- 操作：docker cp 将 `22_import.sql` 复制到 PostgreSQL 容器的 `/tmp/hr-22-import.sql`；再以 postgres 连接 hr_v2，使用 `psql -v ON_ERROR_STOP=1 -f /tmp/hr-22-import.sql` 执行完整文件。
+- 解释：复制文件本身不导入数据；-f 才让 psql 从文件读取并执行 SQL；ON_ERROR_STOP=1 要求遇错停止，未提交的事务随独立连接退出回滚。
+- 预期：导入输出最后为 COMMIT；随后用单独的只读计数 SQL `SELECT count(*) FROM v2_data.people;` 核对结果为 300。
+- 本轮先核对人数，角色策略、快照日期与关系检查结果下一小步逐项查看。若导入报错，应先反馈错误，不以可能已有的 300 行单独判定成功。
+- 助手未执行导入或查询数据库，实际结果待用户反馈。
+- 实际反馈：用户表示“o 了”，确认上一轮导入及 300 人计数检查完成；助手未另行查询数据库。
+
+### 第 22.3 步之三：核对策略、快照和关系（已完成，用户确认）
+
+- 操作位置：从电脑终端重新进入 hr_v2 的 psql 会话。
+- 查询：role_policy 的 role_key、reports、hrbp、inherit_hrbp、field_groups；snapshot 的 as_of、data_version；graph_health 全部列。
+- 预期：角色策略 5 行，快照日期 2026-09-11，graph_valid=t。t/f 是布尔值 true/false 的 psql 显示；field_groups 是允许查询的字段组。
+- 解释：这一步核对导入配置与关系有效性，尚未证明 Superset 的实际用户行权限已经生效；data_version 是样本版本标识，不是数据库软件版本。
+- 助手只提供查询指引，没有代执行 SQL；待用户反馈后继续第 23 步出口视图。
+- 实际反馈：用户表示“欧了”，确认角色策略、快照日期和 graph_valid 均符合上一轮预期。
+
+### 第 23 步之一：创建四个查询出口视图（已完成，用户输出确认）
+
+- 目标：创建 people_public、people_contract、events_public、events_contract，供后续 Superset 注册数据集使用。
+- 解释：人员视图连接业务人员字段和 visible_people 授权集合；基础出口不包含两列合同字段，合同出口包含；事件视图提供入职和离职统计记录。public 是本项目的出口命名，不表示匿名或全员可访问。
+- 操作：退出 psql，按手册将 23_views.sql 复制到容器并用 psql -v ON_ERROR_STOP=1 -f 执行；正常末尾显示 COMMIT。
+- 检查：使用 psql 的 `\dv v2_api.*` 列出视图，预期新增四个出口；若第 21 步 context 已建，应共五个。若缺 context，先反馈并补齐，不直接推进。
+- 边界：_viewer_id 标识每行所属的查看账号，后续仍需 Superset RLS 按登录账号过滤；当前无身份映射时出口零行不代表导入失败。
+- 助手未执行建视图操作；实际结果待用户反馈。下一小步阅读人员出口的连接与列选择。
+- 实际输出：用户粘贴 `\dv v2_api.*`，列出 context、events_contract、events_public、people_contract、people_public，均为 postgres 拥有的 view；符合五个视图存在的预期。该输出也确认第 21 步 context 已创建，但不作为其计数或定义正确性的单独验证。
+
+### 第 23 步之二：理解人员资料与授权集合的连接（讲解中）
+
+- 核对本机 23_views.sql 中的核心：`FROM v2_data.people p JOIN v2_auth.visible_people g ON g.target_id=p.person_id`，并将 `g.superset_user_id AS _viewer_id` 输出。
+- 讲解：p 提供员工资料；g 提供账号到目标员工的可见关系；通过目标员工 ID 匹配后，每行同时包含员工信息和允许查看该行的账号编号。_viewer_id 是列别名，不会自动实施登录身份筛选。
+- 假设案例：账号 10、20 都有权看同一员工，则该员工在视图中对应两行，_viewer_id 分别为 10、20；这些账号编号仅用于说明，不代表已建映射。
+- 后续执行点：Superset RLS 使用可信当前登录账号 ID 限定 _viewer_id；不能把全部账号的出口行数当作公司人数。账号映射尚未填入时，该视图零行仍属预期。
+- 本轮只讲解，不插入示例映射、不修改视图或运行数据库查询。下一小步可检查公共与合同出口的列差异。
+
+### 第 23 步问答：五万人、三千使用者时的视图规模与递归性能
+
+- 用户理解：人员出口用 _viewer_id 标识有权查看该行的 Superset 账号，RLS 按可信当前账号过滤；担心来源合并、递归和全量展开的性能。
+- 数量纠正：若 3000 个已映射账号平均各可见 100 个不同员工，人员出口逻辑结果约 30 万行，不是 3 万；单账号平均约 100 行，不是所有账号都固定 100 行。事件出口行数另算，多来源归并前的中间结果也可能更多。
+- 列权限边界：RLS 限制行，列范围取决于选用的公共/合同出口、数据集授权及 Agent 字段校验，不能把 _viewer_id 过滤当作所有列权限的实现。
+- 普通视图保存查询定义，不永久保存 30 万份完整人员记录；不能把逻辑顺序等同于执行计划。优化器可能提前应用部分条件，但递归和复杂聚合不能保证都按当前账号先缩小。
+- 已核对 schema.sql：management_closure 的递归初始项从全体 people 出发；visible_people 的管理线、继承 HRBP、depth 补充及 graph_health 均引用管理链。graph_health 还检查全图；origins 合并后生成路径 JSON。这些都是当前方案在大规模查询中应分析的计算成本，不是已测出的耗时结论。
+- 结论：目前仅有 300 人演示验证，没有五万人/三千账号的容量或并发结论；30 万关系行本身不足以判定快慢，最终返回 100 行也不表示中间只处理 100 行。账号总数不等于同时查询数。
+- 后续优化方向：让可信账号条件尽早进入授权查询；按当前人员作为起点递归，或维护带索引的预计算管理关系/可见关系表；人员明细仍保存一份；按需生成权限路径解释；组织合法性可在关系变更时验证并和查询使用的数据版本一致发布。预计算不能容忍撤权后继续读旧权限。
+- 后续性能验证应在隔离环境模拟五万人、三千映射、不同管理深度与 HRBP 覆盖，针对普通主管/大范围 HR 测明细、统计和并发，并用 EXPLAIN (ANALYZE, BUFFERS) 查看实际行数、循环、耗时与读盘。该命令会真实执行查询；本轮未运行压测、未修改学习库。
+- 官方参考：[普通视图与查询重写](https://www.postgresql.org/docs/17/rules-views.html)、[递归与 CTE 优化边界](https://www.postgresql.org/docs/17/queries-with.html)、[执行计划与实际执行分析](https://www.postgresql.org/docs/17/using-explain.html)。
+- 学习进度停留在第 23 步，不因概念问答自动推进到只读账号配置。
+
+### 第 23 步问答：业务权限模型与 Superset RLS 各负责什么
+
+- 用户复述：先分析业务权限模型，定义角色及可见范围，把人员和角色关联，经多层计算后，Superset 只需一行 RLS 选出登录者可看的记录。
+- 确认：主线正确。role_policy 配置已实现的业务规则，identity_map 关联 Superset 账号、员工和业务角色；management_closure / visible_people 等自定义视图计算可见关系；人员出口增加 _viewer_id，Superset RLS 使用 current_user_id() 选择登录者对应的行。
+- 两类角色：role_policy 中的 manager/hrbp 等是本项目业务策略；Superset 平台角色负责功能和数据集等访问许可。名称可对应，但不是同一张表、同一个对象，也不会自动同步。
+- 职责边界：当前方案的复杂业务范围计算主要是我们写的 SQL，Superset 不会自动理解主管递归或 HRBP 继承。一行 RLS 简洁，是因为前面的模型和查询已做好；整体还需要平台授权、受限数据库连接和不同字段出口配合。
+- 当前进度：用户决定先学完整个现有方案，性能优化留待后续。此轮只确认概念，没有创建 Superset 角色、RLS 或数据库账号。
+
+### 第 23 步问答：框架能否表达复杂关系，业务是否必须维护大量 SQL
+
+- 用户目标：将权限规则做成简洁、可视化配置，避免每次简单问数都触发大量全图递归；询问当前继承规则是否过于复杂，以及现实系统的职责分工。
+- 明确结论：OpenFGA 能表达直接/递归主管、HRBP 服务、关系继承与角色能力组合。已核对本项目 model.fga，supervisors 使用 `owner from manager or supervisors from manager`，inherited_access 使用 HRBP 的主管关系与能力开关取交集。SpiceDB 也提供关系及权限组合表达，不能误说没有框架支持。
+- 边界：框架提供关系推导能力，不会决定业务是否应授权，不会自动接入源库或给任意 SQL 加过滤。我们当前 OpenFGA 适配仍逐候选批量 Check，设 1000 人上限，是已验证的小样本方案，不能据此宣称解决五万人查询性能。
+- 区分三层：业务确认谁可看谁及哪些字段；技术人员建立可复用授权模型、同步和执行接口；授权管理员通过限定模板配置日常角色、部门范围、人员分配，并由有审批权的人批准敏感范围。SQL 视图是实现路径之一，不是所有系统或每次配置必经步骤。
+- 规则与事实分开：调岗通常更新主管、部门、HRBP 等关系事实；已支持的规则开关可配置，新增关系类型或授权语义可能需要技术扩展和回归验证。可视化界面不等于自动支持任意新业务规则。
+- 业务复杂性：管理某位 HRBP 不必然意味着有权查看其全部服务员工；当前 inherit_hrbp 是演示假设，未获真实业务确认。后续可用本人、管理链、明确授权的 HRBP 部门、单独敏感字段授权作为较简单的讨论起点，不在本轮修改现有规则。
+- 预计算：物化视图或关系表可保存结果并建索引，但必须处理更新和撤权生效。规则表达简洁与计算性能是不同问题。
+- 界面：OpenFGA Playground 可辅助建模、查看关系和测试，官方定位为原型与学习工具；它不是现成的 HR 审批管理台。本项目尚未交付业务权限配置 GUI。
+- 官方参考：[OpenFGA 父子关系](https://openfga.dev/docs/modeling/parent-child)、[Playground 定位](https://openfga.dev/docs/getting-started/setup-openfga/playground)、[SpiceDB 模型语言](https://authzed.com/docs/spicedb/concepts/schema)、[PostgreSQL 物化视图](https://www.postgresql.org/docs/17/rules-materializedviews.html)。
+- 本轮仅答疑和记录，继续保留 Superset 第 23 步的学习进度，不启动改造或性能测试。
+
+### 第 23 步问答：外层 RLS 是否自动避免全量递归
+
+- 用户疑问：people_public JOIN visible_people 时是否先完整计算可见关系；为何不提前过滤 person_id；外层加 RLS 后是否自然只计算该账号的数据。
+- 解答：SQL 的逻辑表达顺序不等同于执行顺序。普通视图会展开参与优化，部分条件可以提前执行（条件下推），因此不能断言一定先算完全部 visible_people；但递归、聚合和安全屏障等会限制优化，也不能保证外层 RLS 自动避免全量递归。
+- 当前代码依据：management_closure 的递归初始项从所有 people 行出发，graph_health 也检查全局关系。当前模型中加 _viewer_id 过滤不等于明确把该身份作为递归起点；究竟执行多少需查看实际 SQL 的执行计划。
+- 身份条件与业务条件分开：_viewer_id 是可信登录账号的 Superset ID；person_id 是被查询员工的 ID。二者必须共同满足，不能拿问题里的 person_id 替代授权条件。若按主管收窄递归起点，应由可信身份映射取得其人员 ID。
+- 递归不能随意按目标员工过滤每一层：A 管 B、B 管 C，A 查 C 时仍要经过 B；错误地只保留 C 会截断合法路径。
+- 普通视图不自动持久化其结果，多层引用并不能据此认定每次都完整物化；引用 PostgreSQL 官方 WITH 文档解释优化边界，未进行性能测试或数据库修改。
+- 下一教学环节仍为公共与合同视图的字段差异；不会因本轮答疑跳过该步骤。
+
+### Q4 / 高优先级优化：预计算并复用可见关系，减少重复递归
+
+- 记录日期：2026-09-22。用户明确要求记录，先完成当前学习，后续正式设计时重点处理；适用于 Superset、OpenFGA 或其他最终实现路径。
+- 用户偏好：强烈倾向缓存“谁可以看谁”的关系结果。关系相对问数请求变化较少，不希望每次简单查询都重新执行全图递归、多来源合并与权限解释计算。关系变化频率仍需通过实际业务确认。
+- 优化目标：尽早按可信当前身份和适用范围缩小计算；复用已经验证的授权结果，避免每个请求重复全量计算。不能依赖外层 RLS 必然将过滤条件下推到递归起点。
+- 优先讨论的缓存内容：可见人员 ID 集合、主管关系闭包或带索引的账号—人员关系表。业务人员明细仍由业务数据源读取；路径解释可按需计算。持久化预计算表、物化视图和版本化缓存均为候选，不预先锁定产品或存储方式。
+- 更新候选：关系/策略变更事件触发失效或增量重算；周期性全量重算和对账兜底。用户提出“每日同步重算一次”作为候选节奏，尚未确定为最终权限生效承诺，也未创建定时任务。
+- 后续补充：用户表示每日偏慢时可每小时刷新，尤其希望高频问数复用关系结果。每小时同样仅为候选；本轮暂不讨论或实施，不创建定时任务，撤权生效要求仍待确认。
+- 必须共同设计的失效来源：入离职、调岗、主管/HRBP 关系变更、账号映射与状态变更、角色策略和字段/明细/导出能力变化。不能只监听人员表而遗漏策略撤权。
+- 一致性边界：区分新增授权与撤销授权，明确允许的陈旧窗口。若仅每天刷新，变化可能接近一天才反映；不得默认业务接受此撤权延迟。事件失效后，重算未完成或更新失败时应按确认的策略阻止使用已失效权限。
+- 发布与隔离：缓存按主体及授权/关系版本隔离，重算结果完整发布；并发查询不混用半新半旧版本，历史/导出与字段权限也需检查当前有效版本。
+- 后续验收：隔离环境模拟规模与并发，记录缓存命中/未命中成本、递归实际行数、重算耗时、变更到生效的延迟；验证撤权、丢事件、重算失败、版本切换时不会继续放行失效权限。
+- 状态：仅记录需求与设计约束，未修改现有查询逻辑、未启用缓存、未新增自动同步。Superset 学习仍停留在第 23 步。
+
+### 第 23 步之三：事件视图与合同视图（讲解中）
+
+- 用户要求继续讲解 event 和其他几个视图。已只读核对实际生成的 23_views.sql，没有执行数据库查询或修改。
+- events_public 的 event 是入职/离职业务事件，不是前面讨论的缓存失效通知。该普通视图从 people_public 派生：onboard_date 非空生成 is_hire=1/is_exit=0 的入职行；termin_date 非空生成 is_hire=0/is_exit=1 的离职行；UNION ALL 合并两类记录。
+- 新列：event_day 统一事件日期，event_month 取日期文本前七字符，is_hire/is_exit 是用于求和的整数标志；p.* 保留人员资料及 _viewer_id 等已有列。
+- 假设在同一查看账号范围内，一名员工 2026-02-10 入职、2026-08-20 离职，会出现两行事件；SUM(is_hire)、SUM(is_exit) 分别统计入职/离职次数，COUNT(*) 是事件数，COUNT(DISTINCT person_id) 是涉及人数。必须先限定授权账号与需要的时间范围。
+- 权限边界：继承的是人员出口的数据和 _viewer_id 列；Superset 数据集上的 RLS 不会因 SQL 视图引用而自动继承到新数据集，事件数据集仍需配置 RLS。
+- people_contract 比 people_public 多合同类型与到期日两列，同时要求所对应业务角色的 field_groups 包含 contract。events_contract 用同样的事件转换方式读取 people_contract。
+- context 是账号、策略及快照状态上下文，不是人员事件明细。本轮不重复创建五个视图。
+- 历史边界：当前事件由宽表日期派生，采用当前关系权限与当前部门等属性，不是独立完整任职事件流水，不能据此还原历史部门或多次入离职。
+- 当前仅讲解，尚未进入第 24 步数据库只读账号配置。
+
+### 第 23 步问答：事件视图是否属于预先封装的业务查询
+
+- 用户理解：事件视图根据已知业务需要预先编写，Agent 可以在更抽象的数据结构上继续查询；也可以让 Agent 动态生成这种转换 SQL。
+- 确认：events_public/events_contract 是可复用的入离职业务表达，统一事件日期和计数标志；并非写死某一道问题的答案，可供按月、部门、学历等不同筛选分组复用。它们是普通视图，预先保存查询定义，不是预先保存统计结果。
+- 理论可行性：允许生成 SQL 的 Agent 可以动态构造 UNION ALL 和统计，但仍需经过权限、语法、字段及业务口径校验。视图属于可选择的语义封装，不是智能问数必须使用的固定形式。
+- 当前项目准确行为：模型生成结构化 Plan；在 Superset 路径中，程序校验并编译为数据集查询请求，交给 Superset 生成和执行 SQL；不是把模型自由生成的任意 SQL 直接送入数据库。固定事件表达减少模型每次重新解释入离职日期和计数口径的工作。
+- 权限与业务区分：业务统计可动态组合；身份、授权范围和敏感字段约束由可信系统执行，不能允许模型为回答问题自行改写或绕开人员出口、RLS 等边界。
+- 本轮仅说明概念，不修改视图、Agent 或配置。学习仍在第 23 步。
+
+### 第 23 步问答：五个视图、数据库授权与 UNION ALL 越权边界
+
+- 用户疑问：Superset 是否只使用 v2_api 的五个视图，是否因此无法访问其他数据；自由 SQL 加 UNION ALL 引用别的表会不会越权。
+- 当前进度区分：五个视图只是本 HR 方案规划的业务出口，不代表创建视图后就完成了权限隔离。第 24 步只读数据库账号与后续数据集/角色/RLS 尚未由用户完成，当前仍使用 postgres 管理会话。
+- 数据库层：后续两个专用连接账号只获指定视图 SELECT 和 v2_api USAGE。public_reader 可读 context 与 public 人员/事件；contract_reader 可读 contract 人员/事件。原始人员表、权限配置表不授 SELECT；公共账号也不授合同出口。实际需验证角色继承及 PUBLIC 没有意外放行。
+- UNION ALL 示例：若一个分支读允许的人员视图，另一个分支直接读 v2_data.people，受限账号缺少底表权限，数据库会拒绝；合法的第一分支不会把底表权限传给第二分支。不能用 postgres 管理员的执行结果证明只读账号边界。
+- 视图内部能读底表与调用者直接读底表是两回事：当前普通视图默认以视图所有者权限检查底层关系访问，调用者可仅获视图 SELECT，并不因此获得原始表 SELECT。
+- 另一风险：共享数据库 reader 可以读出口中多个 _viewer_id 的数据。若暴露不受控原始 SQL/共享连接凭据，仅在已授权视图内省略或改写 _viewer_id 条件，也可能绕过应用行隔离；数据库对象最小权限并不替代 Superset 的当前用户行过滤。
+- Superset 层的规划：注册固定物理数据集；业务角色仅获对应数据集访问，不授 Admin/Alpha/sql_lab 或数据库全访问；关闭连接在 SQL Lab 暴露，不允许业务用户修改数据源/RLS。Agent 使用经校验的数据集查询请求，不执行模型提交的任意 SQL。
+- 已核对配置：RLS_IN_SQLLAB 虽为 true，但不能当作允许业务用户自由 SQL 的安全证明；当前方案明确不开放这一入口，ALLOW_ADHOC_SUBQUERY=false。官方同样提示 Superset 不是数据库防火墙。
+- 官方参考：[PostgreSQL GRANT](https://www.postgresql.org/docs/17/sql-grant.html)、[CREATE VIEW 权限语义](https://www.postgresql.org/docs/17/sql-createview.html)、[Superset 部署安全](https://superset.apache.org/docs/security/securing_superset/)、[功能开关与 SQL Lab RLS 注意事项](https://superset.apache.org/admin-docs/configuration/feature-flags/)。
+- 本轮只读核对代码与文档，不代执行授权或攻击验证；下一步仍按第 24、25 步创建受限账号并亲自验证拒绝访问原表。
+
+### 第 23 步之四：合同出口与 public 出口的区别（已理解，用户确认）
+
+- 用户已再次理解事件视图的业务封装作用，要求继续比较合同和 public 视图。
+- 字段区别：people_public 含 24 个业务字段；people_contract 含同样的 24 个字段，再增加 contract_type_code_desc（合同类型）和 contract_end_date（合同到期日期）。这两个数量不包含 _viewer_id、关系说明、月份等辅助列。
+- 范围区别：people_contract 除沿用可见人员关系外，还要求该查看账号关联的角色策略满足 `r.field_groups ? 'contract'`。这里 ? 检查 JSONB 字段组数组是否包含 contract。
+- 示例仅作说明：两个账号都可见同一员工，只有一个账号的字段组包含 contract，则公共出口可有两条查看关系，合同出口仅保留具有该能力的账号对应行；不是把无权限账号的合同值设为 NULL，也不是只保留合同即将到期的员工。
+- 两层约束仍须后续配置：Superset 数据集访问及专用数据库连接限制可用出口；RLS 按当前登录账号选择 _viewer_id。public 命名不表示匿名或全公司公开。
+- events_contract 从 people_contract 派生，保留合同字段和上述范围，但事件仍是员工入职/离职，不是合同续签或合同到期事件。
+- 本轮只解释现有定义，不改策略、不执行建视图或授予权限；第 24 步仍待开始。
+
+### 第 24 步：创建 PostgreSQL 只读账号与对象授权（待反馈）
+
+- 用户明确确认理解合同视图的区别，同意进入下一步。
+- 操作位置：若仍在 hr_v2 的 psql 中，先用 `\q` 退出；沿用项目根目录、已设置 DOCKER_HOST 的电脑终端。
+- 操作：复制本机私有的 24_access.sql 到容器 /tmp/hr-24-access.sql，以 postgres 连接 hr_v2 并使用 ON_ERROR_STOP=1 执行；成功后删除容器内临时 SQL。具体完整命令见手册第 24 步，不展示含密码的文件内容。
+- 创建的是数据库账号，不是员工/Superset 登录账号：v2_public_reader 获 context、people_public、events_public 的 SELECT；v2_contract_reader 获 people_contract、events_contract 的 SELECT。
+- 权限解释：CONNECT 允许连接 hr_v2；USAGE 允许使用 v2_api 命名空间；SELECT 只授予列出的视图。当前原始人员表和授权配置表不授 SELECT。默认只读是补充设置，实际对象边界依赖授权配置。
+- 预期：创建与授权命令完成、末尾 COMMIT；角色存在本身不证明对象隔离，第 25 步还需以真实受限账号验证允许/拒绝。
+- 如角色已存在或出现其他错误，先反馈，不直接删除角色或忽略错误继续。助手未代执行数据库写入，实际结果待用户反馈。
+
+### Q5 / 后续待办：角色化的可视化列权限配置，行权限沿用查询视图
+
+- 记录日期：2026-09-22。用户要求先记录，不投入较长调研或实施，不打断当前手工学习。
+- 用户期望：从列权限角度定义少量角色；每个角色能查看哪些数据库表、哪些字段，由授权管理员在可视化界面手工勾选。避免每调整一个字段都手写一套 SQL。
+- 角色归属输入：用户—角色关系可以来自现有表，也可以由岗位、部门等组合条件计算成视图；先约定稳定身份、角色标识及查询结果，不限定必须手工分配或只能单角色。
+- 拟讨论的数据模型：独立的角色定义、用户角色结果、角色—表—字段授权配置；字段使用稳定的表 ID 与字段 ID，界面展示中文名称和含义。业务方负责确认规则及指定配置人员，技术侧负责读取、校验和执行。
+- 执行要求：界面勾选必须转成服务端实际执行的权限，不能仅隐藏表格列；需覆盖查询输出、指标依赖、筛选、分组、排序、导出等字段使用入口。若同时开放原生 Superset 查询，也应有对应的数据集/数据库边界，不能仅依赖 Agent 检查。
+- 后续需决定而非本轮定案：多角色权限合并方式；无配置时默认拒绝；新增字段的默认行为；明细读取、仅允许汇总、脱敏是否作为不同能力；配置变更与缓存失效、审批和审计。
+- 行权限方向：用户倾向继续使用当前“业务关系与规则 → 查询视图 → 可见人员集合”的方案；较复杂的管理线/HRBP 组合仍在这一层表达。以后按 Q4 实践尽早过滤、预计算关系、缓存和变更同步，不在本轮切换实现。
+- 当前差距：现有 public/contract 是两档物理出口，尚未提供任意角色勾选任意字段的配置页面或执行机制，不能当作此待办已完成。
+- 学习进度：第 24 步数据库只读账号创建指引已给出，尚未收到执行成功反馈；本轮只追加待办，没有创建角色、授予权限或修改查询逻辑。
+
+### 第 24 步问答：删除临时 SQL 后，连接密码从哪里取得
+
+- 用户疑问：删除文件之后，后续连接是否仍要密码，是否需要自己另外保存。
+- 说明：后续连接仍需密码，但删除命令只删除容器里的 `/tmp/hr-24-access.sql` 临时副本。本机 `integrations/superset/.local/application/database-credentials.json` 已由 prepare 保存两个数据库连接账号及密码，本机 `learning/24_access.sql` 原文件也保留。
+- 后续使用：配置 Superset 数据库连接或用只读账号登录 psql 时，从 database-credentials.json 读取对应 public/contract 的账号密码；无需现在另抄一份。credentials.json 则用于 Superset 登录账号，不要混淆。
+- 删除临时建账号脚本不会删除已经提交的 PostgreSQL 角色或更改其认证信息。本机私有资料在 Git 忽略目录，不上传仓库；后续部署需另行安排凭据管理。
+- 本轮只检查本机两个文件存在与权限，没有输出密码内容；仍未收到第 24 步执行成功反馈。
+
+### 第 24 步问答及第 25 步之一：正式凭据与只读账号登录验证（待反馈）
+
+- 用户已理解临时 SQL 与本机密码文件的区别，询问上线是否替换密码并妥善保存，同时要求继续并解释授权。
+- 凭据说明：正式环境使用独立强密码及受控的凭据保存/注入方式；轮换须同步更新 PostgreSQL 账号认证信息和 Superset 对应连接配置，必要时更新程序使用的配置。仅编辑本机 JSON 文件并不会修改数据库密码。
+- 授权步骤：CREATE ROLE 创建数据库登录角色；REVOKE ALL ON DATABASE hr_v2 FROM PUBLIC 撤回所有角色默认组在该数据库上的权限（并不自动撤销所有表授权）；CONNECT 允许进入该库；v2_api 的 USAGE 允许使用 schema；指定视图 SELECT 决定能读哪些业务对象。
+- 两账号均不授业务对象写权限或原始表 SELECT；default_transaction_read_only=on 是默认行为，不能代替对象权限；statement_timeout=10s 用于限制单次语句时间。
+- 下一小步：上一步成功 COMMIT 后，退出管理员 psql，用容器内 TCP 连接 `psql -h 127.0.0.1 -U v2_public_reader -d hr_v2 -W`，输入 database-credentials.json 中 public 的密码，再执行 SELECT current_user 和人员公共视图 LIMIT 1。
+- 预期：current_user=v2_public_reader；视图查询不报权限错误，目前未写身份映射时应为 0 行。登录时密码输入不回显；本轮未展示密码，也未替用户登录。
+- 本轮尚未收到第 24 步 COMMIT 的实际输出，不标为独立实测通过；后续登录结果可确认该角色可连接，原表/合同出口拒绝仍需另行验证。
+
+### 第 25 步反馈与问答：REVOKE FROM PUBLIC 是否影响超级用户
+
+- 用户反馈“ok 了”，确认上一轮以 v2_public_reader 登录、查询 current_user 和公共人员视图的成功案例符合预期。尚未进行原始表/合同出口拒绝案例。
+- 用户疑问：超级用户是否仍具有权限，REVOKE 是否只影响后续创建的用户。
+- 解释：PUBLIC 代表自动包含当前及未来所有角色的公共授权集合，不是仅包含后创建的用户，也不是名为 public 的 schema。`REVOKE ALL ON DATABASE hr_v2 FROM PUBLIC` 撤回该集合在 hr_v2 数据库对象上的授权，通常涉及默认 CONNECT、TEMPORARY。
+- 超级用户绕过普通对象权限检查，不会被这条 REVOKE 限制。数据库所有者以及通过单独授权或角色成员关系获得权限的用户，也不能据此认为其全部权限已被撤销。
+- 权限是多条授予来源的合并；撤回 PUBLIC 来源不撤回直接 GRANT 或其他角色来源。本脚本随后分别给 v2_public_reader、v2_contract_reader GRANT CONNECT，因而它们仍能连接。
+- 范围限定：ON DATABASE 针对数据库对象，不会连带撤回其中所有表、视图或 schema 的权限；那些对象需分别控制。
+- 本轮仅讲解并记录，不执行额外 REVOKE/GRANT，也不改变当前学习库。
+
+### 第 25 步之二：验证公共只读账号无法访问其他业务对象（已完成，用户确认）
+
+- 前置：用户已确认 v2_public_reader 登录与公共视图读取成功，理解 PUBLIC 授权后要求继续。
+- 操作位置：沿用 v2_public_reader 的 psql 会话，不切换回 postgres 管理员；可先 SELECT current_user 核对身份。
+- 逐条只读测试：`SELECT * FROM v2_data.people LIMIT 1;`、`SELECT * FROM v2_auth.identity_map LIMIT 1;`、`SELECT * FROM v2_api.people_contract LIMIT 1;`。
+- 预期：三条都出现 permission denied，可能报在 schema 或 view 层；分别验证原始人员表、账号映射表和合同出口不对公共只读账号开放。
+- 操作约束：保持 psql 默认自动提交，不包 BEGIN，以便每条失败后继续下一条。空结果、对象不存在、连接失败均不当作权限拒绝通过。
+- 用户需反馈三条错误结果；助手未代为查询数据库。此测试证明对象访问边界，不代表 Superset 当前用户 RLS 已配置或验证完成。
+
+### 第 26 步之一：在 Superset 配置公共数据库连接（待反馈）
+
+- 用户反馈“欧了”，确认上一轮原始人员表、identity_map、合同出口三个 permission denied 检查符合预期；第 25 步公共只读账号对象边界验证完成，仍不代表已验证 Superset RLS。
+- 下一操作位置：Superset 页面，使用技术管理员 v2_setup_admin 登录；该账号密码位于本机 credentials.json，与 database-credentials.json 的数据库密码不同。
+- 本轮只创建公共连接：名称 V2_public；PostgreSQL Host=postgres、Port=5432、Database=hr_v2、Username=v2_public_reader，Password 使用 database-credentials.json 中 public 对应密码。
+- 解释：连接由 Superset 容器发起，postgres 是同一 Compose 网络里的 PostgreSQL 服务名；不用宿主机对外端口 55432，也不填 Superset 容器自己的 127.0.0.1。
+- 设置：Advanced 中 Expose database in SQL Lab、Allow DML、CTAS、CVAS、Asynchronous query execution 保持关闭；测试连接成功后保存。若已存在同名连接，先核对，不重复新建。
+- 本轮不建立合同连接、不登记数据集、不开放业务用户权限。用户反馈连接成功后再进行下一个小步骤。
+- 助手仅核对手册并记录，没有操作 Superset 或输出密码。
+
+### 2026-09-23：第 26 步问答——数据库连接在代码中的实现位置
+
+- 用户询问当前手工创建 Superset 数据库连接，对应哪段代码。
+- 主要位置：integrations/superset/setup.py 的 prepare_superset()，当前第 204～214 行。按出口名确定 public/contract，按 V2_public / V2_contract 查找连接；不存在时创建 Superset 的 Database 模型，设置连接 URI 和安全开关，保存到 Superset 元数据库。
+- 表单对应：database_name 是显示名称；sqlalchemy_uri 包含驱动、账号、密码、postgres:5432 和 hr_v2；expose_in_sqllab=false；allow_dml、allow_ctas、allow_cvas、allow_run_async=false。
+- 重点区别：这里 Database 是 Superset 内部的连接配置对象，不是在 PostgreSQL 新建业务数据库，也不在这一步创建数据库登录角色。已存在连接会复用，不自动覆盖其既有配置。
+- 密码代码：setup.py:26 的 password(name) 使用本机演示种子派生；run.py:63 的 write_database_credentials() 使用相同规则导出手工填写资料，不是自动脚本从 JSON 读取新改过的密码。
+- 下游代码：setup.py:215 开始登记 SqlaTable 数据集，属于后面的第 27 步，勿与本轮连接配置混淆。
+- 自动入口 run.py:82 的 setup() 会触发完整初始化，手工学习标记阻止执行；本轮只读代码，不运行自动配置、不取消学习标记。
+- 当前 V2_public 表单填写仍待用户成功反馈。
+
+### 2026-09-23：第 26 步问答——v2_setup_admin 何时创建
+
+- 用户在 Superset 登录页面询问技术管理员账号的来源。
+- 已核对代码与学习记录：此前自动搭建 Superset 演示时，setup.py:198 先 find_user，账号不存在才 add_user，并分配内置 Admin 角色。这是本项目创建的账号，不是 Superset 固定内置用户名，也不是近期手工创建数据库只读角色时生成的。
+- 重置学习环境时明确保留该账号，reset_learning.py:36 检查其存在且有 Admin 角色；第 130 行保留其本机登录资料，供后续手工配置平台。
+- 密码位置：本机 `.local/application/credentials.json` 的 v2_setup_admin 项；与 database-credentials.json 中 PostgreSQL 连接账号密码不同。
+- 未查询用户创建时间戳，不宣称具体创建日期/时刻。本次没有创建用户或修改密码，V2_public 的手工连接配置仍待反馈。
+
+### 2026-09-23：其他电脑拉取代码后如何安装 Superset
+
+- 用户询问是否要先在本机安装 Superset Python 库再运行。
+- 当前仓库采用容器部署：Dockerfile 基于 apache/superset:6.1.0，并在容器内安装 PostgreSQL 驱动；compose.yaml 启动 PostgreSQL、初始化任务及 Superset 服务。宿主机不需要单独 pip install apache-superset。
+- setup.py 中导入的 superset 模块来自容器环境，run.py 的容器调用入口负责在该环境执行它；不能将容器初始化脚本当成普通宿主机脚本直接运行。
+- 新电脑按仓库自动部署路线准备 Docker/Compose、Node.js 24、Python 3.13 和 uv，再 npm ci、uv sync --frozen、配置实际 HR_DOCKER_HOST、npm run superset:up。该命令会自动建演示数据和平台配置，不是仅安装 Python 库。
+- 启动脚本带有开发环境默认连接地址；其他电脑必须按实际 Docker 引擎设置 HR_DOCKER_HOST。按 README 从已有环境变量或当前 Docker context 取得地址，不使用个人机器路径，并让手工命令的 DOCKER_HOST 保持一致。
+- 本机密码、容器数据和学习进度不随 Git 克隆迁移；新环境自动生成独立凭据和平台对象。只学习 Superset 权限不需要模型服务，运行自然语言问数时才需另配 LM Studio 等模型端点。
+- 本轮仅说明迁移安装方式，不在当前学习环境执行自动初始化，当前第 26 步公共连接配置仍待反馈。
+
+### 2026-09-23：文档使用项目相对路径
+
+- 用户要求项目文档不包含个人机器目录或开发工具相关信息，尽量使用项目相对路径。
+- 约定：项目文件说明以项目根目录为基准，Markdown 文件链接相对所在文档；命令注明执行目录，不写固定的个人项目绝对路径。
+- Docker 引擎地址从已有环境变量或当前 context 获取。运行时的容器路径、HTTP 接口路径仍按其真实含义标注，不能误改成项目文件路径。
+- 已调整 README、Superset 与 OpenFGA 实操手册和本学习记录。本轮仅修改文档，不改变服务、凭据或第 26 步的手工配置进度。
+
+### 2026-09-23：继续第 26 步，核对已有连接
+
+- 用户要求继续。通过 Superset 的 Database / SqlaTable 模型查询指定业务名称，只输出连接名称、功能开关与数据集名，不读取或展示连接密码。
+- 查询结果：V2_public、V2_contract 连接均不存在，相应数据集也为空；因此继续第 26 步之一，不误认为公共连接已经保存，也不推进合同连接或数据集配置。
+- 本次仍由用户在页面创建 V2_public：Host=postgres、Port=5432、Database=hr_v2、Username=v2_public_reader，密码取 database-credentials.json 的 public 项；SQL Lab 暴露、DML、CTAS、CVAS、异步查询关闭。
+- 助手没有创建业务连接或数据集。第 25 步用户已确认完成，第 26 步保存结果待反馈。
+
+### 2026-09-23：第 26 步界面差异——隐藏的 SQL Lab 选项与异步查询位置
+
+- 用户截图位于连接向导第三步，SQL Lab 栏目中的 Expose database in SQL Lab 已取消勾选，找不到 DML、CTAS、CVAS 和异步查询选项。
+- 核对 Superset 6.1.0 官方 ExtraOptions 源码：前三项随 Expose 开关关闭而隐藏，完整标签分别为 Allow DDL and DML、Allow CREATE TABLE AS、Allow CREATE VIEW AS；Asynchronous query execution 在独立的 Performance 栏目。
+- 只读查询实际连接配置：V2_public 已存在，allow_dml、allow_ctas、allow_cvas、allow_run_async 均为 false，但 expose_in_sqllab 仍为 true。说明截图中取消勾选的状态尚未保存，不能据此宣布 SQL Lab 已关闭；V2_contract 尚不存在。
+- 下一小步：保持 Expose 未勾选，展开 Performance 确认异步执行未勾选，点击 Finish 保存；保存结果待用户反馈。无需为了显示隐藏选项而开启 SQL Lab。
+- 已补充手册显示条件和保存要求。本轮没有替用户修改连接配置，也未输出密码。
+
+### 第 26 步问答：Asynchronous query execution 的作用
+
+- 用户询问异步查询执行开关的含义。
+- 解释：此处开关用于 SQL Lab 查询。同步方式由当前请求等待数据库执行结果；异步方式把执行交给后台任务，页面再获取状态与结果，适合耗时较长的查询。
+- 异步不代表 SQL 本身执行更快，也不改变用户能查看哪些数据。通常需要配置 Celery 工作进程、消息队列和结果存储等后台设施，不能只勾选开关就认为部署完成。
+- 当前学习路线不向业务用户开放 SQL Lab，也不需要其异步查询能力，所以保持关闭。它不是 Agent 的异步回答或流式输出开关。
+- 本轮仅解释概念，尚未收到用户点击 Finish 保存完成的反馈。
+
+### 第 26 步继续：公共连接保存核对与合同连接准备
+
+- 用户要求继续下一步，并在其手工操作期间为全部 Superset 相关流程补充详细中文注释，包括后续 Agent 查询。
+- 只读核对仍只有 V2_public；expose_in_sqllab=true，其余 DML/CTAS/CVAS/异步开关为 false，故公共连接安全开关尚不能标记完成。
+- 提示先编辑公共连接，取消 Expose database in SQL Lab 并保存。之后创建 V2_contract：Host=postgres、Port=5432、Database=hr_v2、Username=v2_contract_reader，密码取私有 database-credentials.json 的 contract 项，同样关闭相关功能开关。
+- 本轮不替用户创建连接、数据集或 RLS，不运行自动初始化，也不解除学习标记。公共连接修正和合同连接创建均等待用户结果。
+- 注释覆盖平台部署、样本/材料生成、PG 视图与授权、平台连接/数据集/角色/RLS/账号、真实 ID 绑定、业务身份登录、Chart Data 查询、授权快照、历史撤权、验证/恢复和 CI。补充了 PROJECT_CODE_GUIDE.md 中按实操步骤定位函数的阅读表。
+- 重点解释：共享 reader 的对象/列边界与用户 RLS 的行边界不同；清单不是权限证明；既有对象复用不等于重置；快照和前后指纹检查不提供跨请求原子事务。
+- 验证：72 项 Superset 适配器/查询编译/手工材料单测通过；Ruff、脚本语法、文档口径校验和差异空白检查通过。23 个 Python 文件去除文档字符串后的 AST 一致，SQL、Shell、容器配置和 CI 仅有注释变更。没有执行真实权限故障注入或自动初始化，不能据此宣布当前课堂配置已验收完成。
+
+### 第 26 步完成，开始第 27 步：连接与数据集的区别
+
+- 用户确认合同连接已完成，并询问两个连接是否主要由数据库账号决定可读视图。
+- 只读核对：V2_public、V2_contract 均已存在，expose_in_sqllab、allow_dml、allow_ctas、allow_cvas、allow_run_async 全部为 false；这两个连接下尚无已注册数据集。第 26 步完成。
+- 解释：Database Connection 保存“如何、以哪个 PostgreSQL 账号连接”；两个连接目标都是 hr_v2，关键区别是 reader 账号及其对象授权。Dataset 则把该连接下的一张表或视图登记为可供图表/Agent 查询的对象，不复制业务数据，也不新建 PostgreSQL 视图。
+- 下一小步：Data → Datasets → + Dataset，Database 选择 V2_public、Schema 选择 v2_api、Table 选择 people_public，然后创建。只登记这一个物理数据集，不填写虚拟 SQL，也暂不创建图表或授业务用户权限。
+- people_public 登记结果待用户反馈；本轮助手未修改平台连接或数据集。连接的对象边界不等于个人行隔离，后续仍需数据集授权和 RLS。
+
+### 第 27 步之一完成：公共人员数据集
+
+- 用户反馈“已经完成”，确认已登记 people_public。本次依据用户反馈记录，未另行读取平台元数据。
+- 下一小步沿用 Data → Datasets → + Dataset，选择 V2_public / v2_api / events_public 并创建。
+- 解释：people_public 以人员为记录，events_public 将入职、离职转为事件，供按期间统计入离职使用；有两种事件的人可贡献两行。当前只登记数据集，后续仍需配置 RLS。
+- events_public 完成情况待反馈；助手仅更新学习文档，没有代为配置平台。
+
+### 第 27 步之二完成：公共事件数据集；MCP 实验另行交接
+
+- 用户确认 events_public 登记完成。本次依据用户反馈记录，未另行核对平台元数据。
+- 用户希望另开独立会话尝试 Superset MCP 并接入现有 Agent，要求详细中文代码注释和开启/连接说明；当前会话继续手工学习。
+- 已创建 SUPERSET_MCP_HANDOFF.md，包含可复制提示词、当前基线、隔离要求、官方版本来源、实现步骤、权限验证和交付标准。本轮只准备交接，不启动 MCP、不改变课堂环境，也不宣称另一个会话已经开始执行。
+- 新会话需使用独立工作树以及完整隔离的服务/数据/凭据，不能只换代码分支却仍操作 hr-superset-lab。官方工具身份和 RLS 执行路径需实测，不能为接入而授予业务用户管理员或 SQL Lab 权限。
+- 当前学习下一步：新增 V2_public / v2_api / context 数据集。context 提供用户映射、业务策略、快照日和关系健康信息；后续使用 superset_user_id 列配置自己的 RLS。创建结果待反馈。
+
+### 第 27 步完成：五个数据集核对，开始第一条 RLS
+
+- 用户确认几个数据集均已创建。只读核对平台元数据，五个数据集齐全，schema 均为 v2_api，未使用虚拟 SQL。
+- people_public、events_public、context 绑定 V2_public；people_contract、events_contract 绑定 V2_contract。公共出口无合同两列，合同出口包含合同两列；四个人员/事件出口均含 _viewer_id，context 含 superset_user_id。
+- 本项目预期的三条 RLS 尚不存在。第 27 步完成，下一小步只创建 V2_scope_public。
+- 填写：Filter Type=Base；Datasets 同时选 V2_public 下的 people_public 和 events_public；Roles、Group Key 留空；Clause 为 `_viewer_id = {{ current_user_id() }}`，不加 WHERE。
+- 解释：平台将 current_user_id() 替换为当前登录账号的内部 ID，筛选相应查看人行；Base 的 Roles 是豁免列表，因此留空，不是把业务角色全部选上。
+- 本轮仅核对和指导，没有代为创建 RLS。第一条规则保存待用户确认，实际行隔离效果留待普通业务账号验证。
+
+### 第 28 步问答：Base/Regular 与其余两条 RLS
+
+- 用户理解 Regular 选择受限角色、Base 选择豁免角色，并要求一起给出剩余规则，便于集中手工创建。
+- 说明：就 Roles 名单的适用方式而言，两者方向相反；不是自动配对的两条规则，Base 豁免也只针对该条规则，不等于豁免其他所有 RLS。
+- 剩余规则一：V2_scope_contract，Datasets 为 V2_contract 连接下的 people_contract、events_contract；Clause 为 `_viewer_id = {{ current_user_id() }}`。
+- 剩余规则二：V2_context_scope，Datasets 为 V2_public 连接下的 context；Clause 为 `superset_user_id = {{ current_user_id() }}`。
+- 两条均使用 Base，Roles 与 Group Key 留空，Clause 不加 WHERE。context 使用不同身份列名，不能直接照搬 _viewer_id。
+- 本轮只提供填写说明，不替用户创建；三条规则保存状态等待反馈，不提前标记第 28 步完成。
+
+### 第 28 步完成：三条 RLS 核对；开始数据集访问角色
+
+- 用户确认三条规则全部保存。只读核对 V2_scope_public、V2_scope_contract、V2_context_scope 均为 Base，条件与手册一致，Roles 和 Group Key 均为空；绑定五个数据集及连接正确。
+- 第 28 步配置保存完成，尚未用普通业务账号验证实际隔离效果，不能视为全链路权限验收完成。
+- V2_Data_public 尚不存在。下一小步到角色列表新建该角色，仅添加 people_public 与 events_public 的 datasource_access。
+- 本次实际权限资源名分别为 `[V2_public].[people_public](id:12)`、`[V2_public].[events_public](id:13)`；这些数字是当前环境值，其他环境以实际盘点为准。
+- 解释：角色的数据集权限决定“能否查询这个数据集”，RLS 决定“查询时能留下哪些行”；只有 RLS 不代表已经授予访问权。不要选择 database_access 或所有数据集访问权。
+- 本轮未替用户创建角色，V2_Data_public 保存结果待反馈。
+
+### 权限专题整理：对象依赖与生效机制
+
+- 用户暂时自行阅读后续实操步骤，要求另写权限专题，重点包含底层视图/数据库角色依赖、复杂 SQL 的简化结构，以及平台连接、Dataset、角色、RLS、业务账号如何共同生效。
+- 按当前 PostgreSQL + Superset 方案解释；用户提到的 Supabase 按当前上下文理解为 Superset，没有更换技术方案。
+- 新增 PERMISSIONS_EXPLAINED.md，覆盖 4 张表、8 个视图、数据库账号及对象授权、2 个连接、5 个 Dataset、8 个自定义角色、3 条 RLS 和 7 个目标平台账号。分别解释业务角色、平台角色和数据库角色。
+- 用假设账号 ID 42 串联王灏的部门人数查询，并注明示意 SQL 不是部署脚本、目标配置不等于课堂当前进度；补充合同字段多层限制、普通视图/缓存、账号映射变更、历史撤权与现有边界。
+- 对照 schema.sql、setup.py、store.py、superset_source.py、superset_query.py 及官方 Superset 6.1.0 / PostgreSQL 17 文档核对，并在实操、代码说明和安全文档添加入口。
+- 本次只整理文档，没有变更平台角色或服务；第 29 步及以后完成情况仍等待用户反馈。
 
 ## 后续记录模板
 

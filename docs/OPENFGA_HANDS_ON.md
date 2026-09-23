@@ -45,10 +45,13 @@ user 不一定是登录用户名：这里取 person_id，避免工号、姓名�
 
 ## 第 3 步：认识本次目录和端口
 
-在电脑终端进入仓库：
+在电脑终端打开项目根目录（包含 `package.json` 的目录）。本手册中的项目文件路径均相对于该目录。
+
+先用 `docker context ls` 确认目标 Docker 引擎，再设置连接地址。优先沿用已有环境变量，否则读取当前 context：
 
 ```bash
-cd /Users/fengjikui/Documents/dev-coding/codex_build/Smart_hr_database
+export HR_DOCKER_HOST="${HR_DOCKER_HOST:-${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}}"
+export DOCKER_HOST="$HR_DOCKER_HOST"
 ```
 
 主要目录 `integrations/openfga`，后端适配在 `backend/hr/openfga_source.py` 和 `openfga_query.py`。
@@ -91,7 +94,7 @@ bash integrations/openfga/services.sh status
 `migrate` 的 `Exited (0)` 是完成表结构升级，不是服务崩溃。
 此时 OpenFGA 的内部数据库已准备好，**业务 hr_openfga 数据库尚需下一步创建**。
 首次运行下载镜像可能较慢。本机默认复用已存在的 Docker 引擎，不会停止 Superset 容器。
-Linux 设置 `HR_DOCKER_HOST=unix:///var/run/docker.sock`，不要照抄 Mac socket。
+不同电脑均使用第 3 步设置的 `HR_DOCKER_HOST`，确保项目脚本与手工 Docker 命令连接同一引擎。
 
 ## 第 6 步：查看创建数据库的代码
 
@@ -156,10 +159,9 @@ END AS contract_end_date
 
 ## 第 7 步：连接并看 schema
 
-Mac 当前环境电脑终端：
+在已按第 3 步设置 Docker 连接地址的电脑终端执行：
 
 ```bash
-export DOCKER_HOST=unix:///Users/fengjikui/.colima/hr-superset/docker.sock
 docker exec -it hr-openfga-postgres-1 psql -U postgres -d hr_openfga
 ```
 

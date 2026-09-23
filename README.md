@@ -10,9 +10,15 @@
 
 依赖：Node.js 24、Python 3.13、uv，以及 Docker/Compose。模型在本机 LM Studio，默认兼容接口 `http://127.0.0.1:1234/v1`、模型标识 `hr-qwen`。
 
+文档中的项目文件路径均相对于项目根目录，Markdown 文件链接相对于所在文档。以下命令在项目根目录（包含 `package.json` 的目录）执行；不依赖个人机器上的项目存放位置。
+
+先用 `docker context ls` 确认当前 context 指向目标 Docker 引擎。下面优先沿用已有环境变量，否则读取当前 context 的连接地址：
+
 ```bash
 npm ci
 uv sync --frozen
+export HR_DOCKER_HOST="${HR_DOCKER_HOST:-${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}}"
+export DOCKER_HOST="$HR_DOCKER_HOST"
 # 从之前的目录布局升级时执行；保留原文件，不覆盖已有目标。
 npm run migrate
 # 首次安装平台；已有正常运行的平台使用 npm run superset:setup。
@@ -20,7 +26,7 @@ npm run superset:up
 npm run demo
 ```
 
-默认 Docker socket 为本机 Colima 的 `~/.colima/hr-superset/docker.sock`。其他 Docker 环境须设置 `HR_DOCKER_HOST`，例如 Linux：`export HR_DOCKER_HOST=unix:///var/run/docker.sock`。启动器不会自行安装 Docker 或下载模型；LM Studio 需已安装对应模型。
+启动脚本带有开发环境默认连接地址，因此在其他环境应像上面一样显式设置 `HR_DOCKER_HOST`，并让手工 Docker 命令使用相同的 `DOCKER_HOST`。启动器不会自行安装 Docker 或下载模型；LM Studio 需已安装对应模型。
 
 - [工作台](http://127.0.0.1:3000/)：问数、自助核验、关系与权限、题单、历史、字段与口径。
 - [节点调试](http://127.0.0.1:3000/debug)：每一步的输入、输出、SQL、结果与耗时。
@@ -45,18 +51,18 @@ npm run demo:openfga
 
 ## 文档从这里读
 
-| 文档 | 内容 |
-|---|---|
-| [从零实操](docs/HANDS_ON.md) | 完整 45 步：手工建库、导入、Superset 配置、Agent 接入及验收 |
-| [OpenFGA实操](docs/OPENFGA_HANDS_ON.md) | 35步：模型、关系、同步、查询与撤权 |
-| [OpenFGA方案与边界](docs/OPENFGA_DESIGN.md) | 职责、代码地图、同步一致性与生产差距 |
-| [OpenFGA学习记录](docs/OPENFGA_LEARNING_LOG.md) | 开发证据和你的手工进度 |
-| [学习记录](docs/LEARNING_LOG.md) | 实际操作结果、问题、回答与踩坑；随学习追加 |
-| [代码目录与整体逻辑](docs/PROJECT_CODE_GUIDE.md) | 文件职责、一次问数的完整过程、权限、前端状态和接口 |
-| [字段与指标字典](docs/DATA_DICTIONARY.md) | 当前 26 字段、15 指标、别名、含义边界、20 个问题 |
-| [Superset 实施讲义](docs/SUPERSET_SETUP.md) | 数据生成/导入、连接、7 个用户、8 个角色、3 条 RLS、Agent 接入 |
-| [测试和交付](docs/TESTING.md) | 离线、真实权限、模型、页面验证及 CI |
-| [安全边界](docs/SECURITY.md) | 已实现的控制、演示限制和生产接入要求 |
+| 文档                                            | 内容                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| [从零实操](docs/HANDS_ON.md)                     | 完整 45 步：手工建库、导入、Superset 配置、Agent 接入及验收   |
+| [OpenFGA实操](docs/OPENFGA_HANDS_ON.md)          | 35步：模型、关系、同步、查询与撤权                            |
+| [OpenFGA方案与边界](docs/OPENFGA_DESIGN.md)      | 职责、代码地图、同步一致性与生产差距                          |
+| [OpenFGA学习记录](docs/OPENFGA_LEARNING_LOG.md)  | 开发证据和你的手工进度                                        |
+| [学习记录](docs/LEARNING_LOG.md)                 | 实际操作结果、问题、回答与踩坑；随学习追加                    |
+| [代码目录与整体逻辑](docs/PROJECT_CODE_GUIDE.md) | 文件职责、一次问数的完整过程、权限、前端状态和接口            |
+| [字段与指标字典](docs/DATA_DICTIONARY.md)        | 当前 26 字段、15 指标、别名、含义边界、20 个问题              |
+| [Superset 实施讲义](docs/SUPERSET_SETUP.md)      | 数据生成/导入、连接、7 个用户、8 个角色、3 条 RLS、Agent 接入 |
+| [测试和交付](docs/TESTING.md)                    | 离线、真实权限、模型、页面验证及 CI                           |
+| [安全边界](docs/SECURITY.md)                     | 已实现的控制、演示限制和生产接入要求                          |
 
 文档只描述当前代码；旧方案、旧实验、旧报告可从 Git 历史查阅。
 
@@ -77,16 +83,16 @@ npm run build
 
 环境变量应通过终端导出；`.env.example` 是示例，Python 与启动器不会自动读取 `.env`。
 
-| 配置 | 默认值 / 说明 |
-|---|---|
-| `HR_QUERY_BACKEND` | `superset`；接受 `superset`、`openfga` 或 `sqlite` |
-| `HR_SUPERSET_URL` | `http://127.0.0.1:8088` |
-| `HR_SUPERSET_DIR` | `integrations/superset/.local/application` |
-| `HR_OPENFGA_CONFIG` | `integrations/openfga/.local/runtime.json`；只读数据库与引擎连接 |
-| `HR_DATA_DIR` | `data`，保存 `sessions.sqlite` 和 `people.sqlite` |
-| `HR_BACKEND_URL` | `http://127.0.0.1:8000`，仅前端代理服务端使用 |
-| `LM_STUDIO_URL` / `LM_STUDIO_MODEL` | 本机模型地址 / `hr-qwen` |
-| `LM_STUDIO_TIMEOUT` | 单次模型请求 90 秒 |
+| 配置                                    | 默认值 / 说明                                                      |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| `HR_QUERY_BACKEND`                    | `superset`；接受 `superset`、`openfga` 或 `sqlite`         |
+| `HR_SUPERSET_URL`                     | `http://127.0.0.1:8088`                                          |
+| `HR_SUPERSET_DIR`                     | `integrations/superset/.local/application`                       |
+| `HR_OPENFGA_CONFIG`                   | `integrations/openfga/.local/runtime.json`；只读数据库与引擎连接 |
+| `HR_DATA_DIR`                         | `data`，保存 `sessions.sqlite` 和 `people.sqlite`            |
+| `HR_BACKEND_URL`                      | `http://127.0.0.1:8000`，仅前端代理服务端使用                    |
+| `LM_STUDIO_URL` / `LM_STUDIO_MODEL` | 本机模型地址 /`hr-qwen`                                          |
+| `LM_STUDIO_TIMEOUT`                   | 单次模型请求 90 秒                                                 |
 
 目录迁移使用 SQLite backup API 复制历史和样本，且只在目标不存在时复制。更新后刷新页面重新选择演示身份即可；历史仍按所属身份及当前权限指纹读取。数据库已有对象 ID 和名称保持稳定，迁移不会重建用户、RLS 或 PostgreSQL 数据。
 

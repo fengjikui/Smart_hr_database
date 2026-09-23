@@ -1,21 +1,22 @@
 # 从零手工重建：实操路线
 
+需要先理解各步为什么这样配置，可配合阅读 [权限机制讲解](PERMISSIONS_EXPLAINED.md)。该文按对象依赖和实际查询过程组织，本手册按操作顺序组织。
 
 ## 从哪里继续
 
-**当前交接点：第 20 步已由你确认；第 21 步已讲解，待你执行并反馈。** 本次补齐的后续步骤尚未替你操作。
+**当前交接点（2026-09-23）：第 28 步三条 RLS 已保存，类型、条件、数据集绑定及空豁免名单均已只读核对；现在开始第 29 步，先创建 `V2_Data_public` 角色。** 后续步骤按学习记录逐项确认，不因手册已写出而视为已完成。
 
-| 想做什么 | 入口 |
-|---|---|
-| 继续当前操作 | [第 21 步：账号上下文视图](#step-21) |
-| 完整数据导入 | [第 22 步](#step-22) |
-| 视图与数据库只读账号 | [第 23 步](#step-23) |
-| Superset 连接和数据集 | [第 26 步](#step-26) |
-| RLS、角色、用户 | [第 28 步](#step-28) |
-| 身份映射与实际查询验证 | [第 31 步](#step-31) |
-| Agent 接入与启动 | [第 36 步](#step-36) |
-| 问数、节点和多轮 | [第 40 步](#step-40) |
-| 撤权和完整验收 | [第 43 步](#step-43) |
+| 想做什么               | 入口                          |
+| ---------------------- | ----------------------------- |
+| 继续当前操作           | [第 29 步：创建角色](#step-29) |
+| 完整数据导入           | [第 22 步](#step-22)           |
+| 视图与数据库只读账号   | [第 23 步](#step-23)           |
+| Superset 连接和数据集  | [第 26 步](#step-26)           |
+| RLS、角色、用户        | [第 28 步](#step-28)           |
+| 身份映射与实际查询验证 | [第 31 步](#step-31)           |
+| Agent 接入与启动       | [第 36 步](#step-36)           |
+| 问数、节点和多轮       | [第 40 步](#step-40)           |
+| 撤权和完整验收         | [第 43 步](#step-43)           |
 
 每一节只要求你完成当前小步，不需要一次执行到底。不会操作的地方，带上步骤号和不含密码的报错回来问；[学习记录](LEARNING_LOG.md) 保留此前问答和待研究问题。
 
@@ -41,19 +42,19 @@
 
 ## 路线图（这里只看顺序，不需要现在执行）
 
-| 阶段 | 你亲手做什么 | 如何判断学会了 | 对照代码 |
-|---|---|---|---|
-| 1. 建库 | 连接维护数据库，创建 `hr_v2` | 能说清实例、数据库、schema 的区别 | `integrations/superset/setup.py:prepare_database` |
-| 2. 建结构 | 创建 schema 和 26 字段人员表 | 查询表结构，解释主键与工号 | `backend/hr/schema.py`、`setup.py` |
-| 3. 插数据 | 先插少量人物，再手动导入完整合成样本 | 验证人数、主键、主管关系与数据指纹 | `backend/hr/store.py:generate_rows`、`integrations/superset/export.py` |
-| 4. 理解授权表 | 建策略表、身份映射、快照表；先填少量配置 | 说明登录用户 ID 如何对应 `person_id` | `integrations/superset/schema.sql` |
-| 5. 递归汇报线 | 分段执行递归 SQL，再建立授权视图 | 手工核对本人、直接/间接下属、HRBP；构造环与孤儿反例 | `management_closure`、`graph_health`、`visible_people` |
-| 6. 数据库隔离 | 建受控视图与两个只读数据库账号 | 普通连接不能读取原始表；基础连接不能读取合同字段 | `setup.py:create_people_views`、`schema.sql` |
-| 7. Superset 连接 | 手工新增两个连接，登记五个数据集 | 能预览指定数据集，解释数据库连接与数据集的区别 | `setup.py:prepare_superset` |
-| 8. 用户与 RLS | 分次创建账号、角色、三条 Base RLS，填真实用户 ID | 切换业务账号验证；未映射用户看不到数据 | 同上；完整配置参考实施讲义 |
-| 9. 接入 Agent | 记录新对象 ID、填写本机清单与账号映射 | 业务身份通过 Chart Data API 查询；不借用管理员 | `backend/hr/superset_source.py`、`superset_query.py` |
-| 10. 走通问数 | 先结构化查询，再自然语言与多轮对话 | 在节点页对应模型输入、计划、权限、执行、结果 | `backend/hr/graph.py`、`service.py` |
-| 11. 验收 | 撤权、字段拒绝、越权、20 题和回归 | 不只证明能查，还证明不该查时拒绝 | `scripts/validate_superset.py`、`validate_revocation.py` |
+| 阶段             | 你亲手做什么                                     | 如何判断学会了                                      | 对照代码                                                                   |
+| ---------------- | ------------------------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------- |
+| 1. 建库          | 连接维护数据库，创建`hr_v2`                    | 能说清实例、数据库、schema 的区别                   | `integrations/superset/setup.py:prepare_database`                        |
+| 2. 建结构        | 创建 schema 和 26 字段人员表                     | 查询表结构，解释主键与工号                          | `backend/hr/schema.py`、`setup.py`                                     |
+| 3. 插数据        | 先插少量人物，再手动导入完整合成样本             | 验证人数、主键、主管关系与数据指纹                  | `backend/hr/store.py:generate_rows`、`integrations/superset/export.py` |
+| 4. 理解授权表    | 建策略表、身份映射、快照表；先填少量配置         | 说明登录用户 ID 如何对应`person_id`               | `integrations/superset/schema.sql`                                       |
+| 5. 递归汇报线    | 分段执行递归 SQL，再建立授权视图                 | 手工核对本人、直接/间接下属、HRBP；构造环与孤儿反例 | `management_closure`、`graph_health`、`visible_people`               |
+| 6. 数据库隔离    | 建受控视图与两个只读数据库账号                   | 普通连接不能读取原始表；基础连接不能读取合同字段    | `setup.py:create_people_views`、`schema.sql`                           |
+| 7. Superset 连接 | 手工新增两个连接，登记五个数据集                 | 能预览指定数据集，解释数据库连接与数据集的区别      | `setup.py:prepare_superset`                                              |
+| 8. 用户与 RLS    | 分次创建账号、角色、三条 Base RLS，填真实用户 ID | 切换业务账号验证；未映射用户看不到数据              | 同上；完整配置参考实施讲义                                                 |
+| 9. 接入 Agent    | 记录新对象 ID、填写本机清单与账号映射            | 业务身份通过 Chart Data API 查询；不借用管理员      | `backend/hr/superset_source.py`、`superset_query.py`                   |
+| 10. 走通问数     | 先结构化查询，再自然语言与多轮对话               | 在节点页对应模型输入、计划、权限、执行、结果        | `backend/hr/graph.py`、`service.py`                                    |
+| 11. 验收         | 撤权、字段拒绝、越权、20 题和回归                | 不只证明能查，还证明不该查时拒绝                    | `scripts/validate_superset.py`、`validate_revocation.py`               |
 
 后续每一步已补齐可复制命令或页面操作；实际完成后再更新学习记录。未操作的步骤不标记“完成”。
 
@@ -65,10 +66,12 @@
 
 Superset 当前没有这套业务连接；建库属于 PostgreSQL 管理操作。我们使用已运行容器里的 `psql`，无需额外安装数据库客户端。
 
-先执行下面这条终端命令。它只打开连接，不创建业务数据：
+先用 `docker context ls` 确认目标 Docker 引擎，再执行下面的终端命令。优先沿用已设置的连接地址，否则从当前 context 读取；这里只打开连接，不创建业务数据：
 
 ```bash
-DOCKER_HOST=unix://$HOME/.colima/hr-superset/docker.sock docker exec -it hr-superset-lab-postgres-1 psql -U postgres -d postgres
+export HR_DOCKER_HOST="${HR_DOCKER_HOST:-${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}}"
+export DOCKER_HOST="$HR_DOCKER_HOST"
+docker exec -it hr-superset-lab-postgres-1 psql -U postgres -d postgres
 ```
 
 看到 `postgres=#` 后，输入：
@@ -396,14 +399,13 @@ ORDER BY depth, target_id;
 
 预期结果：
 
-| target_id | depth | path | is_cycle |
-|---|---:|---|---|
-| P0001 | 0 | {P0001} | f |
-| P0002 | 1 | {P0001,P0002} | f |
-| P0003 | 2 | {P0001,P0002,P0003} | f |
+| target_id | depth | path                | is_cycle |
+| --------- | ----: | ------------------- | -------- |
+| P0001     |     0 | {P0001}             | f        |
+| P0002     |     1 | {P0001,P0002}       | f        |
+| P0003     |     2 | {P0001,P0002,P0003} | f        |
 
 path 是从起点到目标经过的人员 ID 数组，psql 用花括号显示；f 是 false，表示这条路径没有重复经过某个人。此次核对仍是查询，不修改表或权限；收到实际输出后才标记完成。如果之前还未执行 CREATE VIEW，先完成本节建视图语句。
-
 
 <a id="step-13"></a>
 
@@ -670,14 +672,14 @@ SELECT count(*) FROM v2_auth.visible_people;
 
 本节代码与 integrations/superset/schema.sql 的同名定义一致。先理解整体分工，细节可逐段问：
 
-| 部分 | 用途 |
-|---|---|
-| self | 有效映射和角色对应的本人 |
-| reports | reports 开启时，加入管理线下属 |
-| hrbp | hrbp 开启时，加入本人 HRBP 服务人员 |
-| inherited_hrbp | reports 和 inherit_hrbp 开启时，继承下属 HRBP 服务人员 |
-| merged | 按账号与人员合并重复结果，保留权限来源 |
-| WHERE h.graph_valid | 组织关系检查失败时，不输出授权人员 |
+| 部分                | 用途                                                   |
+| ------------------- | ------------------------------------------------------ |
+| self                | 有效映射和角色对应的本人                               |
+| reports             | reports 开启时，加入管理线下属                         |
+| hrbp                | hrbp 开启时，加入本人 HRBP 服务人员                    |
+| inherited_hrbp      | reports 和 inherit_hrbp 开启时，继承下属 HRBP 服务人员 |
+| merged              | 按账号与人员合并重复结果，保留权限来源                 |
+| WHERE h.graph_valid | 组织关系检查失败时，不输出授权人员                     |
 
 此视图会计算所有已映射账号的范围，不会自行选择当前登录者。后续 v2_api 出口及 Superset 的 RLS 才把请求限制到当前账号；不能把它当作已完成的权限系统。后续 Agent 还会检查 graph_valid，将异常报告为错误，不能把关系异常伪装成公司人数为零。
 
@@ -717,14 +719,14 @@ security_barrier=true 是安全屏障视图选项，约束某些外层条件下�
 
 你已确认到第 20 步。第 21 步的 `context` 建视图语句已经给出，但尚未收到完成反馈。**离开前不用赶进度，回来从第 21 步检查开始。**后面这些步骤是完整操作指引，不表示已经替你执行。
 
-| 小节 | 学完能解释什么 |
-|---|---|
-| 22～25：完整数据和数据库出口 | 数据如何导入，视图与只读账号各控制什么 |
-| 26～31：Superset 配置 | 连接、数据集、角色、RLS、用户、身份映射各在哪里生效 |
-| 32～35：亲眼验证权限 | 不同账号能看到什么，不能看到什么 |
-| 36～38：Agent 绑定与预检 | 实际用户/数据集 ID 如何接回代码，何时可以启动 |
-| 39～43：问数、历史与撤权 | 问题怎样成为结果，权限变化时旧结果如何处理 |
-| 44～45：验收与讲解 | 如何有证据地说明系统能力和边界 |
+| 小节                         | 学完能解释什么                                      |
+| ---------------------------- | --------------------------------------------------- |
+| 22～25：完整数据和数据库出口 | 数据如何导入，视图与只读账号各控制什么              |
+| 26～31：Superset 配置        | 连接、数据集、角色、RLS、用户、身份映射各在哪里生效 |
+| 32～35：亲眼验证权限         | 不同账号能看到什么，不能看到什么                    |
+| 36～38：Agent 绑定与预检     | 实际用户/数据集 ID 如何接回代码，何时可以启动       |
+| 39～43：问数、历史与撤权     | 问题怎样成为结果，权限变化时旧结果如何处理          |
+| 44～45：验收与讲解           | 如何有证据地说明系统能力和边界                      |
 
 本机仍保留手工学习标记。不要为了省事执行 `superset:setup`，否则就失去了亲手配置每个环节的过程。已有 `SUPERSET_SETUP.md` 描述完整自动化实现；本手册是实际操作顺序。
 
@@ -732,12 +734,14 @@ security_barrier=true 是安全屏障视图选项，约束某些外层条件下�
 
 下面的 shell 命令在**电脑终端**执行，不是在 `hr_v2=#` 后输入。若仍停在 psql，先输入 `\q` 退出。SQL 则在 psql 执行；页面步骤在 Superset 中执行。
 
+在终端打开项目根目录（包含 `package.json` 的目录），后续文件路径均相对于该目录。先用 `docker context ls` 确认目标引擎，再设置：
+
 ```bash
-cd /Users/fengjikui/Documents/dev-coding/codex_build/Smart_hr_database
-export DOCKER_HOST=unix://$HOME/.colima/hr-superset/docker.sock
+export HR_DOCKER_HOST="${HR_DOCKER_HOST:-${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}}"
+export DOCKER_HOST="$HR_DOCKER_HOST"
 ```
 
-`export` 让本终端后续 Docker 命令沿用同一引擎地址；换了终端需重新设置。在另一台 Linux 服务器上，地址和容器名按实际环境调整，不照抄这个 Mac 路径。
+`export` 让本终端后续 Docker 命令沿用同一引擎地址；换了终端需重新设置。`HR_DOCKER_HOST` 供项目脚本读取，`DOCKER_HOST` 供手工 Docker 命令读取，两者应指向同一引擎。容器名按实际部署调整。
 
 以后需要回到 SQL 时执行：
 
@@ -761,13 +765,13 @@ uv run python integrations/superset/learning.py prepare
 
 它读取保留的 `fixtures.json`，验证指纹，生成本机文件：
 
-| 文件（均在 `integrations/superset/.local/application/` 下） | 用途 |
-|---|---|
-| `learning/22_import.sql` | 完整人员、五种角色策略、快照说明、字段注释和索引 |
-| `learning/23_views.sql` | 两个人员出口与两个事件出口视图 |
-| `learning/24_access.sql` | 两个 PostgreSQL 只读账号及权限，包含本机密码 |
-| `credentials.json` | 手工创建 Superset 用户时使用的登录密码 |
-| `database-credentials.json` | 配置数据库连接时使用的数据库密码 |
+| 文件（均在`integrations/superset/.local/application/` 下） | 用途                                             |
+| ------------------------------------------------------------ | ------------------------------------------------ |
+| `learning/22_import.sql`                                   | 完整人员、五种角色策略、快照说明、字段注释和索引 |
+| `learning/23_views.sql`                                    | 两个人员出口与两个事件出口视图                   |
+| `learning/24_access.sql`                                   | 两个 PostgreSQL 只读账号及权限，包含本机密码     |
+| `credentials.json`                                         | 手工创建 Superset 用户时使用的登录密码           |
+| `database-credentials.json`                                | 配置数据库连接时使用的数据库密码                 |
 
 这些文件全部在 Git 忽略目录，SQL 为 0600，目录为 0700。不要把内容提交、发到聊天或截图展示密码。此命令不会创建 Superset 用户，不执行 SQL，不取消学习标记。
 
@@ -902,15 +906,15 @@ WHERE table_schema='v2_api' AND table_name='people_public'
 
 关键指令的作用：
 
-| SQL | 含义 |
-|---|---|
-| CREATE ROLE ... LOGIN PASSWORD ... | 创建能连接数据库的账号 |
-| REVOKE ALL ON DATABASE hr_v2 FROM PUBLIC | 撤回默认所有角色组在该库的权限；PUBLIC 不是我们 public 字段组 |
-| GRANT CONNECT ON DATABASE ... | 允许连接这一个数据库 |
-| GRANT USAGE ON SCHEMA v2_api ... | 允许使用这个命名空间，仍需对象权限 |
-| GRANT SELECT ON 指定视图 ... | 允许读取明确列出的出口 |
-| ALTER ROLE ... default_transaction_read_only=on | 默认事务只读；不是代替 GRANT 的安全边界 |
-| statement_timeout='10s' | 限制该账号的查询时长 |
+| SQL                                             | 含义                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| CREATE ROLE ... LOGIN PASSWORD ...              | 创建能连接数据库的账号                                        |
+| REVOKE ALL ON DATABASE hr_v2 FROM PUBLIC        | 撤回默认所有角色组在该库的权限；PUBLIC 不是我们 public 字段组 |
+| GRANT CONNECT ON DATABASE ...                   | 允许连接这一个数据库                                          |
+| GRANT USAGE ON SCHEMA v2_api ...                | 允许使用这个命名空间，仍需对象权限                            |
+| GRANT SELECT ON 指定视图 ...                    | 允许读取明确列出的出口                                        |
+| ALTER ROLE ... default_transaction_read_only=on | 默认事务只读；不是代替 GRANT 的安全边界                       |
+| statement_timeout='10s'                         | 限制该账号的查询时长                                          |
 
 电脑终端执行一次：
 
@@ -970,20 +974,27 @@ SELECT * FROM v2_api.people_contract LIMIT 1;
 
 进入 Settings → Database Connections → + Database，选择 PostgreSQL。创建下面两条：
 
-| 表单项 | 第一条 | 第二条 |
-|---|---|---|
-| Display name | V2_public | V2_contract |
-| Host | postgres | postgres |
-| Port | 5432 | 5432 |
-| Database name | hr_v2 | hr_v2 |
-| Username | v2_public_reader | v2_contract_reader |
-| Password | 本机 public 连接密码 | 本机 contract 连接密码 |
+| 表单项        | 第一条               | 第二条                 |
+| ------------- | -------------------- | ---------------------- |
+| Display name  | V2_public            | V2_contract            |
+| Host          | postgres             | postgres               |
+| Port          | 5432                 | 5432                   |
+| Database name | hr_v2                | hr_v2                  |
+| Username      | v2_public_reader     | v2_contract_reader     |
+| Password      | 本机 public 连接密码 | 本机 contract 连接密码 |
 
 因为连接由 Superset 容器发起，所以 Host 是同一 Compose 网络的服务名 postgres。不能填它自己的 127.0.0.1，也不使用电脑对外映射的 55432。
 
 测试连接、保存。若界面使用 SQLAlchemy URI，格式为 `postgresql+psycopg2://用户名:密码@postgres:5432/hr_v2`；不要把真实连接串贴进公共文档。生成的十六进制密码无需特殊 URL 转义。
 
-在 Advanced 中核对：Expose database in SQL Lab、Allow DML、CTAS、CVAS、Asynchronous query execution 均关闭（文字大小写可能不同）。保存后列表应出现两条连接。
+在连接向导最后一步或编辑连接的 Advanced 页面中核对（当前使用 Superset 6.1.0）：
+
+- **SQL Lab**：取消勾选 `Expose database in SQL Lab`。关闭后，`Allow CREATE TABLE AS`（CTAS）、`Allow CREATE VIEW AS`（CVAS）、`Allow DDL and DML` 会被隐藏；不必为了寻找它们而开启 SQL Lab。
+- 隐藏不等于清空原有设置。如果修改的是以前开启过这些功能的连接，还需核对保存配置中的 `allow_ctas`、`allow_cvas`、`allow_dml` 均为 `false`。本次新建公共连接已只读核对这三项为 `false`。
+- **Performance**：展开此栏目，确认 `Asynchronous query execution` 未勾选；它不在 SQL Lab 栏目内。
+- 点击向导底部 **Finish**（编辑页为保存按钮），才能保存最后修改的开关。表单已取消勾选不代表后台配置已经更新。
+
+界面显示条件可对照 [Superset 6.1.0 官方 ExtraOptions 源码](https://github.com/apache/superset/blob/6.1.0/superset-frontend/src/features/databases/DatabaseModal/ExtraOptions.tsx)。两个连接都完成后，列表应出现两条连接；分步学习时先完成公共连接，再配置合同连接。
 
 这一步只告诉 Superset“如何连接”，尚未向业务用户开放任何数据。
 
@@ -993,11 +1004,11 @@ SELECT * FROM v2_api.people_contract LIMIT 1;
 
 进入 Data → Datasets → + Dataset。每次选择已有连接、Schema `v2_api`、Table，再添加一个：
 
-| 数据集/视图名 | 连接 |
-|---|---|
-| people_public | V2_public |
-| events_public | V2_public |
-| context | V2_public |
+| 数据集/视图名   | 连接        |
+| --------------- | ----------- |
+| people_public   | V2_public   |
+| events_public   | V2_public   |
+| context         | V2_public   |
 | people_contract | V2_contract |
 | events_contract | V2_contract |
 
@@ -1017,13 +1028,13 @@ uv run python integrations/superset/learning.py inventory
 
 ## 第 28 步：先配置三条 RLS
 
-进入 Settings → Row Level Security，或 <http://127.0.0.1:8088/rowlevelsecurity/list/>，点新增。逐条创建：
+进入 Settings → Row Level Security，或 [http://127.0.0.1:8088/rowlevelsecurity/list/](http://127.0.0.1:8088/rowlevelsecurity/list/)，点新增。逐条创建：
 
-| Name | Datasets | Clause |
-|---|---|---|
-| V2_scope_public | people_public、events_public | `_viewer_id = {{ current_user_id() }}` |
-| V2_scope_contract | people_contract、events_contract | `_viewer_id = {{ current_user_id() }}` |
-| V2_context_scope | context | `superset_user_id = {{ current_user_id() }}` |
+| Name              | Datasets                         | Clause                                         |
+| ----------------- | -------------------------------- | ---------------------------------------------- |
+| V2_scope_public   | people_public、events_public     | `_viewer_id = {{ current_user_id() }}`       |
+| V2_scope_contract | people_contract、events_contract | `_viewer_id = {{ current_user_id() }}`       |
+| V2_context_scope  | context                          | `superset_user_id = {{ current_user_id() }}` |
 
 三条的其他设置完全相同：**Filter Type=Base；Roles 留空；Group Key 留空**。保存后逐条打开复核数据集绑定，避免同名视图绑定到错误连接。
 
@@ -1046,18 +1057,18 @@ uv run python integrations/superset/learning.py inventory
 
 ## 第 29 步：创建八个 Superset 自定义角色
 
-打开 <http://127.0.0.1:8088/roles/list/>（经典角色页）。每次 + 新建，填写名称、选择 Permissions、保存。
+打开 [http://127.0.0.1:8088/roles/list/](http://127.0.0.1:8088/roles/list/)（经典角色页）。每次 + 新建，填写名称、选择 Permissions、保存。
 
-| 角色名 | 需要添加的权限 |
-|---|---|
-| V2_Data_public | people_public、events_public 的 datasource_access |
+| 角色名           | 需要添加的权限                                        |
+| ---------------- | ----------------------------------------------------- |
+| V2_Data_public   | people_public、events_public 的 datasource_access     |
 | V2_Data_contract | people_contract、events_contract 的 datasource_access |
-| V2_Context | context 的 datasource_access |
-| V2_Role_hr_lead | 不添加权限，仅业务标签 |
-| V2_Role_hrbp | 同上 |
-| V2_Role_manager | 同上 |
-| V2_Role_employee | 同上 |
-| V2_Role_admin | 同上 |
+| V2_Context       | context 的 datasource_access                          |
+| V2_Role_hr_lead  | 不添加权限，仅业务标签                                |
+| V2_Role_hrbp     | 同上                                                  |
+| V2_Role_manager  | 同上                                                  |
+| V2_Role_employee | 同上                                                  |
+| V2_Role_admin    | 同上                                                  |
 
 Permissions 搜索表名，选 `datasource access on ...`（后台名 datasource_access）；若出现多个同名结果，按第 27 步 inventory.json 中 permission 的完整名称核对连接和 ID。不要选择 database_access、all_datasource_access、all_database_access 或 SQL Lab 权限。
 
@@ -1069,18 +1080,18 @@ Permissions 搜索表名，选 `datasource access on ...`（后台名 datasource
 
 ## 第 30 步：手工创建六个业务/反例账号
 
-进入 Settings → Security → List Users（经典入口通常为 <http://127.0.0.1:8088/users/list/>），新增用户。技术管理员 v2_setup_admin 已保留，不再新建。
+进入 Settings → Security → List Users（经典入口通常为 [http://127.0.0.1:8088/users/list/](http://127.0.0.1:8088/users/list/)），新增用户。技术管理员 v2_setup_admin 已保留，不再新建。
 
 每个账号填写 Username、First name、Last name、Email、Active、Roles、Password、Confirm password。姓名可填表内显示名，Email 用 `用户名@example.invalid`，Active 勾选。Password 使用 prepare 生成的 credentials.json 中对应账号的值，Confirm password 填相同值。它是由本机随机种子稳定派生的专用密码，**不是统一共享密码**。
 
-| Username | 显示身份 | Roles |
-|---|---|---|
-| v2_hr_lead | 王承哲 | Gamma、V2_Data_public、V2_Context、V2_Role_hr_lead、V2_Data_contract |
-| v2_hrbp | 姜姜 | Gamma、V2_Data_public、V2_Context、V2_Role_hrbp、V2_Data_contract |
-| v2_manager | 王灏 | Gamma、V2_Data_public、V2_Context、V2_Role_manager |
-| v2_employee | 冯基魁 | Gamma、V2_Data_public、V2_Context、V2_Role_employee |
-| v2_admin | 集团管理线 | Gamma、V2_Data_public、V2_Context、V2_Role_admin、V2_Data_contract |
-| v2_unmapped | 未映射反例 | Gamma、V2_Data_public、V2_Context |
+| Username    | 显示身份   | Roles                                                                |
+| ----------- | ---------- | -------------------------------------------------------------------- |
+| v2_hr_lead  | 王承哲     | Gamma、V2_Data_public、V2_Context、V2_Role_hr_lead、V2_Data_contract |
+| v2_hrbp     | 姜姜       | Gamma、V2_Data_public、V2_Context、V2_Role_hrbp、V2_Data_contract    |
+| v2_manager  | 王灏       | Gamma、V2_Data_public、V2_Context、V2_Role_manager                   |
+| v2_employee | 冯基魁     | Gamma、V2_Data_public、V2_Context、V2_Role_employee                  |
+| v2_admin    | 集团管理线 | Gamma、V2_Data_public、V2_Context、V2_Role_admin、V2_Data_contract   |
+| v2_unmapped | 未映射反例 | Gamma、V2_Data_public、V2_Context                                    |
 
 特别检查 v2_admin **没有** Superset Admin；它只是业务身份。业务用户也不能带 Alpha 或 sql_lab。
 
@@ -1100,13 +1111,13 @@ uv run python integrations/superset/learning.py mapping
 
 它只读 Superset 的用户 ID，生成 `.local/application/learning/31_identity.sql`，**不会执行 INSERT**。打开文件，逐行核对：
 
-| username | persona_id | person_id | role_key |
-|---|---|---|---|
-| v2_hr_lead | hr_lead | P0002 | hr_lead |
-| v2_hrbp | hrbp | P0003 | hrbp |
-| v2_manager | manager | P0004 | manager |
-| v2_employee | employee | P0005 | employee |
-| v2_admin | admin | P0001 | admin |
+| username    | persona_id | person_id | role_key |
+| ----------- | ---------- | --------- | -------- |
+| v2_hr_lead  | hr_lead    | P0002     | hr_lead  |
+| v2_hrbp     | hrbp       | P0003     | hrbp     |
+| v2_manager  | manager    | P0004     | manager  |
+| v2_employee | employee   | P0005     | employee |
+| v2_admin    | admin      | P0001     | admin    |
 
 每行最前面的数字是本次新建 Superset 用户的真实 ID。不要给 v2_unmapped 或 v2_setup_admin 插入映射。未映射反例就是为了证明“有数据集访问权但没有业务映射”仍看不到人。
 
@@ -1143,13 +1154,13 @@ GROUP BY i.username
 ORDER BY i.username;
 ```
 
-| username | 预期候选人数 |
-|---|---:|
-| v2_admin | 300 |
-| v2_employee | 1 |
-| v2_hr_lead | 239 |
-| v2_hrbp | 239 |
-| v2_manager | 179 |
+| username    | 预期候选人数 |
+| ----------- | -----------: |
+| v2_admin    |          300 |
+| v2_employee |            1 |
+| v2_hr_lead  |          239 |
+| v2_hrbp     |          239 |
+| v2_manager  |          179 |
 
 这只是核对业务关系计算，还没证明 Superset 选对当前身份。所有数字都基于原固定样本；如果你改过人员或策略，先恢复再按这些数验收。
 
@@ -1278,7 +1289,7 @@ cp integrations/superset/.local/application/learning/manual-learning.saved.json 
 npm run demo
 ```
 
-保持终端运行，打开 <http://127.0.0.1:3000/>。端口已被占用时先确认是谁在用，不重复启动。不要切换 demo:offline 来掩盖 Superset 错误。
+保持终端运行，打开 [http://127.0.0.1:3000/](http://127.0.0.1:3000/)。端口已被占用时先确认是谁在用，不重复启动。不要切换 demo:offline 来掩盖 Superset 错误。
 
 检查页面左下角“权限与模型状态”：应表明 Superset 权限、PostgreSQL 查询；选择业务身份后有对应的在职可见人数。此身份选择器只用于演示，不是生产 SSO。
 
@@ -1304,17 +1315,17 @@ npm run demo
 
 打开本次结果的节点调试入口（独立 `/debug?run=...` 页面）。一次只看一行：
 
-| 节点/代码 | 你需要看到的证据 |
-|---|---|
-| routes.py / 应用会话 | 本轮 persona 是 manager，不是由问题文本指定 |
-| graph.authorize | 当前身份、权限指纹，以及是否继承本人有效历史 |
-| graph.discover / registry.py | 允许字段和指标目录、部门候选、披露的定义 |
-| 模型生成计划 | 原始模型输入、候选 JSON Plan，不是任意 SQL |
-| 明确条件绑定（如出现） | 程序是否修正了原始模型条件；不能把修正结果宣称为模型原生全对 |
-| 结构、口径与字段权限校验 | 字段、范围、日期、问题条件是否通过 |
-| 重新鉴权与只读 SQL 执行 | 真实 SQL、结果、执行后端；应出现当前用户 RLS |
-| 结果组织 | 数字来自实际结果单元格，再按确定性模板组织说明 |
-| service.save_run | 当前用户和权限/数据指纹绑定的历史与 trace |
+| 节点/代码                    | 你需要看到的证据                                             |
+| ---------------------------- | ------------------------------------------------------------ |
+| routes.py / 应用会话         | 本轮 persona 是 manager，不是由问题文本指定                  |
+| graph.authorize              | 当前身份、权限指纹，以及是否继承本人有效历史                 |
+| graph.discover / registry.py | 允许字段和指标目录、部门候选、披露的定义                     |
+| 模型生成计划                 | 原始模型输入、候选 JSON Plan，不是任意 SQL                   |
+| 明确条件绑定（如出现）       | 程序是否修正了原始模型条件；不能把修正结果宣称为模型原生全对 |
+| 结构、口径与字段权限校验     | 字段、范围、日期、问题条件是否通过                           |
+| 重新鉴权与只读 SQL 执行      | 真实 SQL、结果、执行后端；应出现当前用户 RLS                 |
+| 结果组织                     | 数字来自实际结果单元格，再按确定性模板组织说明               |
+| service.save_run             | 当前用户和权限/数据指纹绑定的历史与 trace                    |
 
 可以把整条流程读成：**问题→授权目录→模型 Plan→程序校验→Chart Data 请求→Superset 注入 RLS→PostgreSQL 查询→结果说明与历史。**
 
@@ -1405,34 +1416,34 @@ npm run test:model -- --cases HR-01
 
 最后用这个表做讲解提纲：
 
-| 责任 | 实际位置 |
-|---|---|
-| 业务事实及关系 | PostgreSQL people |
-| 可配置的业务开关 | role_policy；角色绑定在 identity_map |
-| 递归和 HRBP 授权计算 | management_closure、visible_people 等 SQL 视图 |
-| 当前用户行隔离 | Superset 数据集 Base RLS |
-| 基础/合同列与数据库对象边界 | 不同出口视图、只读账号 GRANT、数据集角色 |
-| 问题理解与口径 | LangGraph、字段指标目录、结构化 Plan 校验 |
-| 结果与审计 | SQL 真实结果、自然语言模板、本人历史和节点 trace |
+| 责任                        | 实际位置                                         |
+| --------------------------- | ------------------------------------------------ |
+| 业务事实及关系              | PostgreSQL people                                |
+| 可配置的业务开关            | role_policy；角色绑定在 identity_map             |
+| 递归和 HRBP 授权计算        | management_closure、visible_people 等 SQL 视图   |
+| 当前用户行隔离              | Superset 数据集 Base RLS                         |
+| 基础/合同列与数据库对象边界 | 不同出口视图、只读账号 GRANT、数据集角色         |
+| 问题理解与口径              | LangGraph、字段指标目录、结构化 Plan 校验        |
+| 结果与审计                  | SQL 真实结果、自然语言模板、本人历史和节点 trace |
 
 生产动态数据、账号生命周期、OpenFGA 替代哪些部分，继续保留在学习记录 Q1～Q3。完成本轮后再讨论，会有具体对象和证据作为基础。
 
 ## 常见卡点：先定位，不用自动初始化“修好”
 
-| 现象 | 先检查 |
-|---|---|
+| 现象                              | 先检查                                                          |
+| --------------------------------- | --------------------------------------------------------------- |
 | psql 提示 relation does not exist | SELECT current_database()，检查 schema/视图名及是否执行前置步骤 |
-| INSERT 主键/唯一键冲突 | 是否重复执行；先查询已有记录，不随意删用户或猜 ID |
-| 连接 postgres 失败 | Superset 容器用 postgres:5432，电脑客户端用 127.0.0.1:55432 |
-| 设置了 schema USAGE 仍不能查询 | 还需具体视图的 SELECT 权限 |
-| context 为 0 行 | identity_map 是否匹配人员与策略，snapshot 是否恰好一行 |
-| 所有人看到相同数据或重复人员 | RLS 是否选对数据集、Base 是否存在豁免、是否管理员会话 |
-| HR 看不到合同字段 | 数据集角色与策略 contract 两边都查；公共出口本来无合同列 |
-| Agent 提示仍在手工重建 | 是否完成核验后才移除了正确目录的 manual-learning.json |
-| Agent 登录失败 | credentials.json 与 UI 手填密码是否一致，账号是否 Active |
-| 业务策略变了但 Superset 标签没变 | 二者不是同一配置来源，标签不会自动同步业务策略 |
-| 数据库查询正常但问数失败 | 看模型连接、Plan 与条件校验；不要用管理员查询替代用户执行 |
-| 子查询/SQL Lab 报拒绝 | 本方案不向业务用户开放自由 SQL，不通过放大权限解决 |
+| INSERT 主键/唯一键冲突            | 是否重复执行；先查询已有记录，不随意删用户或猜 ID               |
+| 连接 postgres 失败                | Superset 容器用 postgres:5432，电脑客户端用 127.0.0.1:55432     |
+| 设置了 schema USAGE 仍不能查询    | 还需具体视图的 SELECT 权限                                      |
+| context 为 0 行                   | identity_map 是否匹配人员与策略，snapshot 是否恰好一行          |
+| 所有人看到相同数据或重复人员      | RLS 是否选对数据集、Base 是否存在豁免、是否管理员会话           |
+| HR 看不到合同字段                 | 数据集角色与策略 contract 两边都查；公共出口本来无合同列        |
+| Agent 提示仍在手工重建            | 是否完成核验后才移除了正确目录的 manual-learning.json           |
+| Agent 登录失败                    | credentials.json 与 UI 手填密码是否一致，账号是否 Active        |
+| 业务策略变了但 Superset 标签没变  | 二者不是同一配置来源，标签不会自动同步业务策略                  |
+| 数据库查询正常但问数失败          | 看模型连接、Plan 与条件校验；不要用管理员查询替代用户执行       |
+| 子查询/SQL Lab 报拒绝             | 本方案不向业务用户开放自由 SQL，不通过放大权限解决              |
 
 ## 辅助工具说明与验证范围
 
@@ -1448,10 +1459,9 @@ npm run test:model -- --cases HR-01
 - Superset 6.1.0 的角色与访问控制：[Security](https://superset.apache.org/admin-docs/6.1.0/security/)。
 - 当前用户模板：[SQL Templating](https://superset.apache.org/admin-docs/6.1.0/configuration/sql-templating/)。
 
-
 ## 学习期间的启动约束
 
-本机标记文件 `integrations/superset/.local/application/manual-learning.json` 表示正在手工学习。现在工作台已停止，Superset 仍可从 <http://127.0.0.1:8088/> 登录。
+本机标记文件 `integrations/superset/.local/application/manual-learning.json` 表示正在手工学习。现在工作台已停止，Superset 仍可从 [http://127.0.0.1:8088/](http://127.0.0.1:8088/) 登录。
 
 - `npm run superset:up`、`npm run superset:setup`、`sync-data` 和容器自动初始化会被阻止，避免一键补回所有对象。
 - `npm run demo` / `demo:production` / `demo:offline` 也暂时阻止启动，避免拿离线数据或旧界面误认为重建已经成功。
